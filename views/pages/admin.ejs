@@ -1,0 +1,518 @@
+        <div class="admin-page">
+          <h2 class="admin-page__title">Администрирование</h2>
+          
+          <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="type-selection">Выбор типа задания</button>
+            <button class="admin-tab" data-tab="assignments" style="display: none;">Задания</button>
+            <button class="admin-tab" data-tab="subtopics" style="display: none;">Темы</button>
+          </div>
+
+          <!-- Выбор типа задания -->
+          <div id="type-selection-tab" class="admin-tab-content active">
+            <div class="admin-section">
+              <h3>Управление типами заданий</h3>
+              
+              <!-- Форма редактирования типа задания -->
+              <div id="edit-task-type-form" class="admin-form" style="display: none;">
+                <h4>Редактировать тип задания</h4>
+                <form id="task-type-form">
+                  <input type="hidden" id="task-type-id" name="id" value="">
+                  <div class="form-group">
+                    <label for="task-type-title">Название:</label>
+                    <input type="text" id="task-type-title" name="title" placeholder="Название типа задания" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="task-type-description">Описание:</label>
+                    <textarea id="task-type-description" name="description" rows="2" placeholder="Описание типа задания"></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label for="task-type-form-config">Конфигурация формы (JSON):</label>
+                    <textarea id="task-type-form-config" name="form_config" rows="3" placeholder='{"fields": ["prompt", "context", "answer"]}'></textarea>
+                  </div>
+                  <div class="form-actions">
+                    <button type="submit" class="btn">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelEditTaskType()">Отмена</button>
+                  </div>
+                </form>
+              </div>
+              
+              <div class="task-types-grid" id="task-types-grid">
+                <p>Загрузка типов заданий...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Управление темами -->
+          <div id="subtopics-tab" class="admin-tab-content">
+            <div class="admin-section">
+              <h3>Добавить тему для типа задания</h3>
+              <form id="add-subtopic-form" class="admin-form">
+                <input type="hidden" id="subtopic-type" name="type_id" value="">
+                <div class="form-group">
+                  <label for="subtopic-title">Название темы:</label>
+                  <input type="text" id="subtopic-title" name="title" placeholder="Название темы" required>
+                </div>
+                <div class="form-group">
+                  <label for="subtopic-order">Порядок отображения:</label>
+                  <input type="number" id="subtopic-order" name="order_index" placeholder="0" value="0">
+                </div>
+                <button type="submit" class="btn">Добавить тему</button>
+              </form>
+            </div>
+        
+            <div class="admin-section">
+              <h3>Существующие темы</h3>
+              <div id="subtopics-list" class="admin-list">
+                <!-- Темы будут загружены через JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Управление заданиями -->
+          <div id="assignments-tab" class="admin-tab-content">
+            <div class="admin-section">
+              <h3 id="assignment-type-title">Добавить новое задание</h3>
+              <form id="add-assignment-form" class="admin-form">
+                <input type="hidden" id="assignment-id" name="id" value="">
+                <div class="form-group">
+                  <label for="assignment-fipi-number">Номер ФИПИ (необязательно):</label>
+                  <input type="text" id="assignment-fipi-number" name="fipi_number" placeholder="12345">
+                </div>
+                <div class="form-group">
+                  <label for="assignment-source">Источник:</label>
+                  <select id="assignment-source" name="source" required>
+                    <option value="">Выберите источник</option>
+                    <option value="ФИПИ">ФИПИ</option>
+                    <option value="Другой источник">Другой источник</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="assignment-prompt">Условие задания:</label>
+                  <textarea id="assignment-prompt" name="prompt" rows="3" placeholder="Самостоятельно подберите личное местоимение..." required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="assignment-subtopic">Тема (необязательно):</label>
+                  <select id="assignment-subtopic" name="subtopic_id">
+                    <option value="">Без темы</option>
+                    <!-- Опции будут загружены через JavaScript -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="assignment-context">Контекст (текст для задания):</label>
+                  <textarea id="assignment-context" name="context" rows="5" placeholder="Россия — огромная страна..."></textarea>
+                </div>
+        <div class="form-group">
+          <label for="assignment-answer">Правильный ответ:</label>
+          <input type="text" id="assignment-answer" name="answer" placeholder="него" required>
+        </div>
+        <div class="form-group">
+          <label for="assignment-explanation">Объяснение (необязательно):</label>
+          <textarea id="assignment-explanation" name="explanation" rows="3" placeholder="Объяснение правила..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="assignment-rule-ref">Ссылка на правило (необязательно):</label>
+          <input type="text" id="assignment-rule-ref" name="rule_ref" placeholder="§ 15.2">
+        </div>
+        <div class="form-group">
+          <label for="assignment-alt-answers">Дополнительные ответы (через запятую):</label>
+          <input type="text" id="assignment-alt-answers" name="alt_answers" placeholder="его, её, их">
+        </div>
+        <button type="submit" class="btn">Добавить задание</button>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h3>Существующие задания</h3>
+      <div id="assignments-list" class="admin-list">
+        <!-- Задания будут загружены через JavaScript -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Переключение вкладок
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+      
+      tab.classList.add('active');
+      document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+      
+      // Загружаем данные для активной вкладки
+      loadTabData(tab.dataset.tab);
+    });
+  });
+
+          // Загрузка данных для вкладки
+          async function loadTabData(tab) {
+            if (tab === 'type-selection') {
+              await loadTaskTypes();
+            } else if (tab === 'subtopics') {
+              await loadSubtopics();
+            } else if (tab === 'assignments') {
+              await loadAssignments();
+              await loadSubtopicsForSelect('#assignment-subtopic');
+            }
+          }
+
+  // Загрузка типов заданий
+  async function loadTaskTypes() {
+    try {
+      const response = await fetch('/api/admin/task-types');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const taskTypes = await response.json();
+      
+      const grid = document.getElementById('task-types-grid');
+      if (taskTypes.length === 0) {
+        grid.innerHTML = '<p>Типы заданий не найдены</p>';
+        return;
+      }
+      
+      grid.innerHTML = taskTypes.map(type => `
+        <div class="task-type-card" data-type-id="${type.id}">
+          <div class="task-type-content" onclick="selectTaskType(${type.id}, '${type.title}')">
+            <div class="task-type-number">${type.id}</div>
+            <div class="task-type-title">${type.title}</div>
+            <div class="task-type-description">${type.description}</div>
+          </div>
+          <div class="task-type-actions">
+            <button class="btn btn-sm btn-secondary" onclick="editTaskType(${type.id})">Редактировать</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Ошибка загрузки типов заданий:', error);
+      const grid = document.getElementById('task-types-grid');
+      grid.innerHTML = '<p style="color: red;">Ошибка загрузки типов заданий. Проверьте консоль.</p>';
+    }
+  }
+
+          // Выбор типа задания
+          function selectTaskType(typeId, typeTitle) {
+            // Сохраняем выбранный тип
+            window.selectedTaskType = { id: typeId, title: typeTitle };
+            
+            // Показываем вкладки для работы с этим типом
+            document.querySelector('[data-tab="assignments"]').style.display = 'block';
+            document.querySelector('[data-tab="subtopics"]').style.display = 'block';
+            
+            // Переключаемся на вкладку тем (сначала создаем темы)
+            document.querySelector('[data-tab="subtopics"]').click();
+            
+            // Устанавливаем type_id для формы тем
+            document.getElementById('subtopic-type').value = typeId;
+            
+            // Обновляем заголовок для заданий
+            document.getElementById('assignment-type-title').textContent = `Добавить задание для типа ${typeId}: ${typeTitle}`;
+            document.getElementById('assignment-type').value = typeId;
+          }
+
+  // Загрузка тем
+  async function loadSubtopics() {
+    try {
+      const typeId = window.selectedTaskType ? window.selectedTaskType.id : null;
+      const url = typeId ? `/api/admin/subtopics?typeId=${typeId}` : '/api/admin/subtopics';
+      
+      const response = await fetch(url);
+      const subtopics = await response.json();
+      
+      const list = document.getElementById('subtopics-list');
+      list.innerHTML = subtopics.map(subtopic => `
+        <div class="admin-item">
+          <div class="item-info">
+            <strong>${subtopic.title}</strong> (Тип: ${subtopic.type_title}) - Порядок: ${subtopic.order_index}
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubtopic(${subtopic.id})">Удалить</button>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Ошибка загрузки тем:', error);
+    }
+  }
+
+  // Загрузка заданий
+  async function loadAssignments() {
+    try {
+      const typeId = window.selectedTaskType ? window.selectedTaskType.id : null;
+      const url = typeId ? `/api/admin/assignments?typeId=${typeId}` : '/api/admin/assignments';
+      
+      const response = await fetch(url);
+      const assignments = await response.json();
+      
+      const list = document.getElementById('assignments-list');
+      list.innerHTML = assignments.map(assignment => `
+        <div class="admin-item">
+          <div class="item-info">
+            <strong>ID ${assignment.id}:</strong> ${assignment.source} ${assignment.fipi_number ? `(ФИПИ №${assignment.fipi_number})` : ''}
+            ${assignment.subtopic_title ? `<br><small>Тема: ${assignment.subtopic_title}</small>` : ''}
+            <br><small>Условие: ${assignment.prompt.substring(0, 100)}...</small>
+            <br><small>Ответ: ${assignment.answer}</small>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editAssignment(${assignment.id})">Редактировать</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAssignment(${assignment.id})">Удалить</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Ошибка загрузки заданий:', error);
+    }
+  }
+
+  // Загрузка тем для селекта
+  async function loadSubtopicsForSelect(selector) {
+    try {
+      const typeId = window.selectedTaskType ? window.selectedTaskType.id : null;
+      const url = typeId ? `/api/admin/subtopics?typeId=${typeId}` : '/api/admin/subtopics';
+      
+      const response = await fetch(url);
+      const subtopics = await response.json();
+      
+      const select = document.querySelector(selector);
+      if (select) {
+        select.innerHTML = '<option value="">Без темы</option>' + 
+          subtopics.map(subtopic => 
+            `<option value="${subtopic.id}">${subtopic.title}</option>`
+          ).join('');
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки тем для селекта:', error);
+    }
+  }
+
+  // Загрузка типов заданий для селекта
+  async function loadTaskTypesForSelect(selector) {
+    try {
+      const response = await fetch('/api/admin/task-types');
+      const taskTypes = await response.json();
+      
+      const select = document.querySelector(selector);
+      if (select) {
+        select.innerHTML = '<option value="">Выберите тип задания</option>' + 
+          taskTypes.map(type => 
+            `<option value="${type.id}">Тип ${type.id}: ${type.title}</option>`
+          ).join('');
+      } else {
+        console.error('Селект не найден:', selector);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки типов заданий:', error);
+    }
+  }
+
+  // Загрузка заданий для селекта
+  async function loadAssignmentsForSelect(selector) {
+    try {
+      const response = await fetch('/api/admin/assignments');
+      const assignments = await response.json();
+      
+      const select = document.querySelector(selector);
+      if (select) {
+        select.innerHTML = '<option value="">Выберите задание</option>' + 
+          assignments.map(assignment => 
+            `<option value="${assignment.id}">${assignment.title}</option>`
+          ).join('');
+      } else {
+        console.error('Селект не найден:', selector);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки заданий:', error);
+    }
+  }
+
+  // Общая функция отправки формы
+  async function submitForm(form, endpoint, successMessage, reloadFunction) {
+    try {
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        alert(successMessage);
+        form.reset();
+        if (reloadFunction) reloadFunction();
+      } else {
+        alert('Ошибка сохранения');
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert('Ошибка сохранения');
+    }
+  }
+
+  // Обработчики форм
+  document.getElementById('add-subtopic-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await submitForm(e.target, '/api/admin/subtopics', 'Тема добавлена!', loadSubtopics);
+  });
+
+  document.getElementById('add-assignment-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    // Обрабатываем дополнительные ответы
+    if (data.alt_answers) {
+      data.alt_answers = data.alt_answers.split(',').map(s => s.trim()).filter(s => s);
+    }
+    
+    const isEdit = data.id && data.id !== '';
+    const url = isEdit ? `/api/admin/assignments/${data.id}` : '/api/admin/assignments';
+    const method = isEdit ? 'PUT' : 'POST';
+    const successMessage = isEdit ? 'Задание обновлено!' : 'Задание добавлено!';
+    
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        alert(successMessage);
+        e.target.reset();
+        document.getElementById('assignment-id').value = '';
+        resetFormToAddMode();
+        loadAssignments();
+      } else {
+        alert('Ошибка сохранения задания');
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert('Ошибка сохранения задания');
+    }
+  });
+
+  // Общая функция удаления
+  async function deleteItem(id, endpoint, successMessage, reloadFunction) {
+    if (confirm('Удалить?')) {
+      try {
+        const response = await fetch(endpoint, { method: 'DELETE' });
+        if (response.ok) {
+          alert(successMessage);
+          if (reloadFunction) reloadFunction();
+        } else {
+          alert('Ошибка удаления');
+        }
+      } catch (error) {
+        console.error('Ошибка удаления:', error);
+      }
+    }
+  }
+
+  // Функции удаления
+  window.deleteSubtopic = (id) => deleteItem(id, `/api/admin/subtopics/${id}`, 'Тема удалена!', loadSubtopics);
+  window.deleteAssignment = (id) => deleteItem(id, `/api/admin/assignments/${id}`, 'Задание удалено!', loadAssignments);
+
+  // Функция сброса формы к режиму добавления
+  function resetFormToAddMode() {
+    document.querySelector('#assignments-tab .admin-section h3').textContent = 'Добавить новое задание';
+    document.querySelector('#add-assignment-form button').textContent = 'Добавить задание';
+  }
+
+  // Функция редактирования задания
+  window.editAssignment = async function(id) {
+    try {
+      console.log('Редактируем задание:', id);
+      
+      // Загружаем данные задания
+      const response = await fetch(`/api/admin/assignments/${id}`);
+      const assignment = await response.json();
+      
+      console.log('Данные задания:', assignment);
+      
+      // Заполняем форму
+      document.getElementById('assignment-id').value = assignment.id;
+      document.getElementById('assignment-subtopic').value = assignment.subtopic_id;
+      document.getElementById('assignment-fipi-number').value = assignment.fipi_number || '';
+      document.getElementById('assignment-source').value = assignment.source || '';
+      document.getElementById('assignment-prompt').value = assignment.prompt;
+      document.getElementById('assignment-context').value = assignment.context || '';
+      document.getElementById('assignment-answer').value = assignment.answer;
+      document.getElementById('assignment-explanation').value = assignment.explanation || '';
+      document.getElementById('assignment-rule-ref').value = assignment.rule_ref || '';
+      document.getElementById('assignment-alt-answers').value = assignment.alt_answers ? assignment.alt_answers.join(', ') : '';
+      
+      // Прокручиваем к форме
+      document.getElementById('add-assignment-form').scrollIntoView({ behavior: 'smooth' });
+      
+      // Меняем заголовок и кнопку
+      document.querySelector('#assignments-tab .admin-section h3').textContent = 'Редактировать задание';
+      document.querySelector('#add-assignment-form button').textContent = 'Сохранить изменения';
+      
+    } catch (error) {
+      console.error('Ошибка загрузки задания для редактирования:', error);
+      alert('Ошибка загрузки задания');
+    }
+  }
+
+          // Функция редактирования типа задания
+          window.editTaskType = async function(id) {
+            try {
+              const response = await fetch(`/api/admin/task-types/${id}`);
+              const taskType = await response.json();
+              
+              // Заполняем форму
+              document.getElementById('task-type-id').value = taskType.id;
+              document.getElementById('task-type-title').value = taskType.title;
+              document.getElementById('task-type-description').value = taskType.description || '';
+              document.getElementById('task-type-form-config').value = taskType.form_config || '';
+              
+              // Показываем форму
+              document.getElementById('edit-task-type-form').style.display = 'block';
+              document.getElementById('task-type-form').scrollIntoView({ behavior: 'smooth' });
+              
+            } catch (error) {
+              console.error('Ошибка загрузки типа задания:', error);
+              alert('Ошибка загрузки типа задания');
+            }
+          };
+
+          // Функция отмены редактирования
+          window.cancelEditTaskType = function() {
+            document.getElementById('edit-task-type-form').style.display = 'none';
+            document.getElementById('task-type-form').reset();
+          };
+
+          // Обработчик формы редактирования типа задания
+          document.getElementById('task-type-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+              const formData = new FormData(e.target);
+              const data = Object.fromEntries(formData);
+              
+              const response = await fetch(`/api/admin/task-types/${data.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+              
+              if (response.ok) {
+                alert('Тип задания обновлен!');
+                document.getElementById('edit-task-type-form').style.display = 'none';
+                e.target.reset();
+                loadTaskTypes(); // Перезагружаем список
+              } else {
+                alert('Ошибка обновления типа задания');
+              }
+            } catch (error) {
+              console.error('Ошибка:', error);
+              alert('Ошибка обновления типа задания');
+            }
+          });
+
+          // Загружаем данные для активной вкладки при загрузке страницы
+          document.addEventListener('DOMContentLoaded', () => {
+            loadTabData('type-selection');
+          });
+</script>

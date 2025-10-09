@@ -1,0 +1,157 @@
+<div class="task-page">
+  <h2 class="task-page__title">Задания</h2>
+  
+  <div class="task-list" id="taskList">
+    <p>Загрузка заданий...</p>
+  </div>
+</div>
+
+<script>
+  (async function(){
+    const params = new URLSearchParams(location.search);
+    const subtopicId = params.get('subtopicId');
+
+    if (!subtopicId) {
+      document.getElementById('taskList').innerHTML = '<p>Не указана тема.</p>';
+      return;
+    }
+
+    let assignments;
+    try{
+      const res = await fetch(`/api/assignments?subtopicId=${subtopicId}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      assignments = await res.json();
+    }catch(err){
+      console.error('Failed to load assignments', err);
+      document.getElementById('taskList').innerHTML = '<p>Не удалось загрузить задания.</p>';
+      return;
+    }
+
+    if (assignments.length === 0) {
+      document.getElementById('taskList').innerHTML = '<p>В этой теме нет заданий.</p>';
+      return;
+    }
+
+    // Показываем все задания списком
+    const taskList = document.getElementById('taskList');
+    taskList.innerHTML = assignments.map((assignment, index) => `
+      <div class="task-card">
+        <div class="task-meta">
+          <span class="task-meta__number">№ ${index + 1}</span>
+          <span class="task-meta__source">
+            ${assignment.source || 'Источник не указан'}
+            ${assignment.fipi_number ? ` № ${assignment.fipi_number}` : ''}
+          </span>
+        </div>
+        
+        <div class="task-content">
+          <p class="task-prompt">${assignment.prompt || ''}</p>
+          
+          ${assignment.context ? `
+            <div class="task-text">
+              <button type="button" class="task-text__button" onclick="toggleText(${index})">Показать текст</button>
+              <div id="fullText-${index}" class="task-fulltext" style="display:none;">${assignment.context}</div>
+            </div>
+          ` : ''}
+          
+          <div class="task-controls">
+            <input class="task-input" id="answer-${assignment.id}" placeholder="Введите свой ответ" aria-label="Ответ"/>
+            <button class="task-send" onclick="submitAnswer(${assignment.id})">
+              <span>Отправить</span>
+            </button>
+            <button class="task-solution" onclick="showSolution(${assignment.id})">
+              <span>Решение</span>
+              <img src="/images/eye off.svg" alt="Глаз" width="16" height="16"/>
+            </button>
+            <button class="task-like">
+              <img src="/images/heart off.svg" alt="Лайк" width="16" height="16"/>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Блок с решением (скрыт по умолчанию) -->
+        <div id="solution-${assignment.id}" class="task-solution-block" style="display: none;">
+          <p id="solution-answer-${assignment.id}" class="solution-answer"></p>
+        </div>
+      </div>
+    `).join('');
+  })();
+
+  // Функция переключения текста
+  function toggleText(index) {
+    const fullText = document.getElementById(`fullText-${index}`);
+    const button = fullText.previousElementSibling;
+    
+    if (fullText.style.display === 'none') {
+      fullText.style.display = 'block';
+      button.textContent = 'Скрыть текст';
+    } else {
+      fullText.style.display = 'none';
+      button.textContent = 'Показать текст';
+    }
+  }
+
+  // Функция отправки ответа
+  async function submitAnswer(assignmentId) {
+    const input = document.getElementById(`answer-${assignmentId}`);
+    const button = input.nextElementSibling;
+    const userAnswer = input.value.trim();
+    
+    if (!userAnswer) {
+      input.classList.add('empty');
+      setTimeout(() => {
+        input.classList.remove('empty');
+      }, 500);
+      return;
+    }
+    
+    button.innerHTML = '<span>Отправка...</span>';
+    button.disabled = true;
+    
+    try {
+      const resp = await fetch('/api/check/by-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignmentId, userAnswer })
+      });
+      const data = await resp.json();
+      
+      if (data.ok) {
+        button.innerHTML = '<span>✓</span>';
+        button.style.background = '#bfd884';
+      } else {
+        button.innerHTML = '<span>✗</span>';
+        button.style.background = '#f6b462';
+      }
+    } catch (error) {
+      console.error('Ошибка при проверке ответа:', error);
+      button.innerHTML = '<span>Отправить</span>';
+      button.style.background = '#c3d4f0';
+      button.disabled = false;
+    }
+  }
+
+  // Функция показа решения
+  async function showSolution(assignmentId) {
+    const solutionBlock = document.getElementById(`solution-${assignmentId}`);
+    const button = solutionBlock.previousElementSibling.querySelector('.task-solution');
+    const eyeIcon = button.querySelector('img');
+    
+    if (solutionBlock.style.display === 'none') {
+      try {
+        const resp = await fetch(`/api/assignments/by-id/${assignmentId}`);
+        const assignment = await resp.json();
+        
+        document.getElementById(`solution-answer-${assignmentId}`).textContent = assignment.answer || 'Ответ не найден';
+        solutionBlock.style.display = 'block';
+        eyeIcon.src = '/images/eye on.svg';
+      } catch (error) {
+        console.error('Ошибка загрузки решения:', error);
+      }
+    } else {
+      solutionBlock.style.display = 'none';
+      eyeIcon.src = '/images/eye off.svg';
+    }
+  }
+</script>
+
