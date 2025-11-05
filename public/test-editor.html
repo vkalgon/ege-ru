@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Editor.js</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .editor-container {
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            background: white;
+            min-height: 200px;
+            margin: 20px 0;
+        }
+        button {
+            background: #3e5c91;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #2d4a7a;
+        }
+        #output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест Editor.js</h1>
+    
+    <div id="status">Загрузка Editor.js...</div>
+    
+    <div class="editor-container" id="editor"></div>
+    
+    <button onclick="saveData()">Сохранить данные</button>
+    <button onclick="loadData()">Загрузить тестовые данные</button>
+    <button onclick="clearEditor()">Очистить</button>
+    
+    <div id="output"></div>
+    
+    <!-- Editor.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.31.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.2"></script>
+    
+    <script>
+        let editor = null;
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+            console.log(message);
+        }
+        
+        function initEditor() {
+            try {
+                updateStatus('Инициализация Editor.js...');
+                
+                editor = new EditorJS({
+                    holder: 'editor',
+                    placeholder: 'Начните печатать...',
+                    tools: {
+                        header: {
+                            class: Header,
+                            config: {
+                                placeholder: 'Заголовок',
+                                levels: [1, 2, 3, 4, 5, 6],
+                                defaultLevel: 3
+                            }
+                        },
+                        list: {
+                            class: List,
+                            inlineToolbar: true,
+                            config: {
+                                defaultStyle: 'unordered'
+                            }
+                        },
+                        paragraph: {
+                            class: Paragraph,
+                            inlineToolbar: true
+                        },
+                        quote: {
+                            class: Quote,
+                            inlineToolbar: true,
+                            shortcut: 'CMD+SHIFT+O',
+                            config: {
+                                quotePlaceholder: 'Цитата',
+                                captionPlaceholder: 'Автор цитаты',
+                            }
+                        },
+                        code: {
+                            class: CodeTool,
+                            config: {
+                                placeholder: 'Введите код...'
+                            }
+                        },
+                        delimiter: Delimiter,
+                        marker: {
+                            class: Marker,
+                            shortcut: 'CMD+SHIFT+M'
+                        },
+                        inlineCode: {
+                            class: InlineCode,
+                            shortcut: 'CMD+SHIFT+C'
+                        }
+                    }
+                });
+                
+                updateStatus('Editor.js успешно инициализирован!');
+                
+            } catch (error) {
+                updateStatus('Ошибка инициализации Editor.js: ' + error.message);
+                console.error('Ошибка инициализации:', error);
+            }
+        }
+        
+        async function saveData() {
+            if (!editor) {
+                updateStatus('Editor.js не инициализирован');
+                return;
+            }
+            
+            try {
+                const outputData = await editor.save();
+                document.getElementById('output').textContent = JSON.stringify(outputData, null, 2);
+                updateStatus('Данные сохранены');
+            } catch (error) {
+                updateStatus('Ошибка сохранения: ' + error.message);
+                console.error('Ошибка сохранения:', error);
+            }
+        }
+        
+        function loadData() {
+            if (!editor) {
+                updateStatus('Editor.js не инициализирован');
+                return;
+            }
+            
+            const testData = {
+                time: Date.now(),
+                blocks: [
+                    {
+                        id: "test1",
+                        type: "header",
+                        data: {
+                            text: "Тестовый заголовок",
+                            level: 2
+                        }
+                    },
+                    {
+                        id: "test2",
+                        type: "paragraph",
+                        data: {
+                            text: "Это тестовый параграф с <strong>жирным</strong> и <em>курсивным</em> текстом."
+                        }
+                    },
+                    {
+                        id: "test3",
+                        type: "list",
+                        data: {
+                            style: "unordered",
+                            items: [
+                                "Первый элемент списка",
+                                "Второй элемент списка",
+                                "Третий элемент списка"
+                            ]
+                        }
+                    }
+                ]
+            };
+            
+            try {
+                editor.render(testData);
+                updateStatus('Тестовые данные загружены');
+            } catch (error) {
+                updateStatus('Ошибка загрузки данных: ' + error.message);
+                console.error('Ошибка загрузки:', error);
+            }
+        }
+        
+        function clearEditor() {
+            if (!editor) {
+                updateStatus('Editor.js не инициализирован');
+                return;
+            }
+            
+            try {
+                editor.clear();
+                updateStatus('Редактор очищен');
+            } catch (error) {
+                updateStatus('Ошибка очистки: ' + error.message);
+                console.error('Ошибка очистки:', error);
+            }
+        }
+        
+        // Проверяем загрузку Editor.js
+        window.addEventListener('load', () => {
+            updateStatus('Страница загружена, проверяем Editor.js...');
+            
+            let attempts = 0;
+            const maxAttempts = 25;
+            
+            const checkEditorJS = () => {
+                attempts++;
+                updateStatus(`Попытка ${attempts}/${maxAttempts}: Проверяем загрузку Editor.js...`);
+                
+                console.log('EditorJS:', typeof EditorJS);
+                console.log('Header:', typeof Header);
+                console.log('List:', typeof List);
+                console.log('Paragraph:', typeof Paragraph);
+                
+                if (typeof EditorJS !== 'undefined' && typeof Header !== 'undefined' && typeof Paragraph !== 'undefined') {
+                    initEditor();
+                    return;
+                }
+                
+                if (attempts < maxAttempts) {
+                    setTimeout(checkEditorJS, 200);
+                } else {
+                    updateStatus('Editor.js не загружен после 5 секунд');
+                }
+            };
+            
+            setTimeout(checkEditorJS, 500);
+        });
+    </script>
+</body>
+</html>
+

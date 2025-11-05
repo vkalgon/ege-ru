@@ -1,0 +1,2099 @@
+        <div class="admin-page">
+          <h2 class="admin-page__title">Администрирование</h2>
+          
+          <!-- Хлебные крошки -->
+          <nav class="breadcrumbs" id="breadcrumbs">
+            <a href="#" class="breadcrumb-link" onclick="showSection('type-selection'); return false;">Админка</a>
+          </nav>
+
+          <!-- Выбор типа задания -->
+          <div id="type-selection-tab" class="admin-tab-content active">
+            <div class="admin-section">
+              <h3>Управление типами заданий</h3>
+              
+              <!-- Форма редактирования типа задания -->
+              <div id="edit-task-type-form" class="admin-form" style="display: none;">
+                <h4>Редактировать тип задания</h4>
+                <form id="task-type-form">
+                  <input type="hidden" id="task-type-id" name="id" value="">
+                  <div class="form-group">
+                    <label for="task-type-title">Название:</label>
+                    <input type="text" id="task-type-title" name="title" placeholder="Название типа задания" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="task-type-description">Описание:</label>
+                    <textarea id="task-type-description" name="description" rows="2" placeholder="Описание типа задания"></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label for="task-type-form-config">Конфигурация формы (JSON):</label>
+                    <textarea id="task-type-form-config" name="form_config" rows="3" placeholder='{"fields": ["prompt", "context", "answer"]}'></textarea>
+                  </div>
+                  <div class="form-actions">
+                    <button type="submit" class="btn">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelEditTaskType()">Отмена</button>
+                  </div>
+                </form>
+              </div>
+              
+              <div class="task-types-grid" id="task-types-grid">
+                <p>Загрузка типов заданий...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Управление темами -->
+          <div id="subtopics-tab" class="admin-tab-content" style="display: none;">
+            <div class="admin-section">
+              <h3>Добавить тему для типа задания</h3>
+              <form id="add-subtopic-form" class="admin-form">
+                <input type="hidden" id="subtopic-type" name="type_id" value="">
+                <div class="form-group">
+                  <label for="subtopic-title">Название темы:</label>
+                  <input type="text" id="subtopic-title" name="title" placeholder="Название темы" required>
+                </div>
+                <button type="submit" class="btn">Добавить тему</button>
+              </form>
+            </div>
+        
+            <div class="admin-section">
+              <h3>Существующие темы</h3>
+              <div id="subtopics-list" class="admin-list">
+                <!-- Темы будут загружены через JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Управление заданием №17 -->
+          <div id="task17-tab" class="admin-tab-content" style="display: none;">
+            <div class="admin-section">
+              <h3>Задание №17: Пунктуация</h3>
+              <form id="task17-form" class="admin-form">
+                <input type="hidden" id="task17-id" name="id" value="">
+                
+                <div class="form-group">
+                  <label for="task17-source">Источник:</label>
+                  <select id="task17-source" name="source">
+                    <option value="">Выберите источник</option>
+                    <option value="__new__">+ Новый</option>
+                    <!-- Источники будут загружены через JavaScript -->
+                  </select>
+                  <input type="text" id="task17-source-new" placeholder="Введите название нового источника" style="display: none; margin-top: 8px;">
+                  <small>Выберите источник из списка или выберите "+ Новый" для добавления</small>
+                </div>
+                
+                <div class="form-group">
+                  <label for="task17-text">Задание (предложение с метками (1), (2)...):</label>
+                  <textarea id="task17-text" name="text" rows="4" placeholder="Высокие, узкие клочья тумана (1) густые и белые (2) бродили над рекой (3) заслоняя (4) отражение звёзд (5) и (6) цепляясь (7) за ивы." required></textarea>
+                  <small>Введите предложение с метками цифр в местах, где нужно расставить запятые</small>
+                </div>
+                
+                <div class="form-group">
+                  <label for="task17-answer">Ответ (цифры через запятую или пробел):</label>
+                  <input type="text" id="task17-answer" name="answer" placeholder="1,2,3,4,5,6,7" required>
+                  <small>Порядок цифр не важен. Можно ввести: 1,2,3,4,5,6,7 или 1234567 или 7 6 5 4 3 2 1</small>
+                </div>
+                
+                <div class="form-group">
+                  <label for="task17-explanation">Объяснение:</label>
+                  <div style="margin-bottom: 12px;">
+                    <div id="task17-explanation-editor" class="task17-explanation-editor" contenteditable="true" style="min-height: 150px; padding: 12px; border: 1px solid var(--glass-border); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-family: inherit; font-size: 14px; line-height: 1.6;"></div>
+                    <textarea id="task17-explanation" name="explanation" style="display: none;"></textarea>
+                  </div>
+                  
+                  <!-- Панель инструментов для выделения оборотов -->
+                  <div class="task17-spans-toolbar" style="display: flex; gap: 8px; margin-top: 8px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; flex-wrap: wrap; align-items: center;">
+                    <div style="color: var(--text-secondary); font-size: 12px; margin-right: 8px;">Выделить текст и выбрать тип оборота:</div>
+                    <button type="button" class="btn btn-sm task17-toolbar-btn task17-toolbar-btn-participle" id="task17-mark-participle">
+                      <span style="text-decoration: underline wavy;">Причастный</span>
+                    </button>
+                    <button type="button" class="btn btn-sm task17-toolbar-btn task17-toolbar-btn-gerund" id="task17-mark-gerund">
+                      Деепричастный
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary task17-toolbar-btn" id="task17-remove-mark">
+                      Убрать выделение
+                    </button>
+                    <div style="margin-left: auto; font-size: 11px; color: var(--text-secondary);">
+                      <span class="span-participle" style="margin-right: 16px; display: inline-block;">Причастный — волнистая линия</span>
+                      <span class="span-gerund" style="display: inline-block; position: relative; padding-bottom: 2px;">Деепричастный — точка-тире</span>
+                    </div>
+                  </div>
+                  <small>Выделите текст в объяснении и нажмите кнопку для добавления подчеркивания</small>
+                </div>
+                
+                <div class="form-actions">
+                  <button type="submit" class="btn">Сохранить задание</button>
+                  <button type="button" class="btn btn-secondary" onclick="resetTask17Form()">Очистить</button>
+                </div>
+              </form>
+            </div>
+            
+            <div class="admin-section">
+              <h3>Существующие задания №17</h3>
+              <div id="task17-list" class="admin-list">
+                <!-- Задания будут загружены через JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Управление заданиями -->
+          <div id="assignments-tab" class="admin-tab-content" style="display: none;">
+            <div class="admin-section">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 id="assignment-type-title" style="margin: 0;">Добавить новое задание</h3>
+                <a href="#" class="admin-link-subtle" onclick="event.preventDefault(); switchToSubtopicsTab(); return false;" title="Управление темами (откроется в новой вкладке)">Управление темами</a>
+              </div>
+              <form id="add-assignment-form" class="admin-form">
+                <input type="hidden" id="assignment-id" name="id" value="">
+                <div class="form-group">
+                  <label for="assignment-fipi-number">Номер ФИПИ (необязательно):</label>
+                  <input type="text" id="assignment-fipi-number" name="fipi_number" placeholder="12345">
+                </div>
+                <div class="form-group">
+                  <label for="assignment-source">Источник:</label>
+                  <select id="assignment-source" name="source" required>
+                    <option value="">Выберите источник</option>
+                    <option value="ФИПИ">ФИПИ</option>
+                    <option value="Другой источник">Другой источник</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="assignment-prompt">Условие задания:</label>
+                  <div id="editor-prompt" class="editor-container"></div>
+                  <textarea id="assignment-prompt" name="prompt" style="display: none;" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="assignment-subtopic">Тема (необязательно):</label>
+                  <select id="assignment-subtopic" name="subtopic_id">
+                    <option value="">Без темы</option>
+                    <!-- Опции будут загружены через JavaScript -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="assignment-context">Контекст (текст для задания):</label>
+                  <div id="editor-context" class="editor-container editor-large"></div>
+                  <textarea id="assignment-context" name="context" style="display: none;"></textarea>
+                </div>
+        <div class="form-group">
+          <label for="assignment-answer">Правильный ответ:</label>
+          <input type="text" id="assignment-answer" name="answer" placeholder="него" required>
+        </div>
+        <div class="form-group">
+          <label for="assignment-explanation">Объяснение (необязательно):</label>
+          <div id="editor-explanation" class="editor-container"></div>
+          <textarea id="assignment-explanation" name="explanation" style="display: none;"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="assignment-rule-ref">Ссылка на правило (необязательно):</label>
+          <input type="text" id="assignment-rule-ref" name="rule_ref" placeholder="§ 15.2">
+        </div>
+        <div class="form-group">
+          <label for="assignment-alt-answers">Дополнительные ответы (через запятую):</label>
+          <input type="text" id="assignment-alt-answers" name="alt_answers" placeholder="его, её, их">
+        </div>
+        <button type="submit" class="btn">Добавить задание</button>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h3>Существующие задания</h3>
+      <div id="assignments-list" class="admin-list">
+        <!-- Задания будут загружены через JavaScript -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Переключение секций
+  function showSection(sectionId) {
+    // Если возвращаемся к выбору типа, очищаем сохраненное состояние
+    if (sectionId === 'type-selection') {
+      localStorage.removeItem('adminCurrentSection');
+      localStorage.removeItem('adminSelectedType');
+      window.selectedTaskType = null;
+    } else {
+      // Сохраняем текущую секцию
+      localStorage.setItem('adminCurrentSection', sectionId);
+    }
+    
+    // Скрываем все секции
+    document.querySelectorAll('.admin-tab-content').forEach(content => {
+      content.style.display = 'none';
+      content.classList.remove('active');
+    });
+    
+    // Показываем нужную секцию
+    const section = document.getElementById(`${sectionId}-tab`);
+    if (section) {
+      section.style.display = 'block';
+      section.classList.add('active');
+      
+      // Загружаем данные для секции
+      if (sectionId === 'type-selection') {
+        loadTaskTypes();
+        updateBreadcrumbs([]);
+      } else if (sectionId === 'subtopics') {
+        loadSubtopics();
+      } else if (sectionId === 'assignments') {
+        loadAssignments();
+        loadSubtopicsForSelect('#assignment-subtopic');
+        setTimeout(async () => {
+          await ensureEditorsInitialized();
+        }, 100);
+      }
+    }
+  }
+  window.showSection = showSection;
+
+  // Обновление хлебных крошек
+  function updateBreadcrumbs(paths) {
+    const breadcrumbs = document.getElementById('breadcrumbs');
+    if (!breadcrumbs) return;
+    
+    breadcrumbs.innerHTML = '<a href="#" class="breadcrumb-link" onclick="showSection(\'type-selection\'); return false;">Админка</a>';
+    
+    paths.forEach((path, index) => {
+      const separator = document.createElement('span');
+      separator.className = 'breadcrumb-separator';
+      separator.textContent = '›';
+      breadcrumbs.appendChild(separator);
+      
+      if (path.action && index < paths.length - 1) {
+        // Кликабельная ссылка с действием
+        const link = document.createElement('a');
+        link.href = '#';
+        link.className = 'breadcrumb-link';
+        link.textContent = path.label;
+        link.onclick = (e) => {
+          e.preventDefault();
+          if (path.action) {
+            path.action();
+          }
+          return false;
+        };
+        breadcrumbs.appendChild(link);
+      } else {
+        // Текущий элемент (не кликабельный)
+        const span = document.createElement('span');
+        span.className = 'breadcrumb-current';
+        span.textContent = path.label;
+        breadcrumbs.appendChild(span);
+      }
+    });
+  }
+
+  // Навигация теперь только через хлебные крошки
+
+          // Загрузка данных для вкладки
+          async function loadTabData(tab) {
+            if (tab === 'type-selection') {
+              await loadTaskTypes();
+            } else if (tab === 'subtopics') {
+              await loadSubtopics();
+            } else if (tab === 'assignments') {
+              await loadAssignments();
+              await loadSubtopicsForSelect('#assignment-subtopic');
+              // Инициализируем редакторы при переключении на вкладку заданий
+              // Ждем небольшую задержку, чтобы вкладка точно стала видимой
+              setTimeout(async () => {
+                await ensureEditorsInitialized();
+              }, 100);
+            }
+          }
+          
+          // Убеждаемся, что редакторы инициализированы при переключении на вкладку
+          async function ensureEditorsInitialized() {
+            // Проверяем, что вкладка заданий видима
+            const assignmentsTab = document.getElementById('assignments-tab');
+            if (!assignmentsTab || !assignmentsTab.classList.contains('active')) {
+              return;
+            }
+            
+            // Функция проверки всех необходимых компонентов (List опционален)
+            const allRequiredPluginsLoaded = () => {
+              return typeof EditorJS !== 'undefined' &&
+                     typeof Header !== 'undefined' &&
+                     typeof Paragraph !== 'undefined' &&
+                     typeof Quote !== 'undefined' &&
+                     typeof CodeTool !== 'undefined' &&
+                     typeof Delimiter !== 'undefined' &&
+                     typeof Marker !== 'undefined' &&
+                     typeof InlineCode !== 'undefined';
+            };
+            
+            if (!allRequiredPluginsLoaded()) {
+              let attempts = 0;
+              const maxAttempts = 50;
+              while (attempts < maxAttempts && !allRequiredPluginsLoaded()) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+              }
+              
+              if (!allRequiredPluginsLoaded()) {
+                console.error('Не все обязательные плагины Editor.js загружены. Используем fallback режим.');
+                enableFallbackMode();
+                return;
+              }
+            }
+            
+            // Дополнительная задержка для гарантии видимости элементов
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Инициализируем редакторы
+            initializeEditors();
+          }
+
+  // Загрузка типов заданий
+  async function loadTaskTypes() {
+    try {
+      const response = await fetch('/api/admin/task-types');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const taskTypes = await response.json();
+      
+      const grid = document.getElementById('task-types-grid');
+      if (taskTypes.length === 0) {
+        grid.innerHTML = '<p>Типы заданий не найдены</p>';
+        return;
+      }
+      
+      grid.innerHTML = taskTypes.map(type => `
+        <div class="task-type-card" data-type-id="${type.id}">
+          <div class="task-type-content" onclick="selectTaskType(${type.id}, '${type.title}')">
+            <div class="task-type-number">${type.id}</div>
+            <div class="task-type-title">${type.title}</div>
+            <div class="task-type-description">${type.description}</div>
+          </div>
+          <div class="task-type-actions">
+            <button class="btn btn-sm btn-secondary" onclick="editTaskType(${type.id})">Редактировать</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Ошибка загрузки типов заданий:', error);
+      const grid = document.getElementById('task-types-grid');
+      grid.innerHTML = '<p style="color: red;">Ошибка загрузки типов заданий. Проверьте консоль.</p>';
+    }
+  }
+
+          // Выбор типа задания
+          function selectTaskType(typeId, typeTitle) {
+            // Если выбрано задание №17, показываем специальный интерфейс
+            if (typeId === 17) {
+              showTask17Admin();
+              return;
+            }
+            
+            // Сохраняем выбранный тип
+            window.selectedTaskType = { id: typeId, title: typeTitle };
+            
+            // Сохраняем состояние в localStorage
+            localStorage.setItem('adminSelectedType', JSON.stringify({ id: typeId, title: typeTitle }));
+            localStorage.setItem('adminCurrentSection', 'assignments');
+            
+            // Устанавливаем type_id для формы тем
+            const subtopicTypeInput = document.getElementById('subtopic-type');
+            if (subtopicTypeInput) subtopicTypeInput.value = typeId;
+            
+            // Обновляем заголовок для заданий
+            const assignmentTypeTitle = document.getElementById('assignment-type-title');
+            if (assignmentTypeTitle) {
+              assignmentTypeTitle.textContent = `Добавить задание для типа ${typeId}: ${typeTitle}`;
+            }
+            
+            const assignmentTypeInput = document.getElementById('assignment-type');
+            if (assignmentTypeInput) assignmentTypeInput.value = typeId;
+            
+            // Показываем секцию заданий
+            showSection('assignments');
+            
+            // Обновляем хлебные крошки
+            updateBreadcrumbs([
+              { 
+                label: `Тип ${typeId}: ${typeTitle}`,
+                action: () => {
+                  showSection('assignments');
+                  updateBreadcrumbs([
+                    { label: `Тип ${typeId}: ${typeTitle}` },
+                    { label: 'Задания' }
+                  ]);
+                }
+              },
+              { label: 'Задания' }
+            ]);
+          }
+
+  // Загрузка тем
+  async function loadSubtopics() {
+    try {
+      const typeId = window.selectedTaskType ? window.selectedTaskType.id : null;
+      const url = typeId ? `/api/admin/subtopics?typeId=${typeId}` : '/api/admin/subtopics';
+      
+      const response = await fetch(url);
+      const subtopics = await response.json();
+      
+      const list = document.getElementById('subtopics-list');
+      list.innerHTML = subtopics.map(subtopic => `
+        <div class="admin-item">
+          <div class="item-info">
+            <strong>${subtopic.title}</strong>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubtopic(${subtopic.id})">Удалить</button>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Ошибка загрузки тем:', error);
+    }
+  }
+
+  // Загрузка заданий
+  async function loadAssignments() {
+    try {
+      const typeId = window.selectedTaskType ? window.selectedTaskType.id : null;
+      const url = typeId ? `/api/admin/assignments?typeId=${typeId}` : '/api/admin/assignments';
+      
+      const response = await fetch(url);
+      const assignments = await response.json();
+      
+      const list = document.getElementById('assignments-list');
+      list.innerHTML = assignments.map(assignment => {
+        // Создаем превью для prompt
+        let promptPreview = '';
+        try {
+          const promptData = typeof assignment.prompt === 'string' ? JSON.parse(assignment.prompt) : assignment.prompt;
+          promptPreview = EditorRenderer.createPreview(promptData, 100);
+        } catch (e) {
+          promptPreview = assignment.prompt.substring(0, 100) + '...';
+        }
+        
+        return `
+        <div class="admin-item">
+          <div class="item-info">
+            <strong>ID ${assignment.id}:</strong> ${assignment.source} ${assignment.fipi_number ? `(ФИПИ №${assignment.fipi_number})` : ''}
+            ${assignment.subtopic_title ? `<br><small>Тема: ${assignment.subtopic_title}</small>` : ''}
+            <br><small>Условие: ${promptPreview}</small>
+            <br><small>Ответ: ${assignment.answer}</small>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="window.open('/admin/assignment/${assignment.id}/edit', '_blank')">Редактировать</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAssignment(${assignment.id})">Удалить</button>
+          </div>
+        </div>
+      `;
+      }).join('');
+    } catch (error) {
+      console.error('Ошибка загрузки заданий:', error);
+    }
+  }
+
+  // Загрузка тем для селекта
+  async function loadSubtopicsForSelect(selector) {
+    try {
+      const typeId = window.selectedTaskType ? window.selectedTaskType.id : null;
+      const url = typeId ? `/api/admin/subtopics?typeId=${typeId}` : '/api/admin/subtopics';
+      
+      const response = await fetch(url);
+      const subtopics = await response.json();
+      
+      const select = document.querySelector(selector);
+      if (select) {
+        select.innerHTML = '<option value="">Без темы</option>' + 
+          subtopics.map(subtopic => 
+            `<option value="${subtopic.id}">${subtopic.title}</option>`
+          ).join('');
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки тем для селекта:', error);
+    }
+  }
+
+  // Загрузка типов заданий для селекта
+  async function loadTaskTypesForSelect(selector) {
+    try {
+      const response = await fetch('/api/admin/task-types');
+      const taskTypes = await response.json();
+      
+      const select = document.querySelector(selector);
+      if (select) {
+        select.innerHTML = '<option value="">Выберите тип задания</option>' + 
+          taskTypes.map(type => 
+            `<option value="${type.id}">Тип ${type.id}: ${type.title}</option>`
+          ).join('');
+      } else {
+        console.error('Селект не найден:', selector);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки типов заданий:', error);
+    }
+  }
+
+  // Загрузка заданий для селекта
+  async function loadAssignmentsForSelect(selector) {
+    try {
+      const response = await fetch('/api/admin/assignments');
+      const assignments = await response.json();
+      
+      const select = document.querySelector(selector);
+      if (select) {
+        select.innerHTML = '<option value="">Выберите задание</option>' + 
+          assignments.map(assignment => 
+            `<option value="${assignment.id}">${assignment.title}</option>`
+          ).join('');
+      } else {
+        console.error('Селект не найден:', selector);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки заданий:', error);
+    }
+  }
+
+  // Общая функция отправки формы
+  async function submitForm(form, endpoint, successMessage, reloadFunction) {
+    try {
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        alert(successMessage);
+        form.reset();
+        if (reloadFunction) reloadFunction();
+      } else {
+        alert('Ошибка сохранения');
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert('Ошибка сохранения');
+    }
+  }
+
+  // Обработчики форм
+  document.getElementById('add-subtopic-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await submitForm(e.target, '/api/admin/subtopics', 'Тема добавлена!', loadSubtopics);
+  });
+
+  document.getElementById('add-assignment-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Сохраняем данные из редакторов
+    await saveEditorData();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    // Обрабатываем дополнительные ответы
+    if (data.alt_answers) {
+      data.alt_answers = data.alt_answers.split(',').map(s => s.trim()).filter(s => s);
+    }
+    
+    const isEdit = data.id && data.id !== '';
+    const url = isEdit ? `/api/admin/assignments/${data.id}` : '/api/admin/assignments';
+    const method = isEdit ? 'PUT' : 'POST';
+    const successMessage = isEdit ? 'Задание обновлено!' : 'Задание добавлено!';
+    
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        alert(successMessage);
+        e.target.reset();
+        document.getElementById('assignment-id').value = '';
+        resetFormToAddMode();
+        loadAssignments();
+      } else {
+        alert('Ошибка сохранения задания');
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert('Ошибка сохранения задания');
+    }
+  });
+
+  // Общая функция удаления
+  async function deleteItem(id, endpoint, successMessage, reloadFunction) {
+    if (confirm('Удалить?')) {
+      try {
+        const response = await fetch(endpoint, { method: 'DELETE' });
+        if (response.ok) {
+          alert(successMessage);
+          if (reloadFunction) reloadFunction();
+        } else {
+          alert('Ошибка удаления');
+        }
+      } catch (error) {
+        console.error('Ошибка удаления:', error);
+      }
+    }
+  }
+
+  // Функции удаления
+  window.deleteSubtopic = (id) => deleteItem(id, `/api/admin/subtopics/${id}`, 'Тема удалена!', loadSubtopics);
+  window.deleteAssignment = (id) => deleteItem(id, `/api/admin/assignments/${id}`, 'Задание удалено!', loadAssignments);
+
+  // Функция сброса формы к режиму добавления
+  function resetFormToAddMode() {
+    document.querySelector('#assignments-tab .admin-section h3').textContent = 'Добавить новое задание';
+    document.querySelector('#add-assignment-form button').textContent = 'Добавить задание';
+    
+    // Обновляем хлебные крошки
+    const selectedType = window.selectedTaskType;
+    if (selectedType) {
+      updateBreadcrumbs([
+        { 
+          label: `Тип ${selectedType.id}: ${selectedType.title}`,
+          action: () => {
+            showSection('assignments');
+            updateBreadcrumbs([
+              { label: `Тип ${selectedType.id}: ${selectedType.title}` },
+              { label: 'Задания' }
+            ]);
+          }
+        },
+        { label: 'Задания' }
+      ]);
+    }
+  }
+
+  // Функция переключения на редактирование тем (открывает новую страницу)
+  function switchToSubtopicsTab() {
+    const selectedType = window.selectedTaskType;
+    if (selectedType) {
+      window.open(`/admin/subtopics/${selectedType.id}`, '_blank');
+    }
+  }
+  window.switchToSubtopicsTab = switchToSubtopicsTab;
+
+          // Функция редактирования типа задания
+          window.editTaskType = async function(id) {
+            try {
+              const response = await fetch(`/api/admin/task-types/${id}`);
+              const taskType = await response.json();
+              
+              // Заполняем форму
+              document.getElementById('task-type-id').value = taskType.id;
+              document.getElementById('task-type-title').value = taskType.title;
+              document.getElementById('task-type-description').value = taskType.description || '';
+              document.getElementById('task-type-form-config').value = taskType.form_config || '';
+              
+              // Показываем форму
+              document.getElementById('edit-task-type-form').style.display = 'block';
+              document.getElementById('task-type-form').scrollIntoView({ behavior: 'smooth' });
+              
+            } catch (error) {
+              console.error('Ошибка загрузки типа задания:', error);
+              alert('Ошибка загрузки типа задания');
+            }
+          };
+
+          // Функция отмены редактирования
+          window.cancelEditTaskType = function() {
+            document.getElementById('edit-task-type-form').style.display = 'none';
+            document.getElementById('task-type-form').reset();
+          };
+
+          // Обработчик формы редактирования типа задания
+          document.getElementById('task-type-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+              const formData = new FormData(e.target);
+              const data = Object.fromEntries(formData);
+              
+              const response = await fetch(`/api/admin/task-types/${data.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+              
+              if (response.ok) {
+                alert('Тип задания обновлен!');
+                document.getElementById('edit-task-type-form').style.display = 'none';
+                e.target.reset();
+                loadTaskTypes(); // Перезагружаем список
+              } else {
+                alert('Ошибка обновления типа задания');
+              }
+            } catch (error) {
+              console.error('Ошибка:', error);
+              alert('Ошибка обновления типа задания');
+            }
+          });
+
+          // Восстановление состояния при загрузке страницы
+          async function restoreAdminState() {
+            try {
+              // Проверяем сохраненное состояние
+              const savedSection = localStorage.getItem('adminCurrentSection');
+              const savedType = localStorage.getItem('adminSelectedType');
+              
+              if (savedType && savedSection && savedSection !== 'type-selection') {
+                // Восстанавливаем выбранный тип
+                const typeData = JSON.parse(savedType);
+                window.selectedTaskType = typeData;
+                
+                // Устанавливаем type_id для формы тем
+                const subtopicTypeInput = document.getElementById('subtopic-type');
+                if (subtopicTypeInput) subtopicTypeInput.value = typeData.id;
+                
+                // Обновляем заголовок для заданий
+                const assignmentTypeTitle = document.getElementById('assignment-type-title');
+                if (assignmentTypeTitle) {
+                  assignmentTypeTitle.textContent = `Добавить задание для типа ${typeData.id}: ${typeData.title}`;
+                }
+                
+                const assignmentTypeInput = document.getElementById('assignment-type');
+                if (assignmentTypeInput) assignmentTypeInput.value = typeData.id;
+                
+                // Восстанавливаем хлебные крошки
+                if (savedSection === 'assignments') {
+                  updateBreadcrumbs([
+                    { 
+                      label: `Тип ${typeData.id}: ${typeData.title}`,
+                      action: () => {
+                        showSection('assignments');
+                        updateBreadcrumbs([
+                          { label: `Тип ${typeData.id}: ${typeData.title}` },
+                          { label: 'Задания' }
+                        ]);
+                      }
+                    },
+                    { label: 'Задания' }
+                  ]);
+                } else if (savedSection === 'subtopics') {
+                  updateBreadcrumbs([
+                    { 
+                      label: `Тип ${typeData.id}: ${typeData.title}`,
+                      action: () => {
+                        showSection('subtopics');
+                        updateBreadcrumbs([
+                          { label: `Тип ${typeData.id}: ${typeData.title}` },
+                          { label: 'Темы' }
+                        ]);
+                      }
+                    },
+                    { label: 'Темы' }
+                  ]);
+                }
+                
+                // Показываем сохраненную секцию
+                showSection(savedSection);
+              } else {
+                // Показываем начальную секцию выбора типа
+                showSection('type-selection');
+                loadTaskTypes();
+              }
+            } catch (error) {
+              console.error('Ошибка восстановления состояния:', error);
+              // В случае ошибки показываем начальную секцию
+              showSection('type-selection');
+              loadTaskTypes();
+            }
+          }
+
+          // Загружаем данные для активной вкладки при загрузке страницы
+          document.addEventListener('DOMContentLoaded', () => {
+            restoreAdminState();
+          });
+</script>
+
+<!-- Editor.js CDN - загружаем последовательно для гарантии загрузки всех плагинов -->
+<script>
+  // Функция последовательной загрузки скриптов с проверкой
+  function loadScript(src, expectedGlobal = null) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = () => {
+        // Даем время на инициализацию глобальных переменных
+        setTimeout(() => {
+          if (expectedGlobal) {
+            const varNames = Array.isArray(expectedGlobal) ? expectedGlobal : [expectedGlobal];
+            const allFound = varNames.every(name => typeof window[name] !== 'undefined');
+            
+            if (!allFound && expectedGlobal === 'List') {
+              // Для List пробуем альтернативные пути
+              if (typeof window.List === 'undefined' && typeof List !== 'undefined') {
+                window.List = List;
+              }
+            }
+          }
+          resolve();
+        }, 100);
+      };
+      script.onerror = () => {
+        console.error('Ошибка загрузки:', src);
+        reject(new Error(`Не удалось загрузить ${src}`));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  // Загружаем все скрипты Editor.js последовательно
+  (async () => {
+    try {
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.31.0', 'EditorJS');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.8', 'Header');
+      // Пробуем загрузить List (опциональный плагин)
+      try {
+        await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.8', 'List');
+        await new Promise(resolve => setTimeout(resolve, 200));
+        if (typeof List !== 'undefined' && typeof window.List === 'undefined') {
+          window.List = List;
+        }
+      } catch (e) {
+        // Пробуем альтернативный CDN
+        try {
+          await loadScript('https://unpkg.com/@editorjs/list@2.0.8', 'List');
+          if (typeof List !== 'undefined' && typeof window.List === 'undefined') {
+            window.List = List;
+          }
+        } catch (e2) {
+          // List опционален, продолжаем без него
+        }
+      }
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.7', 'Paragraph');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.6', 'Quote');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.3', 'CodeTool');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2', 'Delimiter');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0', 'Marker');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.2', 'InlineCode');
+      
+      // Если List все еще не найден, пробуем альтернативный CDN
+      if (typeof List === 'undefined' && typeof window.List === 'undefined') {
+        try {
+          await loadScript('https://unpkg.com/@editorjs/list@2.0.8', 'List');
+        } catch (e) {
+          // List опционален, продолжаем без него
+        }
+      }
+      
+      // Устанавливаем флаг готовности
+      window.editorJSReady = true;
+      
+      // Если страница уже загружена, запускаем проверку
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(() => {
+          if (window.onEditorJSLoad) {
+            window.onEditorJSLoad();
+          }
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки Editor.js:', error);
+      window.editorJSReady = false;
+      if (window.onEditorJSError) {
+        window.onEditorJSError(error);
+      }
+    }
+  })();
+</script>
+
+<!-- Editor Renderer -->
+<script src="/js/editor-renderer.js"></script>
+
+<script>
+  // Глобальные переменные для редакторов
+  let editorPrompt = null;
+  let editorContext = null;
+  let editorExplanation = null;
+
+  // Инициализация редакторов
+  function initializeEditors() {
+    // Проверяем наличие Editor.js и всех плагинов
+    if (typeof EditorJS === 'undefined') {
+      console.error('EditorJS не определен!');
+      enableFallbackMode();
+      return;
+    }
+    
+    const requiredPlugins = ['Header', 'Paragraph', 'Quote', 'CodeTool', 'Delimiter', 'Marker', 'InlineCode'];
+    const missingPlugins = requiredPlugins.filter(plugin => typeof window[plugin] === 'undefined');
+    
+    if (missingPlugins.length > 0) {
+      console.error('Критические плагины не загружены:', missingPlugins);
+      enableFallbackMode();
+      return;
+    }
+    
+    // Проверяем, что элементы существуют
+    const promptEl = document.getElementById('editor-prompt');
+    const contextEl = document.getElementById('editor-context');
+    const explanationEl = document.getElementById('editor-explanation');
+    
+    if (!promptEl || !contextEl || !explanationEl) {
+      console.error('Элементы редакторов не найдены!');
+      enableFallbackMode();
+      return;
+    }
+
+    // Проверяем, что вкладка заданий активна
+    const assignmentsTab = document.getElementById('assignments-tab');
+    if (!assignmentsTab || !assignmentsTab.classList.contains('active')) {
+      return;
+    }
+
+    // Проверяем видимость элементов
+    const stylePrompt = window.getComputedStyle(promptEl);
+    const styleContext = window.getComputedStyle(contextEl);
+    const styleExplanation = window.getComputedStyle(explanationEl);
+    
+    if (stylePrompt.display === 'none' || styleContext.display === 'none' || styleExplanation.display === 'none') {
+      return;
+    }
+
+    // Уничтожаем старые редакторы, если они есть
+    if (editorPrompt) {
+      try {
+        editorPrompt.destroy();
+      } catch (e) {
+        // Игнорируем ошибки уничтожения
+      }
+      editorPrompt = null;
+    }
+    if (editorContext) {
+      try {
+        editorContext.destroy();
+      } catch (e) {
+        // Игнорируем ошибки уничтожения
+      }
+      editorContext = null;
+    }
+    if (editorExplanation) {
+      try {
+        editorExplanation.destroy();
+      } catch (e) {
+        // Игнорируем ошибки уничтожения
+      }
+      editorExplanation = null;
+    }
+    
+    // Редактор для условия задания
+    try {
+      editorPrompt = new EditorJS({
+        holder: 'editor-prompt',
+        placeholder: 'Введите условие задания...',
+        data: { blocks: [] },
+        tools: {
+          header: {
+            class: Header,
+            config: {
+              placeholder: 'Заголовок',
+              levels: [1, 2, 3, 4, 5, 6],
+              defaultLevel: 3
+            }
+          },
+          // Добавляем list только если он доступен
+          ...(typeof window.List !== 'undefined' || typeof List !== 'undefined' ? {
+            list: {
+              class: (typeof window.List !== 'undefined' ? window.List : List),
+              inlineToolbar: true,
+              config: {
+                defaultStyle: 'unordered'
+              }
+            }
+          } : {}),
+          paragraph: {
+            class: Paragraph,
+            inlineToolbar: true
+          },
+          quote: {
+            class: Quote,
+            inlineToolbar: true,
+            shortcut: 'CMD+SHIFT+O',
+            config: {
+              quotePlaceholder: 'Цитата',
+              captionPlaceholder: 'Автор цитаты',
+            }
+          },
+          code: {
+            class: CodeTool,
+            config: {
+              placeholder: 'Введите код...'
+            }
+          },
+          delimiter: Delimiter,
+          marker: {
+            class: Marker,
+            shortcut: 'CMD+SHIFT+M'
+          },
+          inlineCode: {
+            class: InlineCode,
+            shortcut: 'CMD+SHIFT+C'
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Ошибка инициализации редактора prompt:', error);
+    }
+
+    // Редактор для контекста
+    try {
+      const ListClass = (typeof window.List !== 'undefined' ? window.List : (typeof List !== 'undefined' ? List : null));
+      
+      editorContext = new EditorJS({
+      holder: 'editor-context',
+      placeholder: 'Введите текст для задания...',
+      data: { blocks: [] },
+      tools: {
+        header: {
+          class: Header,
+          config: {
+            placeholder: 'Заголовок',
+            levels: [1, 2, 3, 4, 5, 6],
+            defaultLevel: 3
+          }
+        },
+        // Добавляем list только если он доступен
+        ...(ListClass ? {
+          list: {
+            class: ListClass,
+            inlineToolbar: true,
+            config: {
+              defaultStyle: 'unordered'
+            }
+          }
+        } : {}),
+        paragraph: {
+          class: Paragraph,
+          inlineToolbar: true
+        },
+        quote: {
+          class: Quote,
+          inlineToolbar: true,
+          shortcut: 'CMD+SHIFT+O',
+          config: {
+            quotePlaceholder: 'Цитата',
+            captionPlaceholder: 'Автор цитаты',
+          }
+        },
+        code: {
+          class: CodeTool,
+          config: {
+            placeholder: 'Введите код...'
+          }
+        },
+        delimiter: Delimiter,
+        marker: {
+          class: Marker,
+          shortcut: 'CMD+SHIFT+M'
+        },
+        inlineCode: {
+          class: InlineCode,
+          shortcut: 'CMD+SHIFT+C'
+        }
+      }
+    });
+    } catch (error) {
+      console.error('Ошибка инициализации редактора context:', error);
+    }
+
+    // Редактор для объяснения
+    try {
+      const ListClass = (typeof window.List !== 'undefined' ? window.List : (typeof List !== 'undefined' ? List : null));
+      
+      editorExplanation = new EditorJS({
+      holder: 'editor-explanation',
+      placeholder: 'Введите объяснение правила...',
+      data: { blocks: [] },
+      tools: {
+        header: {
+          class: Header,
+          config: {
+            placeholder: 'Заголовок',
+            levels: [1, 2, 3, 4, 5, 6],
+            defaultLevel: 3
+          }
+        },
+        // Добавляем list только если он доступен
+        ...(ListClass ? {
+          list: {
+            class: ListClass,
+            inlineToolbar: true,
+            config: {
+              defaultStyle: 'unordered'
+            }
+          }
+        } : {}),
+        paragraph: {
+          class: Paragraph,
+          inlineToolbar: true
+        },
+        quote: {
+          class: Quote,
+          inlineToolbar: true,
+          shortcut: 'CMD+SHIFT+O',
+          config: {
+            quotePlaceholder: 'Цитата',
+            captionPlaceholder: 'Автор цитаты',
+          }
+        },
+        code: {
+          class: CodeTool,
+          config: {
+            placeholder: 'Введите код...'
+          }
+        },
+        delimiter: Delimiter,
+        marker: {
+          class: Marker,
+          shortcut: 'CMD+SHIFT+M'
+        },
+        inlineCode: {
+          class: InlineCode,
+          shortcut: 'CMD+SHIFT+C'
+        }
+      }
+    });
+    } catch (error) {
+      console.error('Ошибка инициализации редактора explanation:', error);
+    }
+    
+    // Проверяем успешность инициализации
+    if (!editorPrompt || !editorContext || !editorExplanation) {
+      console.error('Не все редакторы инициализированы:', {
+        prompt: !!editorPrompt,
+        context: !!editorContext,
+        explanation: !!editorExplanation
+      });
+    }
+  }
+
+  // Функция для получения данных из редактора и сохранения в textarea
+  async function saveEditorData() {
+    try {
+      // Проверяем, работаем ли мы в fallback режиме
+      if (document.getElementById('assignment-prompt').style.display !== 'none') {
+        return;
+      }
+
+      if (editorPrompt) {
+        const promptData = await editorPrompt.save();
+        document.getElementById('assignment-prompt').value = JSON.stringify(promptData);
+      }
+      
+      if (editorContext) {
+        const contextData = await editorContext.save();
+        document.getElementById('assignment-context').value = JSON.stringify(contextData);
+      }
+      
+      if (editorExplanation) {
+        const explanationData = await editorExplanation.save();
+        document.getElementById('assignment-explanation').value = JSON.stringify(explanationData);
+      }
+    } catch (error) {
+      console.error('Ошибка сохранения данных редактора:', error);
+    }
+  }
+
+  // Функция для загрузки данных в редактор из JSON
+  async function loadEditorData(promptJson, contextJson, explanationJson) {
+    try {
+      // Функция преобразования данных в формат Editor.js
+      const prepareData = (data) => {
+        if (!data) return null;
+        
+        // Если уже объект Editor.js
+        if (typeof data === 'object' && data !== null && data.blocks && Array.isArray(data.blocks)) {
+          return data;
+        }
+        
+        // Если строка - пытаемся парсить как JSON
+        if (typeof data === 'string') {
+          if (data.trim().startsWith('{')) {
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed && parsed.blocks && Array.isArray(parsed.blocks)) {
+                return parsed;
+              }
+            } catch (e) {
+              // Не JSON, создаем простой параграф
+            }
+          }
+          // Простой текст - создаем параграф
+          return {
+            blocks: [{
+              type: 'paragraph',
+              data: { text: data }
+            }]
+          };
+        }
+        
+        return null;
+      };
+      
+      // Загружаем prompt
+      if (editorPrompt) {
+        const promptData = prepareData(promptJson);
+        if (promptData) {
+          await editorPrompt.render(promptData);
+        }
+      }
+      
+      // Загружаем context
+      if (editorContext) {
+        const contextData = prepareData(contextJson);
+        if (contextData) {
+          await editorContext.render(contextData);
+        } else {
+          // Очищаем редактор если данных нет
+          await editorContext.render({ blocks: [] });
+        }
+      }
+      
+      // Загружаем explanation
+      if (editorExplanation) {
+        const explanationData = prepareData(explanationJson);
+        if (explanationData) {
+          await editorExplanation.render(explanationData);
+        } else {
+          // Очищаем редактор если данных нет
+          await editorExplanation.render({ blocks: [] });
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки данных в редакторы:', error);
+    }
+  }
+
+  // Функция проверки всех необходимых компонентов (List опционален)
+  const allPluginsLoaded = () => {
+    return typeof EditorJS !== 'undefined' &&
+           typeof Header !== 'undefined' &&
+           typeof Paragraph !== 'undefined' &&
+           typeof Quote !== 'undefined' &&
+           typeof CodeTool !== 'undefined' &&
+           typeof Delimiter !== 'undefined' &&
+           typeof Marker !== 'undefined' &&
+           typeof InlineCode !== 'undefined';
+  };
+
+  // Функция проверки и инициализации при готовности
+  function checkAndInitEditors() {
+    if (allPluginsLoaded()) {
+      // Если вкладка заданий уже активна, инициализируем редакторы
+      const assignmentsTab = document.getElementById('assignments-tab');
+      if (assignmentsTab && assignmentsTab.classList.contains('active')) {
+        setTimeout(async () => {
+          await ensureEditorsInitialized();
+        }, 300);
+      }
+    } else {
+      // Продолжаем проверку
+      let checkCount = 0;
+      const checkInterval = setInterval(() => {
+        checkCount++;
+        if (allPluginsLoaded()) {
+          clearInterval(checkInterval);
+          checkAndInitEditors();
+        } else if (checkCount > 50) {
+          console.error('Editor.js не загрузился за 5 секунд');
+          clearInterval(checkInterval);
+          enableFallbackMode();
+        }
+      }, 100);
+    }
+  }
+
+  // Обработчик успешной загрузки Editor.js
+  window.onEditorJSLoad = checkAndInitEditors;
+  
+  // Обработчик ошибки загрузки Editor.js
+  window.onEditorJSError = (error) => {
+    console.error('Ошибка загрузки Editor.js:', error);
+    enableFallbackMode();
+  };
+
+  // Инициализация редакторов после загрузки страницы
+  window.addEventListener('load', () => {
+    // Если Editor.js уже загружен, сразу проверяем
+    if (window.editorJSReady) {
+      checkAndInitEditors();
+    } else {
+      // Иначе ждем загрузки через интервал
+      let checkCount = 0;
+      const checkInterval = setInterval(() => {
+        checkCount++;
+        if (window.editorJSReady && allPluginsLoaded()) {
+          clearInterval(checkInterval);
+          checkAndInitEditors();
+        } else if (checkCount > 50) {
+          console.error('Editor.js не загрузился за 5 секунд');
+          clearInterval(checkInterval);
+          enableFallbackMode();
+        }
+      }, 100);
+    }
+  });
+
+  // Fallback режим - показываем обычные textarea
+  function enableFallbackMode() {
+    // Показываем скрытые textarea
+    const promptTextarea = document.getElementById('assignment-prompt');
+    const contextTextarea = document.getElementById('assignment-context');
+    const explanationTextarea = document.getElementById('assignment-explanation');
+    
+    if (promptTextarea) {
+      promptTextarea.style.display = 'block';
+      promptTextarea.required = true;
+    }
+    if (contextTextarea) {
+      contextTextarea.style.display = 'block';
+    }
+    if (explanationTextarea) {
+      explanationTextarea.style.display = 'block';
+    }
+    
+    // Скрываем контейнеры редакторов
+    const editorContainers = document.querySelectorAll('.editor-container');
+    editorContainers.forEach(container => {
+      container.style.display = 'none';
+    });
+  }
+
+  // ===== КАСТОМНЫЙ DROPDOWN В СТИЛЕ САЙТА =====
+  function initCustomDropdowns() {
+    // Удаляем все существующие кастомные dropdown перед повторной инициализацией
+    document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+      const select = dropdown.querySelector('select');
+      if (select) {
+        // Восстанавливаем select в исходное положение
+        const parent = dropdown.parentNode;
+        if (parent) {
+          parent.insertBefore(select, dropdown);
+          select.style.position = '';
+          select.style.opacity = '';
+          select.style.pointerEvents = '';
+          select.style.width = '';
+          select.style.height = '';
+          select.style.left = '';
+          select.style.top = '';
+          select.style.visibility = '';
+          select.style.zIndex = '';
+        }
+        dropdown.remove();
+      }
+    });
+
+    document.querySelectorAll('.admin-form select, .form-group select').forEach(select => {
+      // Пропускаем если уже инициализирован
+      if (select.closest('.custom-dropdown')) return;
+
+      // Создаем обертку
+      const wrapper = document.createElement('div');
+      wrapper.className = 'custom-dropdown';
+      select.parentNode.insertBefore(wrapper, select);
+      
+      // Перемещаем select в wrapper и полностью скрываем
+      wrapper.appendChild(select);
+      select.style.position = 'absolute';
+      select.style.opacity = '0';
+      select.style.pointerEvents = 'none';
+      select.style.width = '1px';
+      select.style.height = '1px';
+      select.style.left = '-9999px';
+      select.style.top = '-9999px';
+      select.style.visibility = 'hidden';
+      select.style.zIndex = '-1';
+
+      // Создаем trigger
+      const trigger = document.createElement('div');
+      trigger.className = 'custom-dropdown__trigger';
+      trigger.setAttribute('tabindex', '0');
+      
+      const triggerText = document.createElement('span');
+      triggerText.className = 'custom-dropdown__trigger-text';
+      trigger.appendChild(triggerText);
+      
+      const arrow = document.createElement('div');
+      arrow.className = 'custom-dropdown__arrow';
+      trigger.appendChild(arrow);
+      
+      // Вставляем trigger ПЕРЕД select внутри wrapper
+      wrapper.insertBefore(trigger, select);
+      
+      // Убеждаемся что wrapper имеет правильную позицию
+      wrapper.style.position = 'relative';
+      wrapper.style.zIndex = '10';
+
+      // Создаем меню
+      const menu = document.createElement('div');
+      menu.className = 'custom-dropdown__menu';
+      
+      // Обработчики событий (добавляем один раз) - объявляем заранее
+      let scrollHandler = null;
+      let resizeHandler = null;
+      let scrollUpdateScheduled = false;
+
+      // Функция позиционирования меню
+      const positionMenu = (force = false) => {
+        // Если меню закрыто и не принудительно - не позиционируем
+        if (!force && !menu.classList.contains('open')) return;
+        const rect = trigger.getBoundingClientRect();
+        // Для position: fixed координаты должны быть относительно viewport, без учета скролла
+        menu.style.top = (rect.bottom + 8) + 'px';
+        menu.style.left = rect.left + 'px';
+        menu.style.width = rect.width + 'px';
+      };
+
+      // Throttling для плавного обновления позиции при скролле
+      const schedulePositionUpdate = () => {
+        if (scrollUpdateScheduled) return;
+        scrollUpdateScheduled = true;
+        requestAnimationFrame(() => {
+          if (menu.classList.contains('open')) {
+            positionMenu();
+          }
+          scrollUpdateScheduled = false;
+        });
+      };
+
+      // Функция закрытия меню с очисткой обработчиков
+      const closeMenu = () => {
+        trigger.classList.remove('active');
+        menu.classList.remove('open');
+        // Удаляем обработчики при закрытии
+        if (scrollHandler) {
+          window.removeEventListener('scroll', scrollHandler, true);
+          scrollHandler = null;
+        }
+        if (resizeHandler) {
+          window.removeEventListener('resize', resizeHandler);
+          resizeHandler = null;
+        }
+      };
+
+      // Функция обновления опций
+      const updateOptions = () => {
+        menu.innerHTML = '';
+        let hasSelected = false;
+        
+        Array.from(select.options).forEach((option, index) => {
+          const menuOption = document.createElement('div');
+          menuOption.className = 'custom-dropdown__option';
+          menuOption.textContent = option.text;
+          menuOption.dataset.value = option.value;
+          
+          if (option.value === '') {
+            menuOption.classList.add('placeholder');
+          }
+          
+          if (option.value === select.value) {
+            menuOption.classList.add('selected');
+            triggerText.textContent = option.text;
+            triggerText.classList.toggle('placeholder', option.value === '');
+            hasSelected = true;
+          }
+          
+          // Обработчик выбора - используем mousedown для более быстрого отклика
+          const handleSelection = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            e.cancelBubble = true;
+            
+            select.value = option.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Обновляем UI
+            menu.querySelectorAll('.custom-dropdown__option').forEach(opt => {
+              opt.classList.remove('selected');
+            });
+            menuOption.classList.add('selected');
+            
+            triggerText.textContent = option.text;
+            triggerText.classList.toggle('placeholder', option.value === '');
+            closeMenu();
+            
+            trigger.blur();
+            
+            return false;
+          };
+          
+          menuOption.addEventListener('mousedown', handleSelection);
+          menuOption.addEventListener('click', handleSelection);
+          
+          menu.appendChild(menuOption);
+        });
+        
+        // Если ничего не выбрано, показываем первую опцию
+        if (!hasSelected && select.options.length > 0) {
+          triggerText.textContent = select.options[0].text;
+          triggerText.classList.toggle('placeholder', select.options[0].value === '');
+        }
+      };
+      
+      updateOptions();
+      
+      // Добавляем меню в body для fixed позиционирования
+      document.body.appendChild(menu);
+
+      // Открытие/закрытие меню
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const isOpen = menu.classList.contains('open');
+        
+        // Закрываем все другие dropdown
+        document.querySelectorAll('.custom-dropdown__menu').forEach(m => {
+          if (m !== menu) m.classList.remove('open');
+        });
+        document.querySelectorAll('.custom-dropdown__trigger').forEach(t => {
+          if (t !== trigger) t.classList.remove('active');
+        });
+        
+        if (isOpen) {
+          closeMenu();
+        } else {
+          // Устанавливаем позицию ДО открытия, чтобы меню сразу появилось в правильном месте
+          positionMenu(true);
+          
+          trigger.classList.add('active');
+          menu.classList.add('open');
+          
+          // Дополнительное обновление позиции после того как браузер применил стили и меню стало видимым
+          requestAnimationFrame(() => {
+            positionMenu();
+          });
+          
+          // Добавляем обработчики только один раз
+          if (!scrollHandler) {
+            scrollHandler = schedulePositionUpdate;
+            window.addEventListener('scroll', scrollHandler, true);
+          }
+          if (!resizeHandler) {
+            resizeHandler = schedulePositionUpdate;
+            window.addEventListener('resize', resizeHandler);
+          }
+        }
+        
+        return false;
+      });
+
+      // Закрытие при клике вне - используем отдельный обработчик с задержкой
+      let clickOutsideTimeout;
+      const handleOutsideClick = (e) => {
+        // Проверяем что клик был вне wrapper и меню
+        const clickedInside = wrapper.contains(e.target) || menu.contains(e.target) || trigger.contains(e.target);
+        
+        if (!clickedInside && menu.classList.contains('open')) {
+          // Задержка чтобы клик на опцию успел сработать
+          clearTimeout(clickOutsideTimeout);
+          clickOutsideTimeout = setTimeout(() => {
+            if (menu.classList.contains('open')) {
+              closeMenu();
+            }
+          }, 150);
+        }
+      };
+      
+      document.addEventListener('mousedown', handleOutsideClick, false);
+      document.addEventListener('click', handleOutsideClick, false);
+
+      // Закрытие по Escape
+      trigger.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeMenu();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          trigger.click();
+        }
+      });
+
+      // Обновление при изменении select программно
+      select.addEventListener('change', () => {
+        updateOptions();
+      });
+    });
+  }
+
+  // Инициализируем кастомные dropdown после загрузки DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomDropdowns);
+  } else {
+    initCustomDropdowns();
+  }
+
+  // Переинициализация при динамической загрузке данных
+  const originalLoadSubtopicsForSelect = window.loadSubtopicsForSelect;
+  if (originalLoadSubtopicsForSelect) {
+    window.loadSubtopicsForSelect = async function(selector) {
+      await originalLoadSubtopicsForSelect.call(this, selector);
+      setTimeout(initCustomDropdowns, 100);
+    };
+  }
+
+  // ===== ЗАДАНИЕ №17 =====
+  
+  // Показать интерфейс для задания №17
+  function showTask17Admin() {
+    showSection('task17');
+    loadTask17Sources(); // Загружаем список источников
+    loadTask17List(); // Загружаем список заданий
+    updateBreadcrumbs([
+      { 
+        label: 'Тип 17: Знаки препинания в предложениях со словами и конструкциями',
+        action: () => {
+          showTask17Admin();
+        }
+      },
+      { label: 'Задание №17' }
+    ]);
+  }
+  window.showTask17Admin = showTask17Admin;
+
+  // Загрузка списка источников
+  async function loadTask17Sources() {
+    try {
+      const response = await fetch('/api/sources');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const sources = await response.json();
+      
+      const select = document.getElementById('task17-source');
+      // Сохраняем текущее значение
+      const currentValue = select.value;
+      
+      // Очищаем и заполняем список (сохраняем опции "Выберите источник" и "+ Новый")
+      const firstOption = select.querySelector('option[value=""]');
+      const newOption = select.querySelector('option[value="__new__"]');
+      
+      select.innerHTML = '<option value="">Выберите источник</option><option value="__new__">+ Новый</option>';
+      
+      sources.forEach(source => {
+        const option = document.createElement('option');
+        option.value = source.name;
+        option.textContent = source.name;
+        select.appendChild(option);
+      });
+      
+      // Восстанавливаем значение, если оно было
+      if (currentValue && currentValue !== '__new__') {
+        select.value = currentValue;
+      } else if (currentValue === '__new__') {
+        select.value = '__new__';
+        handleTask17SourceChange(); // Показываем поле для ввода
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки источников:', error);
+    }
+  }
+
+  // Обработка изменения выбора источника
+  function handleTask17SourceChange() {
+    const select = document.getElementById('task17-source');
+    const newInput = document.getElementById('task17-source-new');
+    
+    if (select.value === '__new__') {
+      // Показываем поле для нового источника
+      newInput.style.display = 'block';
+      newInput.value = '';
+      newInput.focus();
+    } else {
+      // Скрываем поле для нового источника
+      newInput.style.display = 'none';
+      newInput.value = '';
+    }
+  }
+
+  // Инициализация обработчика изменения select при загрузке
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      const select = document.getElementById('task17-source');
+      if (select) {
+        select.addEventListener('change', handleTask17SourceChange);
+      }
+    });
+  } else {
+    const select = document.getElementById('task17-source');
+    if (select) {
+      select.addEventListener('change', handleTask17SourceChange);
+    }
+  }
+
+
+  // Загрузка списка заданий №17
+  async function loadTask17List() {
+    try {
+      const response = await fetch('/api/task17');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const tasks = await response.json();
+      
+      const list = document.getElementById('task17-list');
+      if (tasks.length === 0) {
+        list.innerHTML = '<p>Задания №17 не найдены</p>';
+        return;
+      }
+      
+      list.innerHTML = tasks.map(task => {
+        const preview = task.source_text ? (task.source_text.substring(0, 100) + (task.source_text.length > 100 ? '...' : '')) : 'Нет текста';
+        return `
+          <div class="admin-list-item">
+            <div class="admin-list-item-content">
+              <div class="admin-list-item-title">Задание #${task.id}</div>
+              <div class="admin-list-item-description">${preview}</div>
+              <div class="admin-list-item-meta">
+                Создано: ${new Date(task.created_at).toLocaleString('ru-RU')}
+              </div>
+            </div>
+            <div class="admin-list-item-actions">
+              <button class="btn btn-sm" onclick="editTask17(${task.id})">Редактировать</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteTask17(${task.id})">Удалить</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (error) {
+      console.error('Ошибка загрузки заданий №17:', error);
+      const list = document.getElementById('task17-list');
+      list.innerHTML = '<p style="color: red;">Ошибка загрузки заданий</p>';
+    }
+  }
+
+  // Редактирование задания №17
+  async function editTask17(id) {
+    try {
+      const response = await fetch(`/api/task17/${id}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const task = await response.json();
+      
+      document.getElementById('task17-id').value = task.id;
+      document.getElementById('task17-text').value = task.source_text;
+      
+      // Устанавливаем источник
+      const sourceSelect = document.getElementById('task17-source');
+      const newSourceInput = document.getElementById('task17-source-new');
+      if (task.source) {
+        sourceSelect.value = task.source;
+        newSourceInput.style.display = 'none';
+        newSourceInput.value = '';
+      } else {
+        sourceSelect.value = '';
+        newSourceInput.style.display = 'none';
+        newSourceInput.value = '';
+      }
+      
+      // Формируем ответ из digits
+      const answerDigits = task.digits || [];
+      document.getElementById('task17-answer').value = answerDigits.join(',');
+      
+      // Загружаем объяснение с поддержкой HTML
+      const explanationEditor = document.getElementById('task17-explanation-editor');
+      if (task.explanation_md) {
+        explanationEditor.innerHTML = task.explanation_md;
+      } else {
+        explanationEditor.innerHTML = '';
+      }
+      
+      // Прокрутка к форме
+      document.getElementById('task17-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (error) {
+      console.error('Ошибка загрузки задания:', error);
+      alert('Ошибка загрузки задания');
+    }
+  }
+  window.editTask17 = editTask17;
+
+  // Удаление задания №17
+  async function deleteTask17(id) {
+    if (!confirm('Удалить задание №17 #' + id + '?')) return;
+    
+    try {
+      const response = await fetch(`/api/task17/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      loadTask17List();
+      alert('Задание удалено');
+    } catch (error) {
+      console.error('Ошибка удаления задания:', error);
+      alert('Ошибка удаления задания');
+    }
+  }
+  window.deleteTask17 = deleteTask17;
+
+  // Очистка формы задания №17
+  function resetTask17Form() {
+    document.getElementById('task17-form').reset();
+    document.getElementById('task17-id').value = '';
+    document.getElementById('task17-explanation-editor').innerHTML = '';
+    // Скрываем поле для нового источника
+    document.getElementById('task17-source-new').style.display = 'none';
+    document.getElementById('task17-source-new').value = '';
+  }
+  window.resetTask17Form = resetTask17Form;
+
+  // Инициализация панели инструментов для выделения оборотов
+  function initTask17SpanToolbar() {
+    const editor = document.getElementById('task17-explanation-editor');
+    const markParticipleBtn = document.getElementById('task17-mark-participle');
+    const markGerundBtn = document.getElementById('task17-mark-gerund');
+    const removeMarkBtn = document.getElementById('task17-remove-mark');
+
+    // Функция для применения стиля к выделенному тексту (с поддержкой вложенных оборотов)
+    function applySpanClass(className) {
+      const selection = window.getSelection();
+      if (selection.rangeCount === 0 || selection.toString().trim() === '') {
+        alert('Выделите текст в объяснении');
+        return;
+      }
+
+      const range = selection.getRangeAt(0);
+      
+      if (range.collapsed) {
+        alert('Выделите текст');
+        return;
+      }
+
+      // Проверяем, находится ли весь диапазон внутри одного существующего спана того же типа
+      const startContainer = range.startContainer;
+      const endContainer = range.endContainer;
+      
+      // Ищем ближайший родительский элемент с классом спана для начала выделения
+      let startParent = startContainer.nodeType === 1 ? startContainer : startContainer.parentElement;
+      while (startParent && startParent !== editor) {
+        if (startParent.classList && startParent.classList.contains(className)) {
+          // Выделение уже находится внутри спана этого типа - ничего не делаем
+          selection.removeAllRanges();
+          editor.focus();
+          return;
+        }
+        if (startParent.classList && (startParent.classList.contains('span-participle') || startParent.classList.contains('span-gerund'))) {
+          break; // Найден спан другого типа - можно вложить
+        }
+        startParent = startParent.parentElement;
+      }
+      
+      // Ищем для конца выделения
+      let endParent = endContainer.nodeType === 1 ? endContainer : endContainer.parentElement;
+      while (endParent && endParent !== editor) {
+        if (endParent.classList && endParent.classList.contains(className)) {
+          selection.removeAllRanges();
+          editor.focus();
+          return;
+        }
+        if (endParent.classList && (endParent.classList.contains('span-participle') || endParent.classList.contains('span-gerund'))) {
+          break;
+        }
+        endParent = endParent.parentElement;
+      }
+
+      // Если выделение пересекает границы существующего спана того же типа, удаляем его
+      const commonAncestor = range.commonAncestorContainer;
+      let ancestorParent = commonAncestor.nodeType === 1 ? commonAncestor : commonAncestor.parentElement;
+      
+      while (ancestorParent && ancestorParent !== editor) {
+        if (ancestorParent.classList && ancestorParent.classList.contains(className)) {
+          // Удаляем существующий спан этого типа
+          const grandParent = ancestorParent.parentNode;
+          while (ancestorParent.firstChild) {
+            grandParent.insertBefore(ancestorParent.firstChild, ancestorParent);
+          }
+          grandParent.removeChild(ancestorParent);
+          break;
+        }
+        ancestorParent = ancestorParent.parentElement;
+      }
+
+      // Создаем новый span с нужным классом (может быть вложенным)
+      const span = document.createElement('span');
+      span.className = className;
+      
+      try {
+        range.surroundContents(span);
+      } catch (e) {
+        // Если surroundContents не работает (выделение пересекает границы элементов),
+        // используем другой метод
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+      }
+
+      selection.removeAllRanges();
+      editor.focus();
+    }
+
+    // Обработчики кнопок
+    markParticipleBtn.addEventListener('click', () => {
+      applySpanClass('span-participle');
+    });
+
+    markGerundBtn.addEventListener('click', () => {
+      applySpanClass('span-gerund');
+    });
+
+    removeMarkBtn.addEventListener('click', () => {
+      const selection = window.getSelection();
+      if (selection.rangeCount === 0) {
+        alert('Выделите текст');
+        return;
+      }
+
+      const range = selection.getRangeAt(0);
+      const selectedParent = range.commonAncestorContainer;
+      
+      // Ищем родительский элемент с классом span-*
+      let parent = selectedParent.nodeType === 1 ? selectedParent : selectedParent.parentElement;
+      while (parent && parent !== editor) {
+        if (parent.classList.contains('span-participle') || parent.classList.contains('span-gerund')) {
+          const grandParent = parent.parentNode;
+          while (parent.firstChild) {
+            grandParent.insertBefore(parent.firstChild, parent);
+          }
+          grandParent.removeChild(parent);
+          break;
+        }
+        parent = parent.parentElement;
+      }
+
+      selection.removeAllRanges();
+      editor.focus();
+    });
+
+    // Синхронизация содержимого редактора с скрытым textarea перед отправкой формы
+    const form = document.getElementById('task17-form');
+    form.addEventListener('submit', () => {
+      const explanationHtml = editor.innerHTML;
+      document.getElementById('task17-explanation').value = explanationHtml;
+    });
+  }
+
+  // Инициализация при загрузке страницы
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTask17SpanToolbar);
+  } else {
+    initTask17SpanToolbar();
+  }
+
+  // Обработчик отправки формы задания №17
+  document.getElementById('task17-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const text = document.getElementById('task17-text').value.trim();
+    const answerInput = document.getElementById('task17-answer').value.trim();
+    const explanationHtml = document.getElementById('task17-explanation-editor').innerHTML;
+    
+    // Получаем источник
+    const select = document.getElementById('task17-source');
+    const newSourceInput = document.getElementById('task17-source-new');
+    let source = select.value;
+    
+    // Если выбран "+ Новый", проверяем поле ввода
+    if (source === '__new__') {
+      const newSourceName = newSourceInput.value.trim();
+      if (!newSourceName) {
+        alert('Введите название нового источника');
+        return;
+      }
+      
+      // Добавляем новый источник в БД
+      try {
+        const response = await fetch('/api/sources', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newSourceName })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Ошибка добавления источника');
+        }
+        
+        // Обновляем список источников и выбираем новый источник
+        await loadTask17Sources();
+        source = newSourceName;
+      } catch (error) {
+        console.error('Ошибка добавления источника:', error);
+        alert('Ошибка добавления источника: ' + error.message);
+        return;
+      }
+    }
+    
+    if (!source || source.trim() === '' || source === '__new__') {
+      alert('Выберите источник');
+      return;
+    }
+    
+    // Парсим ответ - извлекаем каждую отдельную цифру из строки
+    // Например: "478" -> [4, 7, 8], "1,2,3" -> [1, 2, 3], "1 2 3" -> [1, 2, 3]
+    const answerDigits = answerInput
+      .split('') // Разбиваем на отдельные символы
+      .map(char => parseInt(char, 10))
+      .filter(n => !isNaN(n) && n > 0)
+      .filter((value, index, self) => self.indexOf(value) === index); // Убираем дубликаты
+    
+    if (answerDigits.length === 0) {
+      alert('Введите хотя бы одну цифру в ответе');
+      return;
+    }
+
+    // Генерируем base_text и commaless_text из source_text
+    const baseText = text.replace(/\(\d+\)/g, '').trim();
+    const commalessText = baseText.replace(/,/g, '');
+
+    // Извлекаем все цифры из исходного текста для проверки
+    const allDigitsInText = [];
+    const digitRegex = /\((\d+)\)/g;
+    let match;
+    while ((match = digitRegex.exec(text)) !== null) {
+      allDigitsInText.push(parseInt(match[1], 10));
+    }
+
+    // Извлекаем спаны из объяснения (обороты с классами span-participle и span-gerund)
+    const spans = [];
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = explanationHtml;
+    const spanElements = tempDiv.querySelectorAll('.span-participle, .span-gerund');
+    
+    // Для спанов в объяснении просто сохраняем их HTML, без индексов
+    // Они не требуются для проверки задания, только для отображения
+    
+    const formData = {
+      source_text: text,
+      base_text: baseText,
+      commaless_text: commalessText,
+      digits: answerDigits, // Правильные цифры из ответа
+      comma_positions: [], // Пустой массив - не используется в упрощенной форме
+      spans: [], // Пустой массив - обороты только в объяснении (HTML)
+      answer_text: null,
+      explanation_md: explanationHtml,
+      source: source,
+      reveal_policy: 'after_correct'
+    };
+    
+    const taskId = document.getElementById('task17-id').value;
+    const url = taskId ? `/api/task17/${taskId}` : '/api/task17';
+    const method = taskId ? 'PUT' : 'POST';
+    
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData.details ? `${errorData.error}: ${errorData.details}` : (errorData.error || 'Ошибка сохранения');
+        throw new Error(errorMessage);
+      }
+      
+      const result = await response.json();
+      alert(taskId ? 'Задание обновлено' : 'Задание создано (ID: ' + result.id + ')');
+      
+      resetTask17Form();
+      loadTask17List();
+    } catch (error) {
+      console.error('Ошибка сохранения задания:', error);
+      console.error('Form data:', formData);
+      alert('Ошибка сохранения: ' + error.message);
+    }
+  });
+</script>

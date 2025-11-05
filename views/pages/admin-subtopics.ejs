@@ -1,0 +1,142 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Управление темами</h2>
+  
+  <!-- Хлебные крошки -->
+  <nav class="breadcrumbs" id="breadcrumbs">
+    <a href="/admin" class="breadcrumb-link">Админка</a>
+    <span class="breadcrumb-separator">›</span>
+    <span class="breadcrumb-current" id="breadcrumb-current">Загрузка...</span>
+  </nav>
+
+  <div class="admin-section">
+    <h3>Добавить тему для типа задания</h3>
+    <form id="add-subtopic-form" class="admin-form">
+      <input type="hidden" id="subtopic-type" name="type_id" value="<%= typeId %>">
+      <div class="form-group">
+        <label for="subtopic-title">Название темы:</label>
+        <input type="text" id="subtopic-title" name="title" placeholder="Название темы" required>
+      </div>
+      <div class="form-group">
+        <label for="subtopic-description">Описание (необязательно):</label>
+        <textarea id="subtopic-description" name="description" rows="2" placeholder="Описание темы"></textarea>
+      </div>
+      <button type="submit" class="btn">Добавить тему</button>
+    </form>
+  </div>
+
+  <div class="admin-section">
+    <h3>Существующие темы</h3>
+    <div id="subtopics-list" class="admin-list">
+      <p>Загрузка тем...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const typeId = <%= typeId %>;
+
+  // Загрузка информации о типе задания
+  async function loadTaskTypeInfo() {
+    try {
+      const response = await fetch('/api/admin/task-types');
+      const taskTypes = await response.json();
+      const taskType = taskTypes.find(t => t.id == typeId);
+      
+      if (taskType) {
+        const breadcrumb = document.getElementById('breadcrumb-current');
+        if (breadcrumb) {
+          breadcrumb.textContent = `Тип ${taskType.id}: ${taskType.title} › Темы`;
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки типа задания:', error);
+    }
+  }
+
+  // Загрузка тем
+  async function loadSubtopics() {
+    try {
+      const response = await fetch(`/api/admin/subtopics?typeId=${typeId}`);
+      const subtopics = await response.json();
+      
+      const list = document.getElementById('subtopics-list');
+      if (subtopics.length === 0) {
+        list.innerHTML = '<p>Темы не найдены</p>';
+        return;
+      }
+      
+      list.innerHTML = subtopics.map(subtopic => `
+        <div class="admin-item">
+          <div class="item-info">
+            <strong>${subtopic.title}</strong>
+            ${subtopic.description ? `<br><small>${subtopic.description}</small>` : ''}
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubtopic(${subtopic.id})">Удалить</button>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Ошибка загрузки тем:', error);
+      const list = document.getElementById('subtopics-list');
+      list.innerHTML = '<p style="color: red;">Ошибка загрузки тем. Проверьте консоль.</p>';
+    }
+  }
+
+  // Общая функция отправки формы
+  async function submitForm(form, endpoint, successMessage, reloadFunction) {
+    try {
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        alert(successMessage);
+        form.reset();
+        if (reloadFunction) reloadFunction();
+      } else {
+        alert('Ошибка сохранения');
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert('Ошибка сохранения');
+    }
+  }
+
+  // Обработчик формы
+  document.getElementById('add-subtopic-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await submitForm(e.target, '/api/admin/subtopics', 'Тема добавлена!', loadSubtopics);
+  });
+
+  // Общая функция удаления
+  async function deleteItem(id, endpoint, successMessage, reloadFunction) {
+    if (confirm('Удалить?')) {
+      try {
+        const response = await fetch(endpoint, { method: 'DELETE' });
+        if (response.ok) {
+          alert(successMessage);
+          if (reloadFunction) reloadFunction();
+        } else {
+          alert('Ошибка удаления');
+        }
+      } catch (error) {
+        console.error('Ошибка удаления:', error);
+      }
+    }
+  }
+
+  // Функция удаления
+  window.deleteSubtopic = (id) => deleteItem(id, `/api/admin/subtopics/${id}`, 'Тема удалена!', loadSubtopics);
+
+  // Загрузка данных при загрузке страницы
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadTaskTypeInfo();
+    await loadSubtopics();
+  });
+</script>
+
+

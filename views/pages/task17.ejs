@@ -1,0 +1,56 @@
+<div class="task-page">
+  <h2 class="task-page__title">Задание №17: Пунктуация</h2>
+  
+  <div class="task-list" id="task17List">
+    <p>Загрузка заданий...</p>
+  </div>
+</div>
+
+<script>
+  (async function(){
+    let tasks;
+    try{
+      const res = await fetch('/api/task17');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      tasks = await res.json();
+    }catch(err){
+      console.error('Failed to load tasks', err);
+      document.getElementById('task17List').innerHTML = '<p>Не удалось загрузить задания.</p>';
+      return;
+    }
+
+    if (tasks.length === 0) {
+      document.getElementById('task17List').innerHTML = '<p>Заданий №17 пока нет.</p>';
+      return;
+    }
+
+    // Показываем все задания списком
+    const taskList = document.getElementById('task17List');
+    taskList.innerHTML = tasks.map((task, index) => {
+      const preview = task.source_text ? (task.source_text.substring(0, 150) + (task.source_text.length > 150 ? '...' : '')) : 'Нет текста';
+      
+      return `
+      <div class="task-card">
+        <div class="task-meta">
+          <span class="task-meta__number">№ ${index + 1}</span>
+          <span class="task-meta__source">${task.source || 'Источник не указан'}</span>
+        </div>
+        
+        <div class="task-content">
+          <div class="task-prompt">
+            <p>${preview}</p>
+          </div>
+          
+          <div class="task-controls">
+            <a href="/task17/${task.id}" class="task-send" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+              <span>Решить</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      `;
+    }).join('');
+  })();
+</script>
+
+

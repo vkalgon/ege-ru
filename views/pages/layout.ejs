@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <link rel="icon" type="image/svg+xml" href="/images/logo.svg">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+
+  <main class="container">
+    <%- body %>
+  </main>
+
+  <%- include('../partials/footer') %>
+  
+  <script>
+    // Проверка авторизации при загрузке страницы
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/me');
+        const result = await response.json();
+        
+        if (result.success) {
+          showUserAuth(result.user);
+        } else {
+          showGuestAuth();
+        }
+      } catch (error) {
+        console.error('Ошибка проверки авторизации:', error);
+        showGuestAuth();
+      }
+    }
+    
+    function showUserAuth(user) {
+      document.getElementById('guest-auth').style.display = 'none';
+      document.getElementById('user-auth').style.display = 'flex';
+      
+      // Заполняем информацию о пользователе
+      const name = user.first_name || user.username || 'Пользователь';
+      const contact = user.phone || user.username || '';
+      
+      document.getElementById('user-name').textContent = name;
+      document.getElementById('user-contact').textContent = contact;
+      document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+    }
+    
+    function showGuestAuth() {
+      document.getElementById('guest-auth').style.display = 'flex';
+      document.getElementById('user-auth').style.display = 'none';
+    }
+    
+    async function logout() {
+      try {
+        const response = await fetch('/api/auth/logout', { method: 'POST' });
+        const result = await response.json();
+        
+        if (result.success) {
+          showGuestAuth();
+          window.location.href = '/';
+        } else {
+          alert('Ошибка выхода: ' + result.error);
+        }
+      } catch (error) {
+        console.error('Ошибка выхода:', error);
+        alert('Ошибка выхода');
+      }
+    }
+    
+    // Переключение меню пользователя
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      
+      const authSection = document.getElementById('auth-section');
+      const userMenu = document.getElementById('user-menu');
+      
+            authSection.addEventListener('click', (e) => {
+              const chevron = authSection.querySelector('.site-auth__chevron');
+              
+              if (userMenu.style.display === 'none') {
+                userMenu.style.display = 'block';
+                chevron.classList.add('rotated');
+              } else {
+                userMenu.style.display = 'none';
+                chevron.classList.remove('rotated');
+              }
+            });
+      
+      // Закрытие меню при клике вне его
+      document.addEventListener('click', (e) => {
+        if (!authSection.contains(e.target)) {
+          userMenu.style.display = 'none';
+          const chevron = authSection.querySelector('.site-auth__chevron');
+          chevron.classList.remove('rotated');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
