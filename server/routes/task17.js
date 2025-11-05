@@ -392,7 +392,7 @@ task17.get('/:id/play', (req, res) => {
     }
     
     const task = db.prepare(`
-      SELECT source_text, commaless_text
+      SELECT source_text, commaless_text, answer_text, explanation_md
       FROM task17
       WHERE id = ?
     `).get(id);
@@ -404,7 +404,11 @@ task17.get('/:id/play', (req, res) => {
     res.json({
       mode,
       text: mode === 'digits' ? task.source_text : task.commaless_text,
-      allowSpanSelection: true
+      allowSpanSelection: true,
+      explanation: {
+        answer_text: task.answer_text || null,
+        explanation_md: task.explanation_md || null
+      }
     });
   } catch (error) {
     console.error('Ошибка получения задания для решения:', error);
@@ -480,20 +484,12 @@ task17.post('/:id/check', (req, res) => {
       const expectedNums = expectedDigits.map(d => Number(d)).sort((a, b) => a - b);
       const userNums = digits.map(d => Number(d)).sort((a, b) => a - b);
       
-      console.log('[TASK17 CHECK] Mode: digits');
-      console.log('[TASK17 CHECK] Expected digits:', expectedNums);
-      console.log('[TASK17 CHECK] User digits:', userNums);
-      
       const expectedSet = new Set(expectedNums);
       const userSet = new Set(userNums);
       
       const missing = expectedNums.filter(d => !userSet.has(d));
       const extra = userNums.filter(d => !expectedSet.has(d));
       const isCorrect = missing.length === 0 && extra.length === 0;
-      
-      console.log('[TASK17 CHECK] Missing:', missing);
-      console.log('[TASK17 CHECK] Extra:', extra);
-      console.log('[TASK17 CHECK] Is correct:', isCorrect);
       
       digitsResult = { isCorrect, missing, extra };
     }
@@ -519,12 +515,13 @@ task17.post('/:id/check', (req, res) => {
     const spansOk = spansCorrect === spansTotal && userSpans.length === spansTotal;
     
     // Подсчет баллов
+    // В задании 17 можно заработать только 1 балл: 1 если все правильно, 0 если есть ошибки
     const digitsOrCommasOk = mode === 'digits' ? digitsResult.isCorrect : commasResult.isCorrect;
     const score = {
       digitsOrCommas: digitsOrCommasOk ? 1 : 0,
-      spans: spansOk ? 2 : 0,
-      total: (digitsOrCommasOk ? 1 : 0) + (spansOk ? 2 : 0),
-      max: 3
+      spans: 0, // Спаны не учитываются в баллах
+      total: digitsOrCommasOk ? 1 : 0,
+      max: 1
     };
     
     // Определяем, показывать ли объяснение
@@ -573,7 +570,10 @@ task17.post('/:id/check', (req, res) => {
       commas: commasResult,
       spans: spansReport,
       score,
-      explanation
+      explanation,
+      correctAnswer: mode === 'digits' 
+        ? expectedDigits.sort((a, b) => Number(a) - Number(b))
+        : (mode === 'commas' ? expectedCommas.sort((a, b) => a - b) : null)
     };
     
     res.json(response);

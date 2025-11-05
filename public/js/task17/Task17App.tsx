@@ -31,6 +31,7 @@ interface CheckResult {
     explanation_md?: string;
     shown: boolean;
   };
+  correctAnswer?: number[]; // Правильные цифры/позиции для режима digits/commas
 }
 
 interface Task17AppProps {
@@ -161,12 +162,16 @@ export const Task17App: React.FC<Task17AppProps> = ({ taskId }) => {
             text={taskData.text}
             onDigitsChange={setDigits}
             selectedDigits={digits}
+            correctDigits={checkResult && checkResult.digits ? (checkResult.correctAnswer || []) : []}
+            extraDigits={checkResult?.digits?.extra || []}
           />
         ) : (
           <CommaSlots
             text={taskData.text}
             onCommaPositionsChange={setCommaPositions}
             selectedPositions={commaPositions}
+            correctPositions={checkResult?.commas ? checkResult.correctAnswer || [] : []}
+            extraPositions={checkResult?.commas?.extra || []}
           />
         )}
       </div>
@@ -273,4 +278,5 @@ export const Task17App: React.FC<Task17AppProps> = ({ taskId }) => {
     </div>
   );
 };
+
 

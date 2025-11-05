@@ -1,55 +1,778 @@
-<div class="task-page">
+<div class="task-page" id="task17App">
   <h2 class="task-page__title">Задание №17: Пунктуация</h2>
   
-  <div class="task-list" id="task17List">
-    <p>Загрузка заданий...</p>
+  <!-- Панель инструментов слева для выделений в предложении (sticky) -->
+  <div id="task17-toolbar-left" class="task17-student-toolbar-left" style="
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 200px;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: block;
+  ">
+    <div style="margin-bottom: 12px; color: var(--text-primary); font-weight: 600; font-size: 14px;">
+      Инструменты выделения
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <button type="button" class="btn btn-sm" id="task17-mark-participle-text" style="width: 100%; justify-content: flex-start;">
+        <span style="text-decoration: underline wavy;">Причастный</span>
+      </button>
+      <button type="button" class="btn btn-sm" id="task17-mark-gerund-text" style="width: 100%; justify-content: flex-start;">
+        Деепричастный
+      </button>
+      <button type="button" class="btn btn-sm" id="task17-mark-main-word-text" style="width: 100%; justify-content: flex-start; border: 1px solid rgba(236, 72, 153, 0.5);">
+        ✕ Главное слово
+      </button>
+      <button type="button" class="btn btn-sm btn-secondary" id="task17-remove-mark-text" style="width: 100%; justify-content: flex-start;">
+        Убрать выделение
+      </button>
+    </div>
+    
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--glass-border); font-size: 11px; color: var(--text-secondary); line-height: 1.6;">
+      <div style="margin-bottom: 6px;"><span class="span-participle" style="display: inline-block;">Причастный</span></div>
+      <div style="margin-bottom: 6px;"><span class="span-gerund" style="display: inline-block; position: relative; padding-bottom: 2px;">Деепричастный</span></div>
+      <div><span class="span-main-word" style="display: inline-block; position: relative;">Главное слово</span></div>
+    </div>
+  </div>
+  
+  <div id="task17Container">
+    <div style={{padding: '20px'}}>
+      <p>Загрузка заданий...</p>
+    </div>
   </div>
 </div>
 
-<script>
-  (async function(){
-    let tasks;
-    try{
-      const res = await fetch('/api/task17');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      tasks = await res.json();
-    }catch(err){
-      console.error('Failed to load tasks', err);
-      document.getElementById('task17List').innerHTML = '<p>Не удалось загрузить задания.</p>';
-      return;
+<style>
+  /* Стили для отображения объяснения с подчеркиваниями */
+  .task-page .span-participle,
+  .task-page .span-gerund {
+    position: relative;
+  }
+  
+  .task-page .span-participle {
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-decoration-color: rgba(168, 85, 247, 0.8);
+  }
+  
+  .task-page .span-gerund {
+    border-bottom: 2px dashed rgba(59, 130, 246, 0.8);
+    padding-bottom: 2px;
+  }
+  
+  /* Стили для кликабельных цифр в задании №17 */
+  .task17-digit {
+    cursor: pointer;
+    padding: 2px 6px;
+    margin: 0 2px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-block;
+    position: relative;
+  }
+  
+  .task17-digit:hover:not(.selected) {
+    background-color: rgba(0, 240, 255, 0.2);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+  }
+  
+  .task17-digit.selected {
+    background-color: var(--neon-cyan);
+    color: var(--bg-primary);
+    font-weight: bold;
+  }
+</style>
+
+<!-- React через CDN -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+  const { useState, useEffect, useRef } = React;
+
+  // Общая функция для парсинга текста с метками (1), (2)...
+  function parseTextWithDigits(text) {
+    const parts = [];
+    const regex = /\((\d+)\)/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({ text: text.substring(lastIndex, match.index), digit: null });
+      }
+      const digitNum = parseInt(match[1], 10);
+      parts.push({ text: match[0], digit: digitNum });
+      lastIndex = match.index + match[0].length;
     }
 
-    if (tasks.length === 0) {
-      document.getElementById('task17List').innerHTML = '<p>Заданий №17 пока нет.</p>';
-      return;
+    if (lastIndex < text.length) {
+      parts.push({ text: text.substring(lastIndex), digit: null });
     }
 
-    // Показываем все задания списком
-    const taskList = document.getElementById('task17List');
-    taskList.innerHTML = tasks.map((task, index) => {
-      const preview = task.source_text ? (task.source_text.substring(0, 150) + (task.source_text.length > 150 ? '...' : '')) : 'Нет текста';
+    return parts;
+  }
+
+  // Компонент для одного задания
+  function Task17Item({ task, index }) {
+    const mode = 'digits';
+    const [taskData, setTaskData] = useState(null);
+    const [selectedDigits, setSelectedDigits] = useState(new Set());
+    const [answerInput, setAnswerInput] = useState('');
+    const [checkResult, setCheckResult] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [isLiked, setIsLiked] = useState(false);
+    const [showSolution, setShowSolution] = useState(false);
+    const [correctDigits, setCorrectDigits] = useState(new Set());
+    const inputRef = useRef(null);
+
+    // Загружаем задание
+    useEffect(() => {
+      const loadTask = async () => {
+        try {
+          setLoading(true);
+          setCorrectDigits(new Set()); // Сбрасываем правильные цифры при загрузке
+          const response = await fetch(`/api/task17/${task.id}/play?mode=${mode}`);
+          if (!response.ok) throw new Error('Не удалось загрузить задание');
+          const data = await response.json();
+          setTaskData(data);
+          setError(null);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Ошибка загрузки');
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadTask();
+    }, [task.id]);
+
+    // Применяем цвета при показе решения
+    useEffect(() => {
+      if (showSolution && taskData && taskData.explanation && taskData.explanation.explanation_md) {
+        setTimeout(() => {
+          const explanationDiv = document.getElementById(`task17-explanation-${task.id}`);
+          if (explanationDiv && typeof applyColorsInExplanation === 'function') {
+            applyColorsInExplanation();
+          }
+        }, 300);
+      }
+    }, [showSolution, taskData, task.id]);
+
+    const handleDigitClick = (digit) => {
+      setSelectedDigits(prevSelected => {
+        const newSet = new Set(prevSelected);
+        if (newSet.has(digit)) {
+          newSet.delete(digit);
+        } else {
+          newSet.add(digit);
+        }
+        return newSet;
+      });
+    };
+
+    useEffect(() => {
+      const sortedDigits = Array.from(selectedDigits).sort((a, b) => a - b);
+      setAnswerInput(sortedDigits.join(''));
+    }, [selectedDigits]);
+
+    const handleInputChange = (e) => {
+      const value = e.target.value;
+      setAnswerInput(value);
+      const digits = value.split('').map(char => parseInt(char, 10)).filter(n => !isNaN(n) && n > 0);
+      setSelectedDigits(new Set(digits));
+    };
+
+    const handleCheck = async () => {
+      if (!taskData) return;
+      const currentDigits = Array.from(selectedDigits).sort((a, b) => a - b);
       
-      return `
-      <div class="task-card">
-        <div class="task-meta">
-          <span class="task-meta__number">№ ${index + 1}</span>
-          <span class="task-meta__source">${task.source || 'Источник не указан'}</span>
+      if (currentDigits.length === 0) {
+        alert('Введите ответ, выбрав цифры в тексте или введя их вручную');
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/task17/${task.id}/check`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'digits',
+            digits: currentDigits,
+            spans: []
+          })
+        });
+
+        if (!response.ok) throw new Error('Ошибка проверки');
+        const result = await response.json();
+        setCheckResult(result);
+        // Если ответ неправильный, сохраняем правильные цифры для подсветки
+        if (result.correctAnswer && !result.digits.isCorrect) {
+          setCorrectDigits(new Set(result.correctAnswer));
+        } else {
+          setCorrectDigits(new Set());
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ошибка проверки');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (loading && !taskData) {
+      return (
+        <div className="task-card">
+          <div className="task-content">
+            <p>Загрузка задания {index + 1}...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="task-card">
+          <div className="task-content">
+            <p style={{color: 'red'}}>Ошибка: {error}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!taskData) {
+      return null;
+    }
+
+    return (
+      <div className="task-card" style={{marginBottom: '32px'}}>
+        <div className="task-meta">
+          <span className="task-meta__number">№ {index + 1}</span>
+          {task.source && <span className="task-meta__source">{task.source}</span>}
         </div>
         
-        <div class="task-content">
-          <div class="task-prompt">
-            <p>${preview}</p>
+        <div className="task-content">
+          <div style={{
+            marginBottom: '20px',
+            padding: '0',
+            color: 'var(--text-primary)',
+            fontSize: '16px',
+            lineHeight: '1.6',
+            fontWeight: '500'
+          }}>
+            Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).
           </div>
           
-          <div class="task-controls">
-            <a href="/task17/${task.id}" class="task-send" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
-              <span>Решить</span>
-            </a>
+          <div className="task-prompt" style={{position: 'relative', margin: 0}}>
+            <div 
+              className="task17-text-editable"
+              id={`task17-text-${task.id}`}
+              style={{
+                fontSize: '18px',
+                lineHeight: '1.8',
+                minHeight: '80px',
+                padding: '16px',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '8px',
+                background: 'var(--bg-secondary)'
+              }}
+              contentEditable={false}
+              suppressContentEditableWarning={true}
+            >
+              {parseTextWithDigits(taskData.text).map((part, idx) => {
+                if (part.digit !== null) {
+                  const isSelected = selectedDigits.has(part.digit);
+                  const isCorrect = correctDigits.has(part.digit);
+                  return (
+                    <span
+                      key={`digit-${task.id}-${part.digit}-${idx}`}
+                      className={`task17-digit ${isSelected ? 'selected' : ''} ${isCorrect ? 'correct-highlight' : ''}`}
+                      data-digit={part.digit}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDigitClick(part.digit);
+                      }}
+                      title={`Кликните, чтобы ${isSelected ? 'убрать' : 'добавить'} цифру ${part.digit} в ответ`}
+                      style={{
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        cursor: 'pointer',
+                        contentEditable: 'false',
+                        ...(isCorrect && {
+                          backgroundColor: 'rgba(34, 197, 94, 0.3)',
+                          border: '2px solid rgba(34, 197, 94, 0.8)',
+                          borderRadius: '4px',
+                          padding: '2px 4px'
+                        })
+                      }}
+                      contentEditable={false}
+                      suppressContentEditableWarning={true}
+                    >
+                      {part.text}
+                    </span>
+                  );
+                }
+                return <span key={`text-${task.id}-${idx}`}>{part.text}</span>;
+              })}
+            </div>
+          </div>
+
+          <div className="task-controls">
+            <input
+              ref={inputRef}
+              className="task-input"
+              type="text"
+              value={answerInput}
+              onChange={handleInputChange}
+              placeholder="Введите свой ответ"
+              inputMode="numeric"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleCheck();
+                }
+              }}
+            />
+            <button
+              className="task-send"
+              onClick={handleCheck}
+              disabled={loading}
+            >
+              <span>{loading ? 'Проверка...' : 'Отправить'}</span>
+            </button>
+            <button
+              className="task-solution"
+              onClick={() => setShowSolution(!showSolution)}
+            >
+              <span>Решение</span>
+              <img src={showSolution ? "/images/eye on.svg" : "/images/eye off.svg"} alt="Глаз" width="16" height="16"/>
+            </button>
+            <button 
+              className="task-like"
+              onClick={() => setIsLiked(!isLiked)}
+            >
+              <img 
+                src={isLiked ? "/images/heart on.svg" : "/images/heart off.svg"} 
+                alt="Лайк" 
+                width="16" 
+                height="16"
+              />
+            </button>
+          </div>
+
+          {showSolution && taskData && taskData.explanation && (
+            <div id={`task17-solution-block-${task.id}`} style={{marginTop: '24px'}}>
+              {taskData.explanation.answer_text && (
+                <div style={{marginBottom: '12px'}} className="solution-answer">
+                  <strong>Ответ:</strong> {taskData.explanation.answer_text}
+                </div>
+              )}
+              {taskData.explanation.explanation_md && (
+                <div>
+                  <h4 style={{marginTop: 0, marginBottom: '12px'}}>Объяснение:</h4>
+                  <div
+                    id={`task17-explanation-${task.id}`}
+                    dangerouslySetInnerHTML={{
+                      __html: taskData.explanation.explanation_md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    }}
+                    className="editor-content task17-explanation-content"
+                    style={{
+                      position: 'relative',
+                      fontSize: '18px',
+                      lineHeight: '1.8',
+                      padding: '16px',
+                      minHeight: '100px'
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {checkResult && (
+            <div className="task-solution-block" style={{marginTop: '24px'}}>
+              <h3 style={{marginTop: 0, marginBottom: '16px'}}>Результат проверки</h3>
+              
+              {checkResult.digits && checkResult.digits.isCorrect ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  border: '2px solid rgba(34, 197, 94, 0.5)',
+                  borderRadius: '8px',
+                  marginBottom: '16px'
+                }}>
+                  <div style={{
+                    fontSize: '32px',
+                    color: '#22c55e',
+                    lineHeight: '1'
+                  }}>
+                    ✓
+                  </div>
+                  <div style={{
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    color: '#22c55e'
+                  }}>
+                    Все верно!
+                  </div>
+                </div>
+              ) : (
+                <div style={{marginBottom: '16px'}}>
+                  <div style={{
+                    fontWeight: 'bold',
+                    color: '#f6b462',
+                    marginBottom: '12px',
+                    fontSize: '16px'
+                  }}>
+                    Ответ неверный
+                  </div>
+                  {checkResult.correctAnswer && (
+                    <div style={{
+                      padding: '12px',
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      borderRadius: '8px',
+                      marginBottom: '12px'
+                    }}>
+                      <div style={{
+                        color: 'var(--text-secondary)',
+                        marginBottom: '4px',
+                        fontSize: '14px'
+                      }}>
+                        Правильный ответ:
+                      </div>
+                      <div style={{
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        color: '#22c55e'
+                      }}>
+                        {checkResult.correctAnswer.join(', ')}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Компонент для списка всех заданий
+  function Task17List() {
+    const [allTasks, setAllTasks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showDigits, setShowDigits] = useState(true);
+    const [showToolbar, setShowToolbar] = useState(true);
+
+    useEffect(() => {
+      const loadAllTasks = async () => {
+        try {
+          const response = await fetch('/api/task17');
+          if (!response.ok) throw new Error('Не удалось загрузить список заданий');
+          const tasks = await response.json();
+          setAllTasks(tasks);
+        } catch (err) {
+          console.error('Ошибка загрузки списка заданий:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadAllTasks();
+    }, []);
+
+    // Управление видимостью левой панели инструментов
+    useEffect(() => {
+      const toolbarLeft = document.getElementById('task17-toolbar-left');
+      if (toolbarLeft) {
+        toolbarLeft.style.display = showToolbar ? 'block' : 'none';
+      }
+    }, [showToolbar]);
+
+    // Применяем скрытие цифр ко всем заданиям
+    useEffect(() => {
+      const allTextEditors = document.querySelectorAll('.task17-text-editable');
+      allTextEditors.forEach(editor => {
+        const digits = editor.querySelectorAll('.task17-digit');
+        digits.forEach(digit => {
+          digit.style.display = showDigits ? '' : 'none';
+        });
+      });
+    }, [showDigits]);
+
+    if (loading) {
+      return (
+        <div style={{padding: '20px'}}>
+          <p>Загрузка заданий...</p>
+        </div>
+      );
+    }
+
+    if (allTasks.length === 0) {
+      return (
+        <div style={{padding: '20px'}}>
+          <p>Заданий №17 пока нет.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="task17-wrapper">
+        <div style={{flex: 1, maxWidth: '800px'}}>
+          {allTasks.map((task, index) => (
+            <Task17Item key={task.id} task={task} index={index} />
+          ))}
+        </div>
+        {/* Правая панель с переключателями */}
+        <div className="task17-control-panel">
+          <div style={{
+            marginBottom: '16px',
+            color: 'var(--text-primary)',
+            fontWeight: 600,
+            fontSize: '14px'
+          }}>
+            Настройки отображения
+          </div>
+          
+          <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              color: 'var(--text-primary)',
+              fontSize: '14px'
+            }}>
+              <span>Показывать цифры</span>
+              <div
+                onClick={() => setShowDigits(!showDigits)}
+                style={{
+                  width: '48px',
+                  height: '24px',
+                  borderRadius: '12px',
+                  background: showDigits ? 'var(--neon-cyan)' : 'var(--text-disabled)',
+                  position: 'relative',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: showDigits ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none'
+                }}
+              >
+                <div
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    background: '#fff',
+                    position: 'absolute',
+                    top: '2px',
+                    left: showDigits ? '26px' : '2px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                  }}
+                />
+              </div>
+            </label>
+            
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              color: 'var(--text-primary)',
+              fontSize: '14px'
+            }}>
+              <span>Панель выделений</span>
+              <div
+                onClick={() => setShowToolbar(!showToolbar)}
+                style={{
+                  width: '48px',
+                  height: '24px',
+                  borderRadius: '12px',
+                  background: showToolbar ? 'var(--neon-cyan)' : 'var(--text-disabled)',
+                  position: 'relative',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: showToolbar ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none'
+                }}
+              >
+                <div
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    background: '#fff',
+                    position: 'absolute',
+                    top: '2px',
+                    left: showToolbar ? '26px' : '2px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                  }}
+                />
+              </div>
+            </label>
           </div>
         </div>
       </div>
-      `;
-    }).join('');
-  })();
+    );
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById('task17Container'));
+  root.render(<Task17List />);
 </script>
+
+<script>
+  // Инициализация панели инструментов для выделений
+  function initTextToolbar() {
+    const markParticipleBtn = document.getElementById('task17-mark-participle-text');
+    const markGerundBtn = document.getElementById('task17-mark-gerund-text');
+    const markMainWordBtn = document.getElementById('task17-mark-main-word-text');
+    const removeMarkBtn = document.getElementById('task17-remove-mark-text');
+
+    if (!markParticipleBtn || !markGerundBtn || !markMainWordBtn || !removeMarkBtn) return;
+
+    function applySpanClass(className) {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+
+      const range = selection.getRangeAt(0);
+      const parent = range.commonAncestorContainer.nodeType === 3 
+        ? range.commonAncestorContainer.parentElement 
+        : range.commonAncestorContainer;
+
+      let editor = parent;
+      while (editor && !editor.classList.contains('task17-text-editable')) {
+        editor = editor.parentElement;
+      }
+
+      if (!editor) {
+        alert('Поместите курсор в текст задания');
+        return;
+      }
+
+      const selectedText = selection.toString().trim();
+      if (!selectedText) {
+        alert('Выделите текст для отметки');
+        return;
+      }
+
+      try {
+        const span = document.createElement('span');
+        span.className = className;
+        span.textContent = selectedText;
+
+        if (className === 'span-main-word') {
+          span.setAttribute('data-color-id', '');
+        }
+
+        range.deleteContents();
+        range.insertNode(span);
+        selection.removeAllRanges();
+      } catch (err) {
+        console.error('Ошибка при применении стиля:', err);
+      }
+    }
+
+    markParticipleBtn.addEventListener('click', () => applySpanClass('span-participle'));
+    markGerundBtn.addEventListener('click', () => applySpanClass('span-gerund'));
+    markMainWordBtn.addEventListener('click', () => applySpanClass('span-main-word'));
+
+    removeMarkBtn.addEventListener('click', () => {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) {
+        alert('Выделите текст для удаления отметки');
+        return;
+      }
+
+      const range = selection.getRangeAt(0);
+      const parent = range.commonAncestorContainer.nodeType === 3 
+        ? range.commonAncestorContainer.parentElement 
+        : range.commonAncestorContainer;
+
+      if (parent && (parent.classList.contains('span-participle') || 
+                     parent.classList.contains('span-gerund') || 
+                     parent.classList.contains('span-main-word'))) {
+        const textNode = document.createTextNode(parent.textContent);
+        parent.parentNode.replaceChild(textNode, parent);
+        selection.removeAllRanges();
+      } else {
+        alert('Выделите текст с отметкой для удаления');
+      }
+    });
+  }
+
+  setTimeout(() => {
+    initTextToolbar();
+  }, 500);
+
+  // Функция для применения цветов в объяснении
+  function applyColorsInExplanation() {
+    // Палитра цветов (та же, что в админке)
+    const colorPalette = [
+      { bg: 'rgba(59, 130, 246, 0.3)', border: 'rgba(59, 130, 246, 0.8)', text: 'rgba(59, 130, 246, 1)' }, // Синий
+      { bg: 'rgba(34, 197, 94, 0.3)', border: 'rgba(34, 197, 94, 0.8)', text: 'rgba(34, 197, 94, 1)' }, // Зеленый
+      { bg: 'rgba(236, 72, 153, 0.3)', border: 'rgba(236, 72, 153, 0.8)', text: 'rgba(236, 72, 153, 1)' }, // Розовый
+      { bg: 'rgba(251, 191, 36, 0.3)', border: 'rgba(251, 191, 36, 0.8)', text: 'rgba(251, 191, 36, 1)' }, // Желтый
+      { bg: 'rgba(168, 85, 247, 0.3)', border: 'rgba(168, 85, 247, 0.8)', text: 'rgba(168, 85, 247, 1)' }, // Фиолетовый
+      { bg: 'rgba(239, 68, 68, 0.3)', border: 'rgba(239, 68, 68, 0.8)', text: 'rgba(239, 68, 68, 1)' }, // Красный
+      { bg: 'rgba(14, 165, 233, 0.3)', border: 'rgba(14, 165, 233, 0.8)', text: 'rgba(14, 165, 233, 1)' }, // Голубой
+      { bg: 'rgba(245, 158, 11, 0.3)', border: 'rgba(245, 158, 11, 0.8)', text: 'rgba(245, 158, 11, 1)' }, // Оранжевый
+    ];
+    
+    // Применяем цвет к элементу
+    function applyColor(element, color) {
+      element.style.backgroundColor = color.bg;
+      element.style.borderColor = color.border;
+      if (element.classList.contains('span-main-word')) {
+        element.style.borderWidth = '2px';
+        element.style.borderStyle = 'solid';
+      } else {
+        element.style.color = color.text;
+      }
+    }
+    
+    // Находим все объяснения на странице
+    const allExplanations = document.querySelectorAll('.task17-explanation-content');
+    
+    allExplanations.forEach(explanationDiv => {
+      // Находим все главные слова с data-color-id
+      const mainWords = explanationDiv.querySelectorAll('.span-main-word[data-color-id]');
+      
+      mainWords.forEach((mainWord) => {
+        const colorId = mainWord.getAttribute('data-color-id');
+        if (!colorId || colorId === '') return;
+        
+        const colorIndex = parseInt(colorId);
+        const color = colorPalette[colorIndex % colorPalette.length];
+        
+        // Применяем цвет к главному слову
+        applyColor(mainWord, color);
+        
+        // Применяем цвет ко всем связанным оборотам
+        const linkedTurns = explanationDiv.querySelectorAll(`[data-linked-to="${colorId}"]`);
+        linkedTurns.forEach(turn => {
+          applyColor(turn, color);
+        });
+      });
+    });
+  }
+  
+  // Делаем функцию доступной глобально
+  window.applyColorsInExplanation = applyColorsInExplanation;
+</script>
+
 

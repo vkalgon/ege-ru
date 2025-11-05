@@ -10,6 +10,9 @@
   <%- include('../partials/header') %>
 
   <main class="container">
+    <% if (typeof breadcrumbs !== 'undefined' && breadcrumbs) { %>
+      <%- include('../partials/breadcrumbs', { breadcrumbs: breadcrumbs }) %>
+    <% } %>
     <%- body %>
   </main>
 

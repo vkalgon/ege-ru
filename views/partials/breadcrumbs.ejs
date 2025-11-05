@@ -1,0 +1,20 @@
+<nav class="breadcrumbs" aria-label="Навигационная цепочка">
+  <ol class="breadcrumbs__list">
+    <li class="breadcrumbs__item">
+      <a href="/" class="breadcrumbs__link">Главная</a>
+    </li>
+    <% if (breadcrumbs && breadcrumbs.length > 0) { %>
+      <% breadcrumbs.forEach((crumb, index) => { %>
+        <li class="breadcrumbs__item">
+          <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+          <% if (index === breadcrumbs.length - 1) { %>
+            <span class="breadcrumbs__current" aria-current="page"><%= crumb.title %></span>
+          <% } else { %>
+            <a href="<%= crumb.url %>" class="breadcrumbs__link"><%= crumb.title %></a>
+          <% } %>
+        </li>
+      <% }); %>
+    <% } %>
+  </ol>
+</nav>
+

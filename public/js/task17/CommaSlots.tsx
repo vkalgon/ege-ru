@@ -5,6 +5,8 @@ interface CommaSlotsProps {
   text: string; // commaless_text
   onCommaPositionsChange: (positions: number[]) => void;
   selectedPositions?: number[];
+  correctPositions?: number[]; // Правильные позиции для подсветки зеленым
+  extraPositions?: number[]; // Лишние позиции для подсветки красным
 }
 
 /**
@@ -14,7 +16,9 @@ interface CommaSlotsProps {
 export const CommaSlots: React.FC<CommaSlotsProps> = ({
   text,
   onCommaPositionsChange,
-  selectedPositions = []
+  selectedPositions = [],
+  correctPositions = [],
+  extraPositions = []
 }) => {
   const [positions, setPositions] = useState<Set<number>>(new Set(selectedPositions));
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,10 +51,30 @@ export const CommaSlots: React.FC<CommaSlotsProps> = ({
 
       // Добавляем слот для запятой после каждого символа (кроме последнего)
       const isSlotPosition = sortedPositions.includes(i);
+      const isCorrect = correctPositions.includes(i);
+      const isExtra = extraPositions.includes(i);
+      
+      // Определяем цвет подсветки: зеленый для правильных, красный для лишних
+      let commaColor = 'var(--neon-cyan, #00f0ff)';
+      let slotBgColor = 'transparent';
+      
+      if (isCorrect && isSlotPosition) {
+        // Правильная позиция - зеленый
+        commaColor = '#22c55e';
+        slotBgColor = 'rgba(34, 197, 94, 0.2)';
+      } else if (isExtra && isSlotPosition) {
+        // Лишняя позиция - красный
+        commaColor = '#ef4444';
+        slotBgColor = 'rgba(239, 68, 68, 0.2)';
+      } else if (isCorrect && correctPositions.length > 0) {
+        // Показываем правильные позиции зеленым, даже если не выбраны
+        slotBgColor = 'rgba(34, 197, 94, 0.1)';
+      }
+      
       result.push(
         <span
           key={`slot-${i}`}
-          className={`comma-slot ${isSlotPosition ? 'has-comma' : ''}`}
+          className={`comma-slot ${isSlotPosition ? 'has-comma' : ''} ${isCorrect ? 'correct' : ''} ${isExtra ? 'extra' : ''}`}
           onClick={() => handleSlotClick(i)}
           style={{
             display: 'inline-block',
@@ -59,7 +83,10 @@ export const CommaSlots: React.FC<CommaSlotsProps> = ({
             margin: '0 2px',
             cursor: 'pointer',
             position: 'relative',
-            verticalAlign: 'text-bottom'
+            verticalAlign: 'text-bottom',
+            backgroundColor: slotBgColor,
+            borderRadius: '2px',
+            transition: 'all 0.2s'
           }}
           title={`Позиция ${i}`}
         >
@@ -71,7 +98,7 @@ export const CommaSlots: React.FC<CommaSlotsProps> = ({
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
                 fontSize: '18px',
-                color: 'var(--neon-cyan, #00f0ff)',
+                color: commaColor,
                 fontWeight: 'bold'
               }}
             >
@@ -96,4 +123,5 @@ export const CommaSlots: React.FC<CommaSlotsProps> = ({
     </div>
   );
 };
+
 

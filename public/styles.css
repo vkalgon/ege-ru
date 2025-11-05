@@ -101,6 +101,54 @@ body::before {
   padding: 80px 80px;
 }
 
+/* ===== BREADCRUMBS ===== */
+.breadcrumbs {
+  margin-bottom: 24px;
+}
+
+.breadcrumbs__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.breadcrumbs__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumbs__separator {
+  color: var(--text-disabled);
+  font-size: 14px;
+  user-select: none;
+}
+
+.breadcrumbs__link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font: 500 14px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.3s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.breadcrumbs__link:hover {
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.1);
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.breadcrumbs__current {
+  color: var(--text-primary);
+  font: 500 14px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 4px 8px;
+}
+
 .assignment {
   max-width: 737px;
   display: flex;
@@ -1070,7 +1118,7 @@ body::before {
     box-shadow: var(--shadow-glass);
   }
 
-.task-solution, .task-like {
+.task-solution {
   height: 56px;
   padding: 20px 30px;
   border-radius: var(--radius-lg);
@@ -1080,6 +1128,26 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(168, 85, 247, 0.2));
+  transition: all 0.3s ease;
+  font: 500 16px/16px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.task-like {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  box-shadow: var(--shadow-glass);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
   color: var(--text-primary);
   background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(168, 85, 247, 0.2));
   transition: all 0.3s ease;
@@ -3188,7 +3256,10 @@ u {
 .span-main-word {
   position: relative;
   display: inline-block;
-  padding-top: 16px; /* Место для крестика */
+  padding: 16px 4px 4px 4px; /* Место для крестика сверху и отступы */
+  border-radius: 4px;
+  margin: 2px;
+  transition: all 0.2s ease;
 }
 
 .span-main-word::before {
@@ -3263,6 +3334,22 @@ u {
   background-color: var(--neon-cyan, #00f0ff);
   color: var(--bg-primary, #0a0e27);
   font-weight: bold;
+}
+
+/* Правильные и лишние цифры после проверки */
+.digit-marker.correct {
+  background-color: rgba(34, 197, 94, 0.3) !important;
+  color: #22c55e !important;
+}
+
+.digit-marker.correct.selected {
+  background-color: #22c55e !important;
+  color: #fff !important;
+}
+
+.digit-marker.extra.selected {
+  background-color: #ef4444 !important;
+  color: #fff !important;
 }
 
 /* ===== TASK 17 ADMIN EDITOR STYLES ===== */
@@ -3388,6 +3475,60 @@ u {
     bottom: 100px !important;
     transform: none !important;
   }
+  
+  .task17-wrapper > .task-card {
+    max-width: 100%;
+  }
+  
+  .task17-control-panel {
+    position: fixed !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    top: auto !important;
+    width: 200px !important;
+    padding: 12px !important;
+    transform: none !important;
+    max-height: auto !important;
+  }
+}
+
+/* Обертка для задания №17 с панелью управления */
+.task17-wrapper {
+  position: relative;
+}
+
+.task17-wrapper > .task-card {
+  max-width: 800px;
+  width: 100%;
+}
+
+/* Панель управления заданием №17 */
+.task17-control-panel {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 240px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  transition: all 0.3s ease;
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.task17-control-panel label {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.task17-control-panel label:hover {
+  opacity: 0.9;
 }
 
 /* Кнопки панели инструментов для задания №17 - стиль сайта */
