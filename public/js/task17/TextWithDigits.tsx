@@ -96,4 +96,3 @@ export const TextWithDigits: React.FC<TextWithDigitsProps> = ({
   );
 };
 
-

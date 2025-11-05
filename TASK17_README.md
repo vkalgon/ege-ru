@@ -120,4 +120,3 @@ curl -X POST http://localhost:3000/api/task17/1/check \
 
 Индексы - UTF-16 code unit индексы (как в JavaScript).
 
-

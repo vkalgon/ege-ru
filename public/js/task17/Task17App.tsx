@@ -274,4 +274,3 @@ export const Task17App: React.FC<Task17AppProps> = ({ taskId }) => {
   );
 };
 
-
