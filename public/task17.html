@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задание №17: Пунктуация</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- React через CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone для JSX трансформации -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Компоненты (нужно будет скомпилировать TSX в JS или использовать JSX) -->
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, useCallback, useRef } = React;
+
+        // Простые версии компонентов на JSX (упрощенные, без TypeScript)
+        // В production нужно скомпилировать TSX через TypeScript или использовать JSX трансформер
+
+        // Получаем taskId из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskId = parseInt(urlParams.get('id') || '1');
+
+        // Простой компонент для демонстрации (без полной функциональности всех TSX компонентов)
+        function Task17Demo() {
+            const [mode, setMode] = useState('digits');
+            const [taskData, setTaskData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                fetch(`/api/task17/${taskId}/play?mode=${mode}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        setTaskData(data);
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        setError(err.message);
+                        setLoading(false);
+                    });
+            }, [taskId, mode]);
+
+            if (loading) return <div>Загрузка...</div>;
+            if (error) return <div style={{color: 'red'}}>Ошибка: {error}</div>;
+            if (!taskData) return <div>Задание не найдено</div>;
+
+            return (
+                <div style={{padding: '24px', maxWidth: '1200px', margin: '0 auto'}}>
+                    <h1>Задание №17: Пунктуация</h1>
+                    <p>Для полноценной работы необходимо скомпилировать TSX компоненты в JS.</p>
+                    <p>Текущий режим: {mode}</p>
+                    <div style={{padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px', marginTop: '16px'}}>
+                        <pre style={{whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{taskData.text}</pre>
+                    </div>
+                    <p style={{marginTop: '16px'}}>
+                        <a href="/api/task17">Список заданий</a> | 
+                        <a href={`/api/task17/${taskId}`}>JSON задание</a>
+                    </p>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Task17Demo />);
+    </script>
+</body>
+</html>

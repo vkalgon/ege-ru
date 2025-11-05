@@ -1,0 +1,38 @@
+<header class="site-header">
+  <a href="/" class="site-header__logo" aria-label="Главная">
+    <img src="/images/logo.svg" alt="" class="logo-bg"/>
+  </a>
+
+  <nav class="site-nav" aria-label="Главная навигация">
+    <a class="site-nav__link" href="/">Главная</a>
+    <a class="site-nav__link" href="#">Задания</a>
+    <a class="site-nav__link" href="#">Теория</a>
+    <a class="site-nav__link" href="#">Прогресс</a>
+  </nav>
+
+  <div class="site-auth" id="auth-section">
+    <!-- Для неавторизованных пользователей -->
+    <div id="guest-auth" style="display: none;">
+      <a href="/login" class="site-nav__link">Войти</a>
+    </div>
+    
+    <!-- Для авторизованных пользователей -->
+    <div id="user-auth" style="display: none;">
+      <div class="site-auth__avatar" aria-hidden="true">
+        <span id="user-avatar">В</span>
+      </div>
+      <span class="site-auth__chevron" aria-hidden="true">
+        <img src="/images/chevron-down.svg" alt="Стрелка вниз"/>
+      </span>
+      <div class="user-menu" id="user-menu" style="display: none;">
+        <div class="user-menu__info">
+          <div class="user-menu__name" id="user-name">Пользователь</div>
+          <div class="user-menu__email" id="user-contact"></div>
+        </div>
+        <div class="user-menu__actions">
+          <button class="user-menu__action" onclick="logout()">Выйти</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

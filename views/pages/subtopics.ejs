@@ -1,0 +1,49 @@
+<div class="subtopics-page">
+  <h2 class="subtopics-page__title">Темы</h2>
+  
+  <div class="subtopics-grid" id="subtopicsGrid">
+    <!-- Темы будут загружены через JavaScript -->
+  </div>
+</div>
+
+<script>
+  (async function(){
+    const params = new URLSearchParams(location.search);
+    const type = params.get('type') || 1;
+
+    let subtopics;
+    try{
+      const res = await fetch(`/api/subtopics/with-count?type=${type}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      subtopics = await res.json();
+    }catch(err){
+      console.error('Failed to load subtopics', err);
+      document.getElementById('subtopicsGrid').innerHTML = '<p>Не удалось загрузить темы.</p>';
+      return;
+    }
+
+    // Создаем карточки тем
+    const grid = document.getElementById('subtopicsGrid');
+    if (subtopics.length === 0) {
+      grid.innerHTML = '<p>Нет тем для этого типа заданий.</p>';
+      return;
+    }
+    
+    grid.innerHTML = subtopics.map(subtopic => `
+      <div class="subtopic-card" data-subtopic-id="${subtopic.id}">
+        <h3 class="subtopic-card__title">${subtopic.title}</h3>
+        <p class="subtopic-card__description">${subtopic.description || ''}</p>
+        <div class="subtopic-card__count">${subtopic.assignments_count} заданий</div>
+      </div>
+    `).join('');
+
+    // Добавляем обработчики кликов
+    document.querySelectorAll('.subtopic-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const subtopicId = card.dataset.subtopicId;
+        window.location.href = `/tasks?subtopicId=${subtopicId}`;
+      });
+    });
+  })();
+</script>
+

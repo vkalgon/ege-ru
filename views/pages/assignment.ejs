@@ -1,0 +1,281 @@
+<div class="task-page">
+  <h2 class="task-page__title">Задание</h2>
+  
+  <div class="task-card">
+    <div class="task-meta" id="meta"></div>
+    
+    <div class="task-content">
+      <div class="task-prompt">
+        <div id="prompt-editor" class="editor-content" style="min-height: 100px;">
+          <!-- Editor.js контент будет здесь -->
+        </div>
+      </div>
+      
+      <div class="task-text">
+        <button type="button" id="toggleText" class="task-text__button">Показать текст</button>
+        <div id="context-editor" class="task-fulltext editor-content" style="display:none;">
+          <!-- Editor.js контент будет здесь -->
+        </div>
+      </div>
+      
+      <div class="task-controls">
+        <input class="task-input" id="answer" placeholder="Введите свой ответ" aria-label="Ответ"/>
+        <button class="task-send" id="send">
+          <span>Отправить</span>
+        </button>
+        <button class="task-solution">
+          <span>Решение</span>
+          <img src="/images/eye off.svg" alt="Глаз" width="16" height="16"/>
+        </button>
+        <button class="task-like">
+          <img src="/images/heart off.svg" alt="Лайк" width="16" height="16"/>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Блок с решением (скрыт по умолчанию) -->
+    <div id="solution" class="task-solution-block" style="display: none;">
+      <p id="solution-answer" class="solution-answer"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Editor Renderer -->
+<script src="/js/editor-renderer.js"></script>
+
+<script>
+
+  // Функция для преобразования данных в формат Editor.js
+  function prepareEditorData(data) {
+    if (!data) return null;
+    
+    // Если уже объект и имеет структуру Editor.js
+    if (typeof data === 'object' && data !== null && data.blocks && Array.isArray(data.blocks)) {
+      return data;
+    }
+    
+    // Если строка - пытаемся парсить как JSON
+    if (typeof data === 'string') {
+      if (data.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(data);
+          // Проверяем, что это данные Editor.js
+          if (parsed && parsed.blocks && Array.isArray(parsed.blocks)) {
+            return parsed;
+          }
+        } catch (e) {
+          // Не JSON, создаем простой параграф
+        }
+      }
+      // Простой текст - создаем параграф
+      return {
+        blocks: [{
+          type: 'paragraph',
+          data: { text: data }
+        }]
+      };
+    }
+    
+    return null;
+  }
+
+  // Основная функция
+  (async function(){
+    const pathParts = location.pathname.split('/');
+    const assignmentId = pathParts[pathParts.length - 1];
+
+    if (!assignmentId) {
+      document.getElementById('prompt-editor').innerHTML = '<p>Не указано задание.</p>';
+      return;
+    }
+
+    let assignment;
+    try{
+      const res = await fetch(`/api/assignments/by-id/${assignmentId}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      assignment = await res.json();
+    }catch(err){
+      console.error('Failed to load assignment', err);
+      document.getElementById('prompt-editor').innerHTML = '<p>Не удалось загрузить задание.</p>';
+      document.getElementById('toggleText').style.display = 'none';
+      return;
+    }
+
+    // Заполняем мета-информацию
+    const metaEl = document.getElementById('meta');
+    metaEl.innerHTML = `
+      <span class="task-meta__type">Тип ${assignment.type}</span>
+      <span class="task-meta__number">№ ${assignment.sub_number || assignment.id}</span>
+    `;
+    
+    // Рендерим контент с помощью EditorRenderer
+    const renderContent = (data, fallback) => {
+      if (typeof EditorRenderer !== 'undefined') {
+        const editorData = prepareEditorData(data);
+        return editorData ? EditorRenderer.render(editorData) : fallback;
+      }
+      return fallback;
+    };
+    
+    try {
+      // Ждем EditorRenderer если еще не загружен
+      if (typeof EditorRenderer === 'undefined') {
+        let attempts = 0;
+        while (attempts < 20 && typeof EditorRenderer === 'undefined') {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+      }
+      
+      const promptHtml = renderContent(assignment.prompt, `<p>${assignment.prompt || 'Нет данных'}</p>`);
+      document.getElementById('prompt-editor').innerHTML = promptHtml;
+      
+      if (assignment.context) {
+        const contextHtml = renderContent(assignment.context, `<p>${assignment.context}</p>`);
+        document.getElementById('context-editor').innerHTML = contextHtml;
+      }
+    } catch (error) {
+      console.error('Ошибка при рендеринге контента:', error);
+      document.getElementById('prompt-editor').innerHTML = `<p>${assignment.prompt || 'Нет данных'}</p>`;
+      if (assignment.context) {
+        document.getElementById('context-editor').innerHTML = `<p>${assignment.context}</p>`;
+      }
+    }
+    
+    // Настраиваем кнопку показа текста
+    const toggleBtn = document.getElementById('toggleText');
+    const contextEl = document.getElementById('context-editor');
+    
+    if (assignment.context) {
+      toggleBtn.style.display = 'block';
+      toggleBtn.addEventListener('click', () => {
+        contextEl.style.display = contextEl.style.display === 'none' ? 'block' : 'none';
+      });
+    } else {
+      toggleBtn.style.display = 'none';
+    }
+
+    // Обработка нажатия Enter в поле ввода
+    document.getElementById('answer').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('send').click();
+      }
+    });
+
+    // Обработка кнопки "Решение"
+    let solutionShown = false;
+    document.getElementById('solution').style.display = 'none';
+    
+    document.querySelector('.task-solution').addEventListener('click', async () => {
+      const solutionBlock = document.getElementById('solution');
+      const solutionAnswer = document.getElementById('solution-answer');
+      const solutionBtn = document.querySelector('.task-solution');
+      const eyeImg = solutionBtn.querySelector('img');
+      
+      if (!solutionShown) {
+        // Показываем решение
+        try {
+          // Получаем правильный ответ из API
+          const resp = await fetch(`/api/assignments/by-id/${assignment.id}`);
+          const assignmentData = await resp.json();
+          
+          // Получаем правильный ответ из базы
+          const answerResp = await fetch('/api/check/by-id', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ assignmentId: assignment.id, userAnswer: 'dummy' })
+          });
+          const answerData = await answerResp.json();
+          
+          if (answerData.hint && answerData.hint.value) {
+            solutionAnswer.textContent = answerData.hint.value;
+          } else {
+            solutionAnswer.textContent = 'Правильный ответ не найден';
+          }
+          
+          solutionBlock.style.display = 'block';
+          eyeImg.src = '/images/eye on.svg';
+          eyeImg.alt = 'Глаз открыт';
+          solutionShown = true;
+        } catch (error) {
+          console.error('Ошибка при загрузке решения:', error);
+          solutionAnswer.textContent = 'Ошибка загрузки решения';
+          solutionBlock.style.display = 'block';
+        }
+      } else {
+        // Скрываем решение
+        solutionBlock.style.display = 'none';
+        eyeImg.src = '/images/eye off.svg';
+        eyeImg.alt = 'Глаз закрыт';
+        solutionShown = false;
+      }
+    });
+
+    document.getElementById('send').addEventListener('click', async () => {
+      const userAnswer = document.getElementById('answer').value.trim();
+      const sendBtn = document.getElementById('send');
+      const inputEl = document.getElementById('answer');
+      
+      // Проверяем на пустое поле - добавляем анимацию мигания
+      if (!userAnswer) {
+        inputEl.classList.add('empty');
+        setTimeout(() => {
+          inputEl.classList.remove('empty');
+        }, 500);
+        return;
+      }
+      
+      // Показываем состояние загрузки
+      sendBtn.innerHTML = '<span>Отправка...</span>';
+      sendBtn.disabled = true;
+      
+      try {
+        const resp = await fetch('/api/check/by-id', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ assignmentId: assignment.id, userAnswer })
+        });
+        const data = await resp.json();
+        
+        // Обрабатываем ошибки API
+        if (!data.ok && data.error) {
+          sendBtn.innerHTML = '<span>Отправить</span>';
+          sendBtn.style.background = '#a4bee2';
+          sendBtn.disabled = false;
+          return;
+        }
+        
+        // Меняем кнопку в зависимости от результата
+        if (data.ok) {
+          // Создаем изображение и проверяем его загрузку
+          const img = new Image();
+          img.onload = function() {
+            sendBtn.innerHTML = '<img src="/images/Property 1=right.png" alt="✓" width="16" height="16"/>';
+          };
+          img.onerror = function() {
+            sendBtn.innerHTML = '<span>✓</span>'; // Fallback если картинка не загрузилась
+          };
+          img.src = '/images/Property 1=right.png';
+          sendBtn.style.background = '#bfd884'; // Зелёный цвет для правильного ответа
+        } else {
+          // Создаем изображение и проверяем его загрузку
+          const img = new Image();
+          img.onload = function() {
+            sendBtn.innerHTML = '<img src="/images/Property 1=wrong.png" alt="✗" width="16" height="16"/>';
+          };
+          img.onerror = function() {
+            sendBtn.innerHTML = '<span>✗</span>'; // Fallback если картинка не загрузилась
+          };
+          img.src = '/images/Property 1=wrong.png';
+          sendBtn.style.background = '#f6b462'; // Оранжевый цвет для неправильного ответа
+        }
+        
+      } catch (error) {
+        console.error('Ошибка при проверке ответа:', error);
+        sendBtn.innerHTML = '<span>Отправить</span>';
+        sendBtn.style.background = '#a4bee2';
+        sendBtn.disabled = false;
+      }
+    });
+  })();
+</script>
+

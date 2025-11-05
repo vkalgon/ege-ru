@@ -1,0 +1,233 @@
+<div class="login-page">
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Добро пожаловать!</h1>
+      <p>Войдите в систему, чтобы сохранять свой прогресс</p>
+    </div>
+
+    <div class="login-tabs">
+      <button class="login-tab active" data-tab="telegram">Telegram</button>
+      <button class="login-tab" data-tab="login">Логин/Пароль</button>
+    </div>
+
+    <!-- Telegram авторизация -->
+    <div id="telegram-tab" class="login-tab-content active">
+      <div class="login-form">
+        <div class="telegram-info">
+          <h3>Вход через Telegram</h3>
+          <p>Нажмите кнопку ниже, чтобы войти через Telegram WebApp</p>
+          
+          <button id="telegram-login-btn" class="btn btn-telegram">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16l-1.61 7.59c-.12.54-.44.68-.9.42l-2.49-1.84-1.2 1.16c-.13.13-.24.24-.49.24l.18-2.56 4.64-4.19c.2-.18-.04-.28-.31-.1l-5.74 3.61-2.47-.77c-.54-.17-.55-.54.11-.8l9.66-3.72c.45-.17.84.1.7.8z"/>
+            </svg>
+            Войти через Telegram
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Логин/пароль авторизация -->
+    <div id="login-tab" class="login-tab-content">
+      <div class="login-form">
+        <h3>Вход в систему</h3>
+        
+        <div class="form-step">
+          <div class="form-group">
+            <label for="login-input">Логин</label>
+            <input 
+              type="text" 
+              id="login-input" 
+              placeholder="Введите логин"
+              class="form-input"
+            >
+          </div>
+          <div class="form-group">
+            <label for="password-input">Пароль</label>
+            <input 
+              type="password" 
+              id="password-input" 
+              placeholder="Введите пароль"
+              class="form-input"
+            >
+          </div>
+          <button id="login-btn" class="btn btn-primary">Войти</button>
+        </div>
+        
+        <div class="login-divider">
+          <span>или</span>
+        </div>
+        
+        <div class="form-step">
+          <h4>Регистрация</h4>
+          <div class="form-group">
+            <label for="reg-login-input">Логин</label>
+            <input 
+              type="text" 
+              id="reg-login-input" 
+              placeholder="Придумайте логин"
+              class="form-input"
+            >
+          </div>
+          <div class="form-group">
+            <label for="reg-password-input">Пароль</label>
+            <input 
+              type="password" 
+              id="reg-password-input" 
+              placeholder="Придумайте пароль (минимум 6 символов)"
+              class="form-input"
+            >
+          </div>
+          <div class="form-group">
+            <label for="reg-first-name">Имя (необязательно)</label>
+            <input 
+              type="text" 
+              id="reg-first-name" 
+              placeholder="Ваше имя"
+              class="form-input"
+            >
+          </div>
+          <button id="register-btn" class="btn btn-secondary">Зарегистрироваться</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      <p>Продолжая, вы соглашаетесь с <a href="#">условиями использования</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Переключение вкладок
+  document.querySelectorAll('.login-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.dataset.tab;
+      
+      // Обновляем активные вкладки
+      document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.login-tab-content').forEach(c => c.classList.remove('active'));
+      
+      tab.classList.add('active');
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+    });
+  });
+
+  // Telegram авторизация
+  document.getElementById('telegram-login-btn').addEventListener('click', async () => {
+    try {
+      // Проверяем, есть ли Telegram WebApp
+      if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        const user = tg.initDataUnsafe.user;
+        
+        if (user) {
+          const response = await fetch('/api/auth/telegram', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            window.location.href = '/';
+          } else {
+            alert('Ошибка авторизации: ' + result.error);
+          }
+        } else {
+          alert('Telegram WebApp не доступен. Откройте сайт через Telegram бота.');
+        }
+      } else {
+        alert('Telegram WebApp не доступен. Откройте сайт через Telegram бота.');
+      }
+    } catch (error) {
+      console.error('Ошибка Telegram авторизации:', error);
+      alert('Ошибка авторизации');
+    }
+  });
+
+  // Логин/пароль авторизация
+  document.getElementById('login-btn').addEventListener('click', async () => {
+    const login = document.getElementById('login-input').value.trim();
+    const password = document.getElementById('password-input').value.trim();
+    
+    if (!login || !password) {
+      alert('Введите логин и пароль');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login, password })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        window.location.href = '/';
+      } else {
+        alert('Ошибка: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Ошибка авторизации:', error);
+      alert('Ошибка авторизации');
+    }
+  });
+
+  // Регистрация
+  document.getElementById('register-btn').addEventListener('click', async () => {
+    const login = document.getElementById('reg-login-input').value.trim();
+    const password = document.getElementById('reg-password-input').value.trim();
+    const firstName = document.getElementById('reg-first-name').value.trim();
+    
+    if (!login || !password) {
+      alert('Введите логин и пароль');
+      return;
+    }
+
+    if (password.length < 6) {
+      alert('Пароль должен содержать минимум 6 символов');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          login, 
+          password, 
+          first_name: firstName || null,
+          last_name: null 
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        window.location.href = '/';
+      } else {
+        alert('Ошибка: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Ошибка регистрации:', error);
+      alert('Ошибка регистрации');
+    }
+  });
+
+  // Вход по Enter
+  document.getElementById('password-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      document.getElementById('login-btn').click();
+    }
+  });
+
+  document.getElementById('reg-password-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      document.getElementById('register-btn').click();
+    }
+  });
+</script>

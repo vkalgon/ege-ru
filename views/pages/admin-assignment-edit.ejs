@@ -1,0 +1,636 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Редактирование задания</h2>
+  
+  <!-- Хлебные крошки -->
+  <nav class="breadcrumbs" id="breadcrumbs">
+    <a href="/admin" class="breadcrumb-link">Админка</a>
+    <span class="breadcrumb-separator">›</span>
+    <span class="breadcrumb-current" id="breadcrumb-current">Загрузка...</span>
+  </nav>
+
+  <div class="admin-section">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 id="assignment-type-title" style="margin: 0;">Редактирование задания</h3>
+      <a href="#" id="subtopics-link" class="admin-link-subtle" style="display: none;" title="Управление темами">Управление темами</a>
+    </div>
+    <form id="edit-assignment-form" class="admin-form">
+      <input type="hidden" id="assignment-id" name="id" value="">
+      <div class="form-group">
+        <label for="assignment-fipi-number">Номер ФИПИ (необязательно):</label>
+        <input type="text" id="assignment-fipi-number" name="fipi_number" placeholder="12345">
+      </div>
+      <div class="form-group">
+        <label for="assignment-source">Источник:</label>
+        <select id="assignment-source" name="source" required>
+          <option value="">Выберите источник</option>
+          <option value="ФИПИ">ФИПИ</option>
+          <option value="Другой источник">Другой источник</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="assignment-prompt">Условие задания:</label>
+        <div id="editor-prompt" class="editor-container"></div>
+        <textarea id="assignment-prompt" name="prompt" style="display: none;" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="assignment-subtopic">Тема (необязательно):</label>
+        <select id="assignment-subtopic" name="subtopic_id">
+          <option value="">Без темы</option>
+          <!-- Опции будут загружены через JavaScript -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="assignment-context">Контекст (текст для задания):</label>
+        <div id="editor-context" class="editor-container editor-large"></div>
+        <textarea id="assignment-context" name="context" style="display: none;"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="assignment-answer">Правильный ответ:</label>
+        <input type="text" id="assignment-answer" name="answer" placeholder="него" required>
+      </div>
+      <div class="form-group">
+        <label for="assignment-explanation">Объяснение (необязательно):</label>
+        <div id="editor-explanation" class="editor-container"></div>
+        <textarea id="assignment-explanation" name="explanation" style="display: none;"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="assignment-rule-ref">Ссылка на правило (необязательно):</label>
+        <input type="text" id="assignment-rule-ref" name="rule_ref" placeholder="§ 15.2">
+      </div>
+      <div class="form-group">
+        <label for="assignment-alt-answers">Дополнительные ответы (через запятую):</label>
+        <input type="text" id="assignment-alt-answers" name="alt_answers" placeholder="его, её, их">
+      </div>
+      <button type="submit" class="btn">Сохранить изменения</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Глобальные переменные для редакторов
+  let editorPrompt = null;
+  let editorContext = null;
+  let editorExplanation = null;
+  const assignmentId = <%= assignmentId %>;
+
+  // Загрузка заданий для селекта
+  async function loadSubtopicsForSelect(selector, typeId) {
+    try {
+      const url = typeId ? `/api/admin/subtopics?typeId=${typeId}` : '/api/admin/subtopics';
+      const response = await fetch(url);
+      const subtopics = await response.json();
+      
+      const select = document.querySelector(selector);
+      if (select) {
+        select.innerHTML = '<option value="">Без темы</option>' + 
+          subtopics.map(subtopic => 
+            `<option value="${subtopic.id}">${subtopic.title}</option>`
+          ).join('');
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки тем для селекта:', error);
+    }
+  }
+
+  // Инициализация редакторов
+  function initializeEditors() {
+    if (typeof EditorJS === 'undefined') {
+      console.error('EditorJS не определен!');
+      enableFallbackMode();
+      return;
+    }
+    
+    const requiredPlugins = ['Header', 'Paragraph', 'Quote', 'CodeTool', 'Delimiter', 'Marker', 'InlineCode'];
+    const missingPlugins = requiredPlugins.filter(plugin => typeof window[plugin] === 'undefined');
+    
+    if (missingPlugins.length > 0) {
+      console.error('Критические плагины не загружены:', missingPlugins);
+      enableFallbackMode();
+      return;
+    }
+    
+    const promptEl = document.getElementById('editor-prompt');
+    const contextEl = document.getElementById('editor-context');
+    const explanationEl = document.getElementById('editor-explanation');
+    
+    if (!promptEl || !contextEl || !explanationEl) {
+      console.error('Элементы редакторов не найдены!');
+      enableFallbackMode();
+      return;
+    }
+
+    // Уничтожаем старые редакторы, если они есть
+    if (editorPrompt) {
+      try { editorPrompt.destroy(); } catch (e) {}
+      editorPrompt = null;
+    }
+    if (editorContext) {
+      try { editorContext.destroy(); } catch (e) {}
+      editorContext = null;
+    }
+    if (editorExplanation) {
+      try { editorExplanation.destroy(); } catch (e) {}
+      editorExplanation = null;
+    }
+    
+    // Редактор для условия задания
+    try {
+      editorPrompt = new EditorJS({
+        holder: 'editor-prompt',
+        placeholder: 'Введите условие задания...',
+        data: { blocks: [] },
+        tools: {
+          header: {
+            class: Header,
+            config: {
+              placeholder: 'Заголовок',
+              levels: [1, 2, 3, 4, 5, 6],
+              defaultLevel: 3
+            }
+          },
+          ...(typeof window.List !== 'undefined' || typeof List !== 'undefined' ? {
+            list: {
+              class: (typeof window.List !== 'undefined' ? window.List : List),
+              inlineToolbar: true,
+              config: {
+                defaultStyle: 'unordered'
+              }
+            }
+          } : {}),
+          paragraph: {
+            class: Paragraph,
+            inlineToolbar: true
+          },
+          quote: {
+            class: Quote,
+            inlineToolbar: true,
+            shortcut: 'CMD+SHIFT+O',
+            config: {
+              quotePlaceholder: 'Цитата',
+              captionPlaceholder: 'Автор цитаты',
+            }
+          },
+          code: {
+            class: CodeTool,
+            config: {
+              placeholder: 'Введите код...'
+            }
+          },
+          delimiter: Delimiter,
+          marker: {
+            class: Marker,
+            shortcut: 'CMD+SHIFT+M'
+          },
+          inlineCode: {
+            class: InlineCode,
+            shortcut: 'CMD+SHIFT+C'
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Ошибка инициализации редактора prompt:', error);
+    }
+
+    // Редактор для контекста
+    try {
+      const ListClass = (typeof window.List !== 'undefined' ? window.List : (typeof List !== 'undefined' ? List : null));
+      
+      editorContext = new EditorJS({
+        holder: 'editor-context',
+        placeholder: 'Введите текст для задания...',
+        data: { blocks: [] },
+        tools: {
+          header: {
+            class: Header,
+            config: {
+              placeholder: 'Заголовок',
+              levels: [1, 2, 3, 4, 5, 6],
+              defaultLevel: 3
+            }
+          },
+          ...(ListClass ? {
+            list: {
+              class: ListClass,
+              inlineToolbar: true,
+              config: {
+                defaultStyle: 'unordered'
+              }
+            }
+          } : {}),
+          paragraph: {
+            class: Paragraph,
+            inlineToolbar: true
+          },
+          quote: {
+            class: Quote,
+            inlineToolbar: true,
+            shortcut: 'CMD+SHIFT+O',
+            config: {
+              quotePlaceholder: 'Цитата',
+              captionPlaceholder: 'Автор цитаты',
+            }
+          },
+          code: {
+            class: CodeTool,
+            config: {
+              placeholder: 'Введите код...'
+            }
+          },
+          delimiter: Delimiter,
+          marker: {
+            class: Marker,
+            shortcut: 'CMD+SHIFT+M'
+          },
+          inlineCode: {
+            class: InlineCode,
+            shortcut: 'CMD+SHIFT+C'
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Ошибка инициализации редактора context:', error);
+    }
+
+    // Редактор для объяснения
+    try {
+      const ListClass = (typeof window.List !== 'undefined' ? window.List : (typeof List !== 'undefined' ? List : null));
+      
+      editorExplanation = new EditorJS({
+        holder: 'editor-explanation',
+        placeholder: 'Введите объяснение правила...',
+        data: { blocks: [] },
+        tools: {
+          header: {
+            class: Header,
+            config: {
+              placeholder: 'Заголовок',
+              levels: [1, 2, 3, 4, 5, 6],
+              defaultLevel: 3
+            }
+          },
+          ...(ListClass ? {
+            list: {
+              class: ListClass,
+              inlineToolbar: true,
+              config: {
+                defaultStyle: 'unordered'
+              }
+            }
+          } : {}),
+          paragraph: {
+            class: Paragraph,
+            inlineToolbar: true
+          },
+          quote: {
+            class: Quote,
+            inlineToolbar: true,
+            shortcut: 'CMD+SHIFT+O',
+            config: {
+              quotePlaceholder: 'Цитата',
+              captionPlaceholder: 'Автор цитаты',
+            }
+          },
+          code: {
+            class: CodeTool,
+            config: {
+              placeholder: 'Введите код...'
+            }
+          },
+          delimiter: Delimiter,
+          marker: {
+            class: Marker,
+            shortcut: 'CMD+SHIFT+M'
+          },
+          inlineCode: {
+            class: InlineCode,
+            shortcut: 'CMD+SHIFT+C'
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Ошибка инициализации редактора explanation:', error);
+    }
+  }
+
+  // Функция для получения данных из редактора и сохранения в textarea
+  async function saveEditorData() {
+    try {
+      if (document.getElementById('assignment-prompt').style.display !== 'none') {
+        return;
+      }
+
+      if (editorPrompt) {
+        const promptData = await editorPrompt.save();
+        document.getElementById('assignment-prompt').value = JSON.stringify(promptData);
+      }
+      
+      if (editorContext) {
+        const contextData = await editorContext.save();
+        document.getElementById('assignment-context').value = JSON.stringify(contextData);
+      }
+      
+      if (editorExplanation) {
+        const explanationData = await editorExplanation.save();
+        document.getElementById('assignment-explanation').value = JSON.stringify(explanationData);
+      }
+    } catch (error) {
+      console.error('Ошибка сохранения данных редактора:', error);
+    }
+  }
+
+  // Функция для загрузки данных в редактор из JSON
+  async function loadEditorData(promptJson, contextJson, explanationJson) {
+    try {
+      const prepareData = (data) => {
+        if (!data) return null;
+        
+        if (typeof data === 'object' && data !== null && data.blocks && Array.isArray(data.blocks)) {
+          return data;
+        }
+        
+        if (typeof data === 'string') {
+          if (data.trim().startsWith('{')) {
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed && parsed.blocks && Array.isArray(parsed.blocks)) {
+                return parsed;
+              }
+            } catch (e) {
+              // Не JSON, создаем простой параграф
+            }
+          }
+          return {
+            blocks: [{
+              type: 'paragraph',
+              data: { text: data }
+            }]
+          };
+        }
+        
+        return null;
+      };
+      
+      if (editorPrompt) {
+        const promptData = prepareData(promptJson);
+        if (promptData) {
+          await editorPrompt.render(promptData);
+        }
+      }
+      
+      if (editorContext) {
+        const contextData = prepareData(contextJson);
+        if (contextData) {
+          await editorContext.render(contextData);
+        } else {
+          await editorContext.render({ blocks: [] });
+        }
+      }
+      
+      if (editorExplanation) {
+        const explanationData = prepareData(explanationJson);
+        if (explanationData) {
+          await editorExplanation.render(explanationData);
+        } else {
+          await editorExplanation.render({ blocks: [] });
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки данных в редакторы:', error);
+    }
+  }
+
+  // Fallback режим
+  function enableFallbackMode() {
+    const promptTextarea = document.getElementById('assignment-prompt');
+    const contextTextarea = document.getElementById('assignment-context');
+    const explanationTextarea = document.getElementById('assignment-explanation');
+    
+    if (promptTextarea) {
+      promptTextarea.style.display = 'block';
+      promptTextarea.required = true;
+    }
+    if (contextTextarea) {
+      contextTextarea.style.display = 'block';
+    }
+    if (explanationTextarea) {
+      explanationTextarea.style.display = 'block';
+    }
+    
+    const editorContainers = document.querySelectorAll('.editor-container');
+    editorContainers.forEach(container => {
+      container.style.display = 'none';
+    });
+  }
+
+  // Загрузка задания
+  async function loadAssignment() {
+    try {
+      const response = await fetch(`/api/admin/assignments/${assignmentId}`);
+      const assignment = await response.json();
+      
+      // Загружаем тип задания для хлебных крошек
+      const typeResponse = await fetch(`/api/admin/task-types`);
+      const taskTypes = await typeResponse.json();
+      const taskType = taskTypes.find(t => t.id === assignment.type_id);
+      
+      if (taskType) {
+        // Обновляем хлебные крошки
+        const breadcrumb = document.getElementById('breadcrumb-current');
+        if (breadcrumb) {
+          breadcrumb.textContent = `Тип ${taskType.id}: ${taskType.title} › Редактирование #${assignment.id}`;
+        }
+        
+        // Устанавливаем ссылку на редактирование тем
+        const subtopicsLink = document.getElementById('subtopics-link');
+        if (subtopicsLink) {
+          subtopicsLink.href = `/admin/subtopics/${taskType.id}`;
+          subtopicsLink.target = '_blank';
+          subtopicsLink.style.display = 'block';
+        }
+        
+        // Загружаем темы для селекта
+        await loadSubtopicsForSelect('#assignment-subtopic', assignment.type_id);
+      }
+      
+      // Заполняем форму
+      document.getElementById('assignment-id').value = assignment.id;
+      document.getElementById('assignment-subtopic').value = assignment.subtopic_id;
+      document.getElementById('assignment-fipi-number').value = assignment.fipi_number || '';
+      document.getElementById('assignment-source').value = assignment.source || '';
+      document.getElementById('assignment-answer').value = assignment.answer;
+      document.getElementById('assignment-rule-ref').value = assignment.rule_ref || '';
+      document.getElementById('assignment-alt-answers').value = assignment.alt_answers ? assignment.alt_answers.join(', ') : '';
+      
+      // Ждем инициализации редакторов
+      let attempts = 0;
+      while (attempts < 20 && (!editorPrompt || !editorContext || !editorExplanation)) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      
+      if (!editorPrompt || !editorContext || !editorExplanation) {
+        console.error('Редакторы не инициализированы после ожидания!');
+        enableFallbackMode();
+        return;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Загружаем данные в редакторы
+      await loadEditorData(assignment.prompt, assignment.context, assignment.explanation);
+      
+    } catch (error) {
+      console.error('Ошибка загрузки задания:', error);
+      alert('Ошибка загрузки задания');
+    }
+  }
+
+  // Обработчик формы
+  document.getElementById('edit-assignment-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    await saveEditorData();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    if (data.alt_answers) {
+      data.alt_answers = data.alt_answers.split(',').map(s => s.trim()).filter(s => s);
+    }
+    
+    try {
+      const response = await fetch(`/api/admin/assignments/${data.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        alert('Задание обновлено!');
+        window.close();
+      } else {
+        alert('Ошибка сохранения задания');
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert('Ошибка сохранения задания');
+    }
+  });
+
+  // Проверка загрузки плагинов
+  const allPluginsLoaded = () => {
+    return typeof EditorJS !== 'undefined' &&
+           typeof Header !== 'undefined' &&
+           typeof Paragraph !== 'undefined' &&
+           typeof Quote !== 'undefined' &&
+           typeof CodeTool !== 'undefined' &&
+           typeof Delimiter !== 'undefined' &&
+           typeof Marker !== 'undefined' &&
+           typeof InlineCode !== 'undefined';
+  };
+
+  // Загрузка при готовности
+  const checkAndInit = () => {
+    if (allPluginsLoaded()) {
+      setTimeout(() => {
+        initializeEditors();
+        setTimeout(() => {
+          loadAssignment();
+        }, 500);
+      }, 300);
+    } else {
+      setTimeout(checkAndInit, 100);
+    }
+  };
+
+  window.addEventListener('load', () => {
+    if (window.editorJSReady) {
+      checkAndInit();
+    } else {
+      let checkCount = 0;
+      const checkInterval = setInterval(() => {
+        checkCount++;
+        if (window.editorJSReady || allPluginsLoaded()) {
+          clearInterval(checkInterval);
+          checkAndInit();
+        } else if (checkCount > 50) {
+          clearInterval(checkInterval);
+          enableFallbackMode();
+          loadAssignment();
+        }
+      }, 100);
+    }
+  });
+</script>
+
+<!-- Editor.js CDN -->
+<script>
+  function loadScript(src, expectedGlobal = null) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = () => {
+        setTimeout(() => {
+          if (expectedGlobal) {
+            const varNames = Array.isArray(expectedGlobal) ? expectedGlobal : [expectedGlobal];
+            const allFound = varNames.every(name => typeof window[name] !== 'undefined');
+            
+            if (!allFound && expectedGlobal === 'List') {
+              if (typeof window.List === 'undefined' && typeof List !== 'undefined') {
+                window.List = List;
+              }
+            }
+          }
+          resolve();
+        }, 100);
+      };
+      script.onerror = () => {
+        console.error('Ошибка загрузки:', src);
+        reject(new Error(`Не удалось загрузить ${src}`));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  (async () => {
+    try {
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.31.0', 'EditorJS');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.8', 'Header');
+      try {
+        await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.8', 'List');
+        await new Promise(resolve => setTimeout(resolve, 200));
+        if (typeof List !== 'undefined' && typeof window.List === 'undefined') {
+          window.List = List;
+        }
+      } catch (e) {
+        try {
+          await loadScript('https://unpkg.com/@editorjs/list@2.0.8', 'List');
+          if (typeof List !== 'undefined' && typeof window.List === 'undefined') {
+            window.List = List;
+          }
+        } catch (e2) {}
+      }
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.7', 'Paragraph');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.6', 'Quote');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.3', 'CodeTool');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2', 'Delimiter');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0', 'Marker');
+      await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.2', 'InlineCode');
+      
+      if (typeof List === 'undefined' && typeof window.List === 'undefined') {
+        try {
+          await loadScript('https://unpkg.com/@editorjs/list@2.0.8', 'List');
+        } catch (e) {}
+      }
+      
+      window.editorJSReady = true;
+    } catch (error) {
+      console.error('Ошибка загрузки Editor.js:', error);
+      window.editorJSReady = false;
+    }
+  })();
+</script>
+
+<!-- Editor Renderer -->
+<script src="/js/editor-renderer.js"></script>
+

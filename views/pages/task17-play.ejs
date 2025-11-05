@@ -1,0 +1,994 @@
+<div class="task-page" id="task17App">
+  <h2 class="task-page__title">Задание №17: Пунктуация</h2>
+  
+  <!-- Панель инструментов слева для выделений в предложении (sticky) -->
+  <div id="task17-toolbar-left" class="task17-student-toolbar-left" style="
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 200px;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: block;
+  ">
+    <div style="margin-bottom: 12px; color: var(--text-primary); font-weight: 600; font-size: 14px;">
+      Инструменты выделения
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <button type="button" class="btn btn-sm" id="task17-mark-participle-text" style="width: 100%; justify-content: flex-start;">
+        <span style="text-decoration: underline wavy;">Причастный</span>
+      </button>
+      <button type="button" class="btn btn-sm" id="task17-mark-gerund-text" style="width: 100%; justify-content: flex-start;">
+        Деепричастный
+      </button>
+      <button type="button" class="btn btn-sm" id="task17-mark-main-word-text" style="width: 100%; justify-content: flex-start; border: 1px solid rgba(236, 72, 153, 0.5);">
+        ✕ Главное слово
+      </button>
+      <button type="button" class="btn btn-sm btn-secondary" id="task17-remove-mark-text" style="width: 100%; justify-content: flex-start;">
+        Убрать выделение
+      </button>
+    </div>
+    
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--glass-border); font-size: 11px; color: var(--text-secondary); line-height: 1.6;">
+      <div style="margin-bottom: 6px;"><span class="span-participle" style="display: inline-block;">Причастный</span></div>
+      <div style="margin-bottom: 6px;"><span class="span-gerund" style="display: inline-block; position: relative; padding-bottom: 2px;">Деепричастный</span></div>
+      <div><span class="span-main-word" style="display: inline-block; position: relative;">Главное слово</span></div>
+    </div>
+  </div>
+  
+  <!-- Панель инструментов справа для выделений в объяснении (sticky) -->
+  <div id="task17-toolbar-student" class="task17-student-toolbar" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 220px;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+  ">
+    <div style="margin-bottom: 12px; color: var(--text-primary); font-weight: 600; font-size: 14px;">
+      Инструменты
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <button type="button" class="btn btn-sm" id="task17-mark-participle-student" style="width: 100%; justify-content: flex-start;">
+        <span style="text-decoration: underline wavy;">Причастный</span>
+      </button>
+      <button type="button" class="btn btn-sm" id="task17-mark-gerund-student" style="width: 100%; justify-content: flex-start;">
+        Деепричастный
+      </button>
+      <button type="button" class="btn btn-sm" id="task17-mark-main-word-student" style="width: 100%; justify-content: flex-start; border: 1px solid rgba(236, 72, 153, 0.5);">
+        ✕ Главное слово
+      </button>
+      <button type="button" class="btn btn-sm btn-secondary" id="task17-remove-mark-student" style="width: 100%; justify-content: flex-start;">
+        Убрать выделение
+      </button>
+    </div>
+    
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--glass-border); font-size: 11px; color: var(--text-secondary); line-height: 1.6;">
+      <div style="margin-bottom: 6px;"><span class="span-participle" style="display: inline-block;">Причастный</span></div>
+      <div style="margin-bottom: 6px;"><span class="span-gerund" style="display: inline-block; position: relative; padding-bottom: 2px;">Деепричастный</span></div>
+      <div><span class="span-main-word" style="display: inline-block; position: relative;">Главное слово</span></div>
+    </div>
+  </div>
+  
+  <div id="task17Container">
+    <div class="task-card">
+      <div class="task-meta" id="task17-meta">
+        <span class="task-meta__number">Загрузка...</span>
+      </div>
+      <div class="task-content">
+        <p>Загрузка задания...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Стили для отображения объяснения с подчеркиваниями */
+  .task-page .span-participle,
+  .task-page .span-gerund {
+    display: inline;
+  }
+  
+  /* Стили для кликабельных цифр в задании №17 */
+  .task17-digit {
+    cursor: pointer;
+    padding: 2px 6px;
+    margin: 0 2px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-block;
+    position: relative;
+  }
+  
+  .task17-digit:hover:not(.selected) {
+    background-color: rgba(0, 240, 255, 0.2);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+  }
+  
+  .task17-digit.selected {
+    background-color: var(--neon-cyan);
+    color: var(--bg-primary);
+    font-weight: bold;
+  }
+</style>
+
+<!-- React через CDN -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+  const { useState, useEffect, useRef } = React;
+
+  // Получаем taskId из URL
+  const pathParts = window.location.pathname.split('/');
+  const taskId = parseInt(pathParts[pathParts.length - 1]) || null;
+
+  function Task17Play() {
+    const [mode, setMode] = useState('digits');
+    const [taskData, setTaskData] = useState(null);
+    const [selectedDigits, setSelectedDigits] = useState(new Set());
+    const [answerInput, setAnswerInput] = useState('');
+    const [commaPositions, setCommaPositions] = useState(new Set());
+    const [checkResult, setCheckResult] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+      const loadTask = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch(`/api/task17/${taskId}/play?mode=${mode}`);
+          if (!response.ok) throw new Error('Не удалось загрузить задание');
+          const data = await response.json();
+          setTaskData(data);
+          setError(null);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Ошибка загрузки');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (taskId) {
+        loadTask();
+      }
+    }, [taskId, mode]);
+
+    // Парсинг текста с метками (1), (2)...
+    const parseTextWithDigits = (text) => {
+      const parts = [];
+      const regex = /\((\d+)\)/g;
+      let lastIndex = 0;
+      let match;
+
+      while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push({ text: text.substring(lastIndex, match.index), digit: null });
+        }
+        const digitNum = parseInt(match[1], 10);
+        parts.push({ text: match[0], digit: digitNum });
+        lastIndex = match.index + match[0].length;
+      }
+
+      if (lastIndex < text.length) {
+        parts.push({ text: text.substring(lastIndex), digit: null });
+      }
+
+      return parts;
+    };
+
+    const handleDigitClick = (digit) => {
+      console.log('handleDigitClick called with digit:', digit);
+      setSelectedDigits(prevSelected => {
+        const newSet = new Set(prevSelected);
+        if (newSet.has(digit)) {
+          newSet.delete(digit);
+          console.log('Removed digit:', digit);
+        } else {
+          newSet.add(digit);
+          console.log('Added digit:', digit);
+        }
+        console.log('New selected:', Array.from(newSet));
+        return newSet;
+      });
+    };
+
+    // Синхронизация поля ввода с selectedDigits при изменении
+    useEffect(() => {
+      const sortedDigits = Array.from(selectedDigits).sort((a, b) => a - b);
+      const inputValue = sortedDigits.join('');
+      console.log('Syncing input with selectedDigits:', sortedDigits, '->', inputValue);
+      setAnswerInput(inputValue);
+    }, [selectedDigits]);
+
+
+    // Синхронизация поля ввода с выбранными цифрами
+    const handleInputChange = (e) => {
+      const value = e.target.value;
+      setAnswerInput(value);
+      
+      // Парсим введенные цифры - извлекаем все отдельные цифры
+      const digits = value
+        .split('')
+        .map(char => parseInt(char, 10))
+        .filter(n => !isNaN(n) && n > 0);
+      
+      setSelectedDigits(new Set(digits));
+    };
+
+    const handleCommaClick = (position) => {
+      const newSet = new Set(commaPositions);
+      if (newSet.has(position)) {
+        newSet.delete(position);
+      } else {
+        newSet.add(position);
+      }
+      setCommaPositions(newSet);
+    };
+
+    const handleCheck = async () => {
+      if (!taskData) return;
+
+      if (mode === 'digits') {
+        // Используем актуальное состояние selectedDigits
+        // Принудительно получаем актуальное значение
+        const currentDigits = Array.from(selectedDigits).sort((a, b) => a - b);
+        
+        console.log('handleCheck - currentDigits from state:', currentDigits);
+        console.log('handleCheck - answerInput:', answerInput);
+        
+        if (currentDigits.length === 0) {
+          alert('Введите ответ, выбрав цифры в тексте или введя их вручную');
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+          return;
+        }
+
+        try {
+          setLoading(true);
+          const payload = {
+            mode: 'digits',
+            digits: currentDigits, // Отправляем массив чисел [1, 2, 3], а не строку
+            spans: []
+          };
+          
+          console.log('Sending payload to server:', JSON.stringify(payload));
+          
+          const response = await fetch(`/api/task17/${taskId}/check`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error('Ошибка проверки');
+          }
+          
+          const result = await response.json();
+          console.log('Check result from server:', result);
+          setCheckResult(result);
+        } catch (err) {
+          console.error('Error in handleCheck:', err);
+          setError(err instanceof Error ? err.message : 'Ошибка проверки');
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
+      // Режим запятых
+      try {
+        setLoading(true);
+        const payload = {
+          mode: 'commas',
+          comma_positions: Array.from(commaPositions).sort((a, b) => a - b),
+          spans: []
+        };
+
+        const response = await fetch(`/api/task17/${taskId}/check`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error('Ошибка проверки');
+        const result = await response.json();
+        setCheckResult(result);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ошибка проверки');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (loading && !taskData) {
+      return (
+        <div className="task-card">
+          <div className="task-content">
+            <p>Загрузка...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="task-card">
+          <div className="task-content">
+            <p style={{color: 'red'}}>Ошибка: {error}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!taskData) {
+      return (
+        <div className="task-card">
+          <div className="task-content">
+            <p>Задание не найдено</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="task-card">
+        <div className="task-meta">
+          <span className="task-meta__number">№ 17</span>
+          {taskData.source && <span className="task-meta__source">{taskData.source}</span>}
+        </div>
+        
+        <div className="task-content">
+          {/* Переключатель режимов */}
+          <div style={{marginBottom: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap'}}>
+            <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)'}}>
+              <input
+                type="radio"
+                checked={mode === 'digits'}
+                onChange={() => { setMode('digits'); setCheckResult(null); }}
+              />
+              Режим «Цифры»
+            </label>
+            <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)'}}>
+              <input
+                type="radio"
+                checked={mode === 'commas'}
+                onChange={() => { setMode('commas'); setCheckResult(null); }}
+              />
+              Режим «Запятые»
+            </label>
+          </div>
+
+          {/* Текст задания */}
+          <div className="task-prompt" id="task17-text-container" style={{position: 'relative'}}>
+            {mode === 'digits' ? (
+              <div 
+                id="task17-text-editable"
+                style={{
+                  fontSize: '18px',
+                  lineHeight: '1.8',
+                  minHeight: '80px',
+                  padding: '16px',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  background: 'var(--bg-secondary)'
+                }}
+                contentEditable={true}
+                suppressContentEditableWarning={true}
+              >
+                {parseTextWithDigits(taskData.text).map((part, idx) => {
+                  if (part.digit !== null) {
+                    const isSelected = selectedDigits.has(part.digit);
+                    return (
+                      <span
+                        key={`digit-${part.digit}-${idx}`}
+                        className={`task17-digit ${isSelected ? 'selected' : ''}`}
+                        data-digit={part.digit}
+                        onClick={(e) => {
+                          console.log('Click on digit:', part.digit, 'Current selected:', Array.from(selectedDigits));
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (handleDigitClick) {
+                            handleDigitClick(part.digit);
+                          } else {
+                            console.error('handleDigitClick is not defined');
+                          }
+                        }}
+                        title={`Кликните, чтобы ${isSelected ? 'убрать' : 'добавить'} цифру ${part.digit} в ответ`}
+                        style={{
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          cursor: 'pointer',
+                          contentEditable: 'false'
+                        }}
+                        contentEditable={false}
+                        suppressContentEditableWarning={true}
+                      >
+                        {part.text}
+                      </span>
+                    );
+                  }
+                  return <span key={`text-${idx}`}>{part.text}</span>;
+                })}
+              </div>
+            ) : (
+              <div style={{fontSize: '18px', lineHeight: '1.8'}}>
+                {taskData.text.split('').map((char, idx) => (
+                  <React.Fragment key={idx}>
+                    <span>{char}</span>
+                    <span
+                      onClick={() => handleCommaClick(idx + 1)}
+                      style={{
+                        display: 'inline-block',
+                        width: '8px',
+                        height: '16px',
+                        margin: '0 2px',
+                        cursor: 'pointer',
+                        position: 'relative',
+                        verticalAlign: 'text-bottom'
+                      }}
+                      title={`Позиция ${idx + 1}`}
+                    >
+                      {commaPositions.has(idx + 1) && (
+                        <span style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          fontSize: '18px',
+                          color: 'var(--neon-cyan)',
+                          fontWeight: 'bold'
+                        }}>,</span>
+                      )}
+                    </span>
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Поле для ввода ответа (режим цифр) */}
+          {mode === 'digits' && (
+            <div className="task-controls">
+              <input
+                ref={inputRef}
+                className="task-input"
+                type="text"
+                value={answerInput}
+                onChange={handleInputChange}
+                placeholder="Введите цифры ответа или кликните на цифры в тексте"
+                inputMode="numeric"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCheck();
+                  }
+                }}
+              />
+              <button
+                className="task-send"
+                onClick={handleCheck}
+                disabled={loading}
+              >
+                <span>{loading ? 'Проверка...' : 'Отправить'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* Результаты проверки */}
+          {checkResult && (
+            <div className="task-solution-block">
+              <h3 style={{marginTop: 0, marginBottom: '16px', color: 'var(--text-primary)'}}>Результат проверки</h3>
+              
+              {checkResult.digits && (
+                <div style={{marginBottom: '16px'}}>
+                  <div style={{
+                    fontWeight: 'bold',
+                    color: checkResult.digits.isCorrect ? '#bfd884' : '#f6b462',
+                    marginBottom: '8px'
+                  }}>
+                    Цифры: {checkResult.digits.isCorrect ? '✓ Верно' : '✗ Неверно'}
+                  </div>
+                  {checkResult.digits.missing.length > 0 && (
+                    <div style={{color: 'var(--text-secondary)'}}>
+                      Отсутствуют: {checkResult.digits.missing.join(', ')}
+                    </div>
+                  )}
+                  {checkResult.digits.extra.length > 0 && (
+                    <div style={{color: 'var(--text-secondary)'}}>
+                      Лишние: {checkResult.digits.extra.join(', ')}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {checkResult.commas && (
+                <div style={{marginBottom: '16px'}}>
+                  <div style={{
+                    fontWeight: 'bold',
+                    color: checkResult.commas.isCorrect ? '#bfd884' : '#f6b462',
+                    marginBottom: '8px'
+                  }}>
+                    Запятые: {checkResult.commas.isCorrect ? '✓ Верно' : '✗ Неверно'}
+                  </div>
+                  {checkResult.commas.missing.length > 0 && (
+                    <div style={{color: 'var(--text-secondary)'}}>
+                      Отсутствуют позиции: {checkResult.commas.missing.join(', ')}
+                    </div>
+                  )}
+                  {checkResult.commas.extra.length > 0 && (
+                    <div style={{color: 'var(--text-secondary)'}}>
+                      Лишние позиции: {checkResult.commas.extra.join(', ')}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{
+                marginBottom: '16px',
+                fontWeight: 'bold',
+                color: 'var(--neon-cyan)'
+              }}>
+                Баллы: {checkResult.score.total} / {checkResult.score.max}
+              </div>
+
+              {/* Объяснение */}
+              {checkResult.explanation && checkResult.explanation.shown && (
+                <div style={{
+                  marginTop: '24px',
+                  padding: '16px',
+                  background: 'var(--bg-secondary)',
+                  borderRadius: '8px',
+                  border: '1px solid var(--glass-border)'
+                }}>
+                  <h4 style={{marginTop: 0, marginBottom: '12px'}}>Объяснение:</h4>
+                  {checkResult.explanation.answer_text && (
+                    <div style={{marginBottom: '12px'}} className="solution-answer">
+                      {checkResult.explanation.answer_text}
+                    </div>
+                  )}
+                  {checkResult.explanation.explanation_md && (
+                    <div style={{position: 'relative'}}>
+                      <div
+                        id="task17-explanation-display"
+                        dangerouslySetInnerHTML={{
+                          __html: checkResult.explanation.explanation_md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        }}
+                        className="editor-content task17-explanation-content"
+                        style={{
+                          position: 'relative',
+                          fontSize: '18px',
+                          lineHeight: '1.8',
+                          padding: '16px',
+                          minHeight: '100px'
+                        }}
+                      />
+                      <svg id="task17-arrows-display-svg" style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        pointerEvents: 'none',
+                        zIndex: 1,
+                        overflow: 'visible'
+                      }}></svg>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById('task17Container'));
+  root.render(<Task17Play />);
+  
+  // Функция для отрисовки стрелок в объяснении
+  function renderArrowsInExplanation() {
+    const explanationDiv = document.getElementById('task17-explanation-display');
+    const svg = document.getElementById('task17-arrows-display-svg');
+    
+    if (!explanationDiv || !svg) return;
+    
+    // Очищаем SVG
+    svg.innerHTML = '';
+    
+    // Находим все главные слова с data-arrow-to
+    const mainWords = explanationDiv.querySelectorAll('.span-main-word[data-arrow-to]');
+    
+    if (mainWords.length === 0) return;
+    
+    const editorRect = explanationDiv.getBoundingClientRect();
+    
+    // Создаем defs для маркера стрелки
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    marker.setAttribute('id', 'arrowhead-display');
+    marker.setAttribute('markerWidth', '12');
+    marker.setAttribute('markerHeight', '12');
+    marker.setAttribute('refX', '11');
+    marker.setAttribute('refY', '4');
+    marker.setAttribute('orient', 'auto');
+    
+    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    polygon.setAttribute('points', '0 0, 12 4, 0 8');
+    polygon.setAttribute('fill', 'rgba(236, 72, 153, 0.9)');
+    
+    marker.appendChild(polygon);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+    
+    mainWords.forEach((mainWord, index) => {
+      const targetId = mainWord.getAttribute('data-arrow-to');
+      if (!targetId) return;
+      
+      const target = explanationDiv.querySelector(`[data-arrow-id="${targetId}"]`);
+      if (!target) return;
+      
+      const fromRect = mainWord.getBoundingClientRect();
+      const toRect = target.getBoundingClientRect();
+      
+      const fromX = fromRect.right - editorRect.left;
+      const fromY = fromRect.top - editorRect.top;
+      const fromYCenter = fromRect.top - editorRect.top + fromRect.height / 2;
+      
+      const toX = toRect.left - editorRect.left;
+      const toY = toRect.top - editorRect.top;
+      const toYCenter = toRect.top - editorRect.top + toRect.height / 2;
+      
+      // Получаем высоту строки
+      const lineHeight = parseFloat(getComputedStyle(explanationDiv).lineHeight) || 28.8;
+      const lineSpacing = lineHeight * 0.3; // Расстояние между строками
+      
+      // Определяем, находятся ли элементы на одной строке
+      const isSameLine = Math.abs(fromYCenter - toYCenter) < lineHeight * 0.7;
+      
+      let path;
+      
+      if (isSameLine) {
+        // Если на одной строке - прямая горизонтальная линия под строкой
+        const arrowY = fromY + fromRect.height + 8;
+        path = `M ${fromX} ${arrowY} L ${toX} ${arrowY}`;
+      } else {
+        // Определяем направление и позицию
+        const goesDown = toY > fromY;
+        const goesRight = toX > fromX;
+        
+        // Определяем, можем ли провести стрелку напрямую или нужно обходить
+        const canGoDirect = goesRight || (Math.abs(toX - fromX) < editorRect.width * 0.3);
+        
+        // Выбираем сторону для обхода (правая или левая)
+        const editorWidth = editorRect.width;
+        const useRightSide = editorWidth - fromX > editorWidth / 2; // Если больше половины ширины справа - обходим справа
+        
+        const horizontalOffset = Math.max(20, editorRect.width * 0.05); // Минимум 20px, максимум 5% ширины
+        const verticalOffset = 8; // Смещение вниз от текста
+        
+        if (goesDown) {
+          // Главное слово сверху, оборот снизу
+          const arrowYFrom = fromY + fromRect.height + verticalOffset;
+          const arrowYTo = toY + toRect.height + verticalOffset;
+          
+          if (canGoDirect && toX > fromX) {
+            // Прямой путь: вправо от главного слова, вниз по расстоянию между строками, влево к обороту
+            const rightX = fromX + horizontalOffset;
+            const arrowYMiddle = (arrowYFrom + arrowYTo) / 2 + lineSpacing;
+            const leftX = Math.max(toX - horizontalOffset, rightX);
+            
+            path = `M ${fromX} ${arrowYFrom}
+                    L ${rightX} ${arrowYFrom}
+                    L ${rightX} ${arrowYMiddle}
+                    L ${leftX} ${arrowYMiddle}
+                    L ${leftX} ${arrowYTo}
+                    L ${toX} ${arrowYTo}`;
+          } else {
+            // Обход по правой или левой стороне
+            if (useRightSide) {
+              // Обход справа: идем вправо, вниз, влево к обороту
+              const rightX = editorRect.width - horizontalOffset;
+              const middleY = (arrowYFrom + arrowYTo) / 2 + lineSpacing;
+              const finalX = Math.max(toX - horizontalOffset, horizontalOffset);
+              
+              path = `M ${fromX} ${arrowYFrom}
+                      L ${rightX} ${arrowYFrom}
+                      L ${rightX} ${middleY}
+                      L ${finalX} ${middleY}
+                      L ${finalX} ${arrowYTo}
+                      L ${toX} ${arrowYTo}`;
+            } else {
+              // Обход слева: идем влево, вниз, вправо к обороту
+              const leftX = horizontalOffset;
+              const middleY = (arrowYFrom + arrowYTo) / 2 + lineSpacing;
+              const finalX = Math.min(toX - horizontalOffset, editorRect.width - horizontalOffset);
+              
+              path = `M ${fromX} ${arrowYFrom}
+                      L ${leftX} ${arrowYFrom}
+                      L ${leftX} ${middleY}
+                      L ${finalX} ${middleY}
+                      L ${finalX} ${arrowYTo}
+                      L ${toX} ${arrowYTo}`;
+            }
+          }
+        } else {
+          // Главное слово снизу, оборот сверху
+          const arrowYFrom = fromY + fromRect.height + verticalOffset;
+          const arrowYTo = toY + toRect.height + verticalOffset;
+          
+          if (canGoDirect && toX > fromX) {
+            // Прямой путь: вправо от главного слова, вверх по расстоянию между строками, влево к обороту
+            const rightX = fromX + horizontalOffset;
+            const arrowYMiddle = (arrowYFrom + arrowYTo) / 2 - lineSpacing;
+            const leftX = Math.max(toX - horizontalOffset, rightX);
+            
+            path = `M ${fromX} ${arrowYFrom}
+                    L ${rightX} ${arrowYFrom}
+                    L ${rightX} ${arrowYMiddle}
+                    L ${leftX} ${arrowYMiddle}
+                    L ${leftX} ${arrowYTo}
+                    L ${toX} ${arrowYTo}`;
+          } else {
+            // Обход по правой или левой стороне
+            if (useRightSide) {
+              // Обход справа: идем вправо, вверх, влево к обороту
+              const rightX = editorRect.width - horizontalOffset;
+              const middleY = (arrowYFrom + arrowYTo) / 2 - lineSpacing;
+              const finalX = Math.max(toX - horizontalOffset, horizontalOffset);
+              
+              path = `M ${fromX} ${arrowYFrom}
+                      L ${rightX} ${arrowYFrom}
+                      L ${rightX} ${middleY}
+                      L ${finalX} ${middleY}
+                      L ${finalX} ${arrowYTo}
+                      L ${toX} ${arrowYTo}`;
+            } else {
+              // Обход слева: идем влево, вверх, вправо к обороту
+              const leftX = horizontalOffset;
+              const middleY = (arrowYFrom + arrowYTo) / 2 - lineSpacing;
+              const finalX = Math.min(toX - horizontalOffset, editorRect.width - horizontalOffset);
+              
+              path = `M ${fromX} ${arrowYFrom}
+                      L ${leftX} ${arrowYFrom}
+                      L ${leftX} ${middleY}
+                      L ${finalX} ${middleY}
+                      L ${finalX} ${arrowYTo}
+                      L ${toX} ${arrowYTo}`;
+            }
+          }
+        }
+      }
+      
+      const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      pathElement.setAttribute('d', path);
+      pathElement.setAttribute('stroke', 'rgba(236, 72, 153, 0.9)');
+      pathElement.setAttribute('stroke-width', '2.5');
+      pathElement.setAttribute('fill', 'none');
+      pathElement.setAttribute('marker-end', 'url(#arrowhead-display)');
+      pathElement.setAttribute('stroke-linecap', 'round');
+      pathElement.setAttribute('stroke-linejoin', 'round');
+      pathElement.setAttribute('filter', 'drop-shadow(0 1px 2px rgba(236, 72, 153, 0.3))');
+      
+      svg.appendChild(pathElement);
+    });
+  }
+  
+  // Инициализация панели инструментов для текста задания (слева)
+  function initTextToolbar() {
+    const toolbar = document.getElementById('task17-toolbar-left');
+    const textContainer = document.getElementById('task17-text-editable');
+    
+    if (!toolbar || !textContainer) return;
+    
+    const markParticipleBtn = document.getElementById('task17-mark-participle-text');
+    const markGerundBtn = document.getElementById('task17-mark-gerund-text');
+    const markMainWordBtn = document.getElementById('task17-mark-main-word-text');
+    const removeMarkBtn = document.getElementById('task17-remove-mark-text');
+    
+    // Функция для применения стиля
+    function applySpanClass(className) {
+      const selection = window.getSelection();
+      if (selection.rangeCount === 0 || selection.toString().trim() === '') {
+        alert('Выделите текст в предложении');
+        return;
+      }
+      
+      const range = selection.getRangeAt(0);
+      if (range.collapsed) {
+        alert('Выделите текст');
+        return;
+      }
+      
+      // Проверяем, что выделение внутри текста задания
+      if (!textContainer.contains(range.commonAncestorContainer)) {
+        alert('Выделите текст в предложении');
+        return;
+      }
+      
+      // Игнорируем клики по цифрам
+      if (range.commonAncestorContainer.closest && range.commonAncestorContainer.closest('.task17-digit')) {
+        return;
+      }
+      
+      const span = document.createElement('span');
+      span.className = className;
+      
+      try {
+        range.surroundContents(span);
+      } catch (e) {
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+      }
+      
+      selection.removeAllRanges();
+      textContainer.focus();
+    }
+    
+    markParticipleBtn.addEventListener('click', () => applySpanClass('span-participle'));
+    markGerundBtn.addEventListener('click', () => applySpanClass('span-gerund'));
+    markMainWordBtn.addEventListener('click', () => applySpanClass('span-main-word'));
+    
+    removeMarkBtn.addEventListener('click', () => {
+      const selection = window.getSelection();
+      let range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+      
+      if (!range) {
+        range = document.createRange();
+        if (selection.anchorNode) {
+          range.setStart(selection.anchorNode, selection.anchorOffset);
+          range.setEnd(selection.anchorNode, selection.anchorOffset);
+        }
+      }
+      
+      const selectedParent = range.commonAncestorContainer;
+      let parent = selectedParent.nodeType === 1 ? selectedParent : selectedParent.parentElement;
+      
+      while (parent && parent !== textContainer) {
+        if (parent.classList && (parent.classList.contains('span-participle') || parent.classList.contains('span-gerund') || parent.classList.contains('span-main-word'))) {
+          const grandParent = parent.parentNode;
+          while (parent.firstChild) {
+            grandParent.insertBefore(parent.firstChild, parent);
+          }
+          grandParent.removeChild(parent);
+          selection.removeAllRanges();
+          textContainer.focus();
+          return;
+        }
+        parent = parent.parentElement;
+      }
+      
+      alert('Поместите курсор в текст с выделением');
+    });
+  }
+  
+  // Инициализация панели инструментов для объяснения (справа)
+  // Отключено - панель не показывается, объяснение только для чтения
+  function initStudentToolbar() {
+    const toolbar = document.getElementById('task17-toolbar-student');
+    const explanationDiv = document.getElementById('task17-explanation-display');
+    
+    if (!toolbar || !explanationDiv) return;
+    
+    // Не показываем панель для объяснений после проверки
+    // Объяснение только для просмотра
+    toolbar.style.display = 'none';
+    
+    const markParticipleBtn = document.getElementById('task17-mark-participle-student');
+    const markGerundBtn = document.getElementById('task17-mark-gerund-student');
+    const markMainWordBtn = document.getElementById('task17-mark-main-word-student');
+    const removeMarkBtn = document.getElementById('task17-remove-mark-student');
+    
+    // Функция для применения стиля
+    function applySpanClass(className) {
+      const selection = window.getSelection();
+      if (selection.rangeCount === 0 || selection.toString().trim() === '') {
+        alert('Выделите текст');
+        return;
+      }
+      
+      const range = selection.getRangeAt(0);
+      if (range.collapsed) {
+        alert('Выделите текст');
+        return;
+      }
+      
+      const span = document.createElement('span');
+      span.className = className;
+      
+      try {
+        range.surroundContents(span);
+      } catch (e) {
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+      }
+      
+      selection.removeAllRanges();
+      explanationDiv.focus();
+    }
+    
+    markParticipleBtn.addEventListener('click', () => applySpanClass('span-participle'));
+    markGerundBtn.addEventListener('click', () => applySpanClass('span-gerund'));
+    markMainWordBtn.addEventListener('click', () => applySpanClass('span-main-word'));
+    
+    removeMarkBtn.addEventListener('click', () => {
+      const selection = window.getSelection();
+      let range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+      
+      if (!range) {
+        range = document.createRange();
+        if (selection.anchorNode) {
+          range.setStart(selection.anchorNode, selection.anchorOffset);
+          range.setEnd(selection.anchorNode, selection.anchorOffset);
+        }
+      }
+      
+      const selectedParent = range.commonAncestorContainer;
+      let parent = selectedParent.nodeType === 1 ? selectedParent : selectedParent.parentElement;
+      
+      while (parent && parent !== explanationDiv) {
+        if (parent.classList && (parent.classList.contains('span-participle') || parent.classList.contains('span-gerund') || parent.classList.contains('span-main-word'))) {
+          const grandParent = parent.parentNode;
+          while (parent.firstChild) {
+            grandParent.insertBefore(parent.firstChild, parent);
+          }
+          grandParent.removeChild(parent);
+          selection.removeAllRanges();
+          explanationDiv.focus();
+          return;
+        }
+        parent = parent.parentElement;
+      }
+      
+      alert('Поместите курсор в текст с выделением');
+    });
+  }
+  
+  // Инициализация панели для текста задания
+  setTimeout(() => {
+    initTextToolbar();
+  }, 500);
+  
+  // Ожидаем, когда объяснение будет отображено
+  const checkForExplanation = setInterval(() => {
+    const explanationDiv = document.getElementById('task17-explanation-display');
+    if (explanationDiv) {
+      clearInterval(checkForExplanation);
+      setTimeout(() => {
+        renderArrowsInExplanation();
+        initStudentToolbar();
+        
+        // Обновляем стрелки при изменении содержимого
+        const observer = new MutationObserver(() => {
+          setTimeout(renderArrowsInExplanation, 100);
+        });
+        
+        observer.observe(explanationDiv, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['data-arrow-to', 'data-arrow-id']
+        });
+      }, 500);
+    }
+  }, 100);
+</script>
