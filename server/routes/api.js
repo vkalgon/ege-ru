@@ -225,4 +225,62 @@ api.post('/sources', (req, res) => {
   }
 });
 
+api.put('/sources/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ error: 'Название источника обязательно' });
+    }
+    
+    const result = db.prepare(`
+      UPDATE sources
+      SET name = ?
+      WHERE id = ?
+    `).run(name.trim(), id);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Источник не найден' });
+    }
+    
+    res.json({ id: parseInt(id), name: name.trim(), message: 'Источник обновлен' });
+  } catch (error) {
+    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return res.status(400).json({ error: 'Источник с таким названием уже существует' });
+    }
+    console.error('Ошибка обновления источника:', error);
+    res.status(500).json({ error: 'Ошибка обновления источника' });
+  }
+});
+
+api.delete('/sources/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Проверяем, используется ли источник в заданиях
+    const usage = db.prepare(`
+      SELECT COUNT(*) as count FROM task17 WHERE source = (SELECT name FROM sources WHERE id = ?)
+    `).get(id);
+    
+    if (usage && usage.count > 0) {
+      return res.status(400).json({ error: `Невозможно удалить источник: он используется в ${usage.count} задании(ях)` });
+    }
+    
+    const result = db.prepare(`
+      DELETE FROM sources
+      WHERE id = ?
+    `).run(id);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Источник не найден' });
+    }
+    
+    res.json({ message: 'Источник удален' });
+  } catch (error) {
+    console.error('Ошибка удаления источника:', error);
+    res.status(500).json({ error: 'Ошибка удаления источника' });
+  }
+});
+
 export default api;

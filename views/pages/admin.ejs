@@ -1540,11 +1540,24 @@
         menu.innerHTML = '';
         let hasSelected = false;
         
+        // Проверяем, является ли этот select для источников задания 17
+        const isTask17Source = select.id === 'task17-source';
+        
         Array.from(select.options).forEach((option, index) => {
           const menuOption = document.createElement('div');
           menuOption.className = 'custom-dropdown__option';
-          menuOption.textContent = option.text;
           menuOption.dataset.value = option.value;
+          
+          // Создаем контейнер для содержимого опции
+          const optionContent = document.createElement('div');
+          optionContent.className = 'custom-dropdown__option-content';
+          optionContent.textContent = option.text;
+          menuOption.appendChild(optionContent);
+          
+          // Для опций без actions, делаем контент кликабельным на всю ширину
+          if (!isTask17Source || option.value === '' || option.value === '__new__' || !option.dataset.sourceId) {
+            optionContent.style.flex = '1';
+          }
           
           if (option.value === '') {
             menuOption.classList.add('placeholder');
@@ -1557,8 +1570,49 @@
             hasSelected = true;
           }
           
+          // Добавляем кнопки редактирования и удаления для источников (кроме placeholder и __new__)
+          if (isTask17Source && option.value !== '' && option.value !== '__new__' && option.dataset.sourceId) {
+            const actionsContainer = document.createElement('div');
+            actionsContainer.className = 'custom-dropdown__option-actions';
+            
+            const editBtn = document.createElement('button');
+            editBtn.className = 'custom-dropdown__action-btn custom-dropdown__action-btn--edit';
+            editBtn.innerHTML = '✏️';
+            editBtn.title = 'Редактировать источник';
+            editBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              const sourceId = option.dataset.sourceId;
+              const sourceName = option.text;
+              editSource(sourceId, sourceName);
+              closeMenu();
+            });
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'custom-dropdown__action-btn custom-dropdown__action-btn--delete';
+            deleteBtn.innerHTML = '🗑️';
+            deleteBtn.title = 'Удалить источник';
+            deleteBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              const sourceId = option.dataset.sourceId;
+              const sourceName = option.text;
+              deleteSource(sourceId, sourceName);
+              closeMenu();
+            });
+            
+            actionsContainer.appendChild(editBtn);
+            actionsContainer.appendChild(deleteBtn);
+            menuOption.appendChild(actionsContainer);
+          }
+          
           // Обработчик выбора - используем mousedown для более быстрого отклика
           const handleSelection = (e) => {
+            // Не выбираем, если клик был по кнопке действия
+            if (e.target.closest('.custom-dropdown__action-btn')) {
+              return;
+            }
+            
             e.stopPropagation();
             e.preventDefault();
             e.cancelBubble = true;
@@ -1721,6 +1775,8 @@
       const sources = await response.json();
       
       const select = document.getElementById('task17-source');
+      if (!select) return;
+      
       // Сохраняем текущее значение
       const currentValue = select.value;
       
@@ -1734,6 +1790,7 @@
         const option = document.createElement('option');
         option.value = source.name;
         option.textContent = source.name;
+        option.dataset.sourceId = source.id; // Сохраняем id источника
         select.appendChild(option);
       });
       
@@ -1744,6 +1801,14 @@
         select.value = '__new__';
         handleTask17SourceChange(); // Показываем поле для ввода
       }
+      
+      // Переинициализируем кастомный dropdown, чтобы отобразить новые опции
+      // Используем небольшую задержку, чтобы убедиться, что DOM обновлен
+      setTimeout(() => {
+        if (typeof initCustomDropdowns === 'function') {
+          initCustomDropdowns();
+        }
+      }, 50);
     } catch (error) {
       console.error('Ошибка загрузки источников:', error);
     }
@@ -1765,6 +1830,73 @@
       newInput.value = '';
     }
   }
+
+  // Редактирование источника
+  async function editSource(sourceId, currentName) {
+    const newName = prompt('Введите новое название источника:', currentName);
+    if (!newName || newName.trim() === '') {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/sources/${sourceId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName.trim() })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Ошибка обновления источника');
+      }
+      
+      // Обновляем список источников
+      await loadTask17Sources();
+      
+      // Если этот источник был выбран, обновляем значение
+      const select = document.getElementById('task17-source');
+      if (select && select.value === currentName) {
+        select.value = newName.trim();
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    } catch (error) {
+      console.error('Ошибка редактирования источника:', error);
+      alert('Ошибка редактирования источника: ' + error.message);
+    }
+  }
+  window.editSource = editSource;
+
+  // Удаление источника
+  async function deleteSource(sourceId, sourceName) {
+    if (!confirm(`Вы уверены, что хотите удалить источник "${sourceName}"?`)) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/sources/${sourceId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Ошибка удаления источника');
+      }
+      
+      // Обновляем список источников
+      await loadTask17Sources();
+      
+      // Если этот источник был выбран, сбрасываем выбор
+      const select = document.getElementById('task17-source');
+      if (select && select.value === sourceName) {
+        select.value = '';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    } catch (error) {
+      console.error('Ошибка удаления источника:', error);
+      alert('Ошибка удаления источника: ' + error.message);
+    }
+  }
+  window.deleteSource = deleteSource;
 
   // Инициализация обработчика изменения select при загрузке
   if (document.readyState === 'loading') {
@@ -1954,15 +2086,24 @@
       const after = result.substring(pos.index + pos.length);
       
       if (pos.shouldAddComma) {
-        // Заменяем метку на запятую
-        result = before + ',' + after;
+        // Убираем пробел перед меткой, если он есть
+        let beforeText = before;
+        if (beforeText.endsWith(' ')) {
+          beforeText = beforeText.slice(0, -1);
+        }
+        // Заменяем метку на запятую с одним пробелом после
+        result = beforeText + ', ' + after;
       } else {
         // Удаляем метку (без запятой)
         result = before + after;
       }
     }
     
-    // Убираем лишние пробелы после запятых
+    // Убираем пробелы перед запятыми, если они есть
+    result = result.replace(/\s+,/g, ',');
+    // Нормализуем все множественные пробелы до одинарных
+    result = result.replace(/\s+/g, ' ').trim();
+    // Убеждаемся, что после запятых есть ровно один пробел (не больше)
     result = result.replace(/,\s+/g, ', ');
     
     // Устанавливаем текст в редактор
@@ -2198,12 +2339,96 @@
         return;
       }
 
-      const range = selection.getRangeAt(0);
+      let range = selection.getRangeAt(0);
       
       if (range.collapsed) {
         alert('Выделите текст');
         return;
       }
+
+      // Функция для расширения range до ближайших пробелов
+      function expandRangeToSpaces(range) {
+        const expandedRange = range.cloneRange();
+        
+        // Расширяем начало влево до пробела
+        let startContainer = expandedRange.startContainer;
+        let startOffset = expandedRange.startOffset;
+        
+        if (startContainer.nodeType === Node.TEXT_NODE) {
+          const text = startContainer.textContent;
+          let newOffset = startOffset;
+          while (newOffset > 0 && text[newOffset - 1] !== ' ') {
+            newOffset--;
+          }
+          expandedRange.setStart(startContainer, newOffset);
+        }
+        
+        // Расширяем конец вправо до пробела
+        let endContainer = expandedRange.endContainer;
+        let endOffset = expandedRange.endOffset;
+        
+        if (endContainer.nodeType === Node.TEXT_NODE) {
+          const text = endContainer.textContent;
+          let newOffset = endOffset;
+          while (newOffset < text.length && text[newOffset] !== ' ') {
+            newOffset++;
+          }
+          if (newOffset < text.length && text[newOffset] === ' ') {
+            newOffset++;
+          }
+          expandedRange.setEnd(endContainer, newOffset);
+        }
+        
+        // Расширяем начало, проходя по предыдущим узлам
+        while (true) {
+          const startContainer = expandedRange.startContainer;
+          const startOffset = expandedRange.startOffset;
+          
+          if (startContainer.nodeType === Node.TEXT_NODE && startOffset === 0) {
+            const prevNode = startContainer.previousSibling;
+            if (prevNode && prevNode.nodeType === Node.TEXT_NODE) {
+              const text = prevNode.textContent;
+              const spacePos = text.lastIndexOf(' ');
+              if (spacePos >= 0) {
+                expandedRange.setStart(prevNode, spacePos + 1);
+                continue;
+              } else {
+                expandedRange.setStart(prevNode, 0);
+                continue;
+              }
+            }
+          }
+          break;
+        }
+        
+        // Расширяем конец, проходя по следующим узлам
+        while (true) {
+          const endContainer = expandedRange.endContainer;
+          const endOffset = expandedRange.endOffset;
+          
+          if (endContainer.nodeType === Node.TEXT_NODE && 
+              endOffset >= endContainer.textContent.length) {
+            const nextNode = endContainer.nextSibling;
+            if (nextNode && nextNode.nodeType === Node.TEXT_NODE) {
+              const text = nextNode.textContent;
+              const spacePos = text.indexOf(' ');
+              if (spacePos >= 0) {
+                expandedRange.setEnd(nextNode, spacePos + 1);
+                continue;
+              } else {
+                expandedRange.setEnd(nextNode, text.length);
+                continue;
+              }
+            }
+          }
+          break;
+        }
+        
+        return expandedRange;
+      }
+
+      // Расширяем range до пробелов
+      range = expandRangeToSpaces(range);
 
       // Проверяем, находится ли весь диапазон внутри одного существующего спана того же типа
       const startContainer = range.startContainer;

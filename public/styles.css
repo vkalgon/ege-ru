@@ -1718,7 +1718,10 @@ body {
   background: transparent;
   width: 100%;
   text-align: left;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   position: relative;
   pointer-events: auto !important;
   z-index: 1;
@@ -1756,6 +1759,61 @@ body {
   opacity: 1;
   background: rgba(255, 255, 255, 0.03) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Стили для опции с действиями */
+.custom-dropdown__option-content {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-dropdown__option-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.custom-dropdown__option:hover .custom-dropdown__option-actions {
+  opacity: 1;
+}
+
+.custom-dropdown__action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.custom-dropdown__action-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.custom-dropdown__action-btn--edit:hover {
+  background: rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+
+.custom-dropdown__action-btn--delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+.custom-dropdown__action-btn:active {
+  transform: scale(0.95);
 }
 
 /* Скроллбар для меню */
@@ -3328,26 +3386,19 @@ u {
   white-space: normal; /* Разрешаем переносы в объяснении */
 }
 
-/* Деепричастный оборот — точка-тире (единая непрерывная линия) */
+/* Деепричастный оборот — точка-тире (единая непрерывная линия с паттерном) */
 .span-gerund {
   position: relative;
   text-decoration: none;
   display: inline;
   color: var(--text-primary);
-}
-
-.span-gerund::after {
-  content: "";
-  position: absolute;
-  left: -6px; /* Расширяем влево для перекрытия пробелов */
-  width: calc(100% + 12px); /* Расширяем на 6px с каждой стороны */
-  bottom: -2px;
-  height: 2px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='rgba(255,255,255,0.9)' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='rgba(255,255,255,0.9)'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='rgba(255,255,255,0.9)' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-size: 36px 2px;
+  padding-bottom: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='rgba(59,130,246,0.8)' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='rgba(59,130,246,0.8)'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='rgba(59,130,246,0.8)' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 36px 4px;
   background-repeat: repeat-x;
-  pointer-events: none;
-  background-position: 0 center;
+  background-position: left bottom;
+  box-decoration-break: clone; /* Обеспечивает повторение фона на каждой строке */
+  -webkit-box-decoration-break: clone;
 }
 
 /* Для многострочных спанов в объяснении */
@@ -3359,22 +3410,32 @@ u {
 .span-main-word {
   position: relative;
   display: inline-block;
-  padding: 16px 4px 4px 4px; /* Место для крестика сверху и отступы */
+  padding: 4px; /* Отступы только для текста */
   border-radius: 4px;
-  margin: 2px;
+  margin: 20px 2px 2px 2px; /* Верхний отступ для крестика */
   transition: all 0.2s ease;
 }
 
 .span-main-word::before {
   content: "✕";
   position: absolute;
-  top: 0;
+  top: -18px; /* Крестик над боксом */
   left: 50%;
   transform: translateX(-50%);
   font-size: 16px;
   color: rgba(255, 255, 255, 0.9);
   font-weight: bold;
   line-height: 1;
+  z-index: 10; /* Крестик поверх других элементов */
+}
+
+/* В рабочей версии (текст задания) убираем крестик у главных слов */
+.task17-text-editable .span-main-word::before {
+  content: none;
+}
+
+.task17-text-editable .span-main-word {
+  margin-top: 2px; /* Убираем верхний отступ, так как крестика нет */
 }
 
 /* Поддержка вложенных оборотов */
@@ -3386,16 +3447,47 @@ u {
   z-index: 1;
 }
 
-/* Вложенный причастный в деепричастном - добавляем волнистую линию поверх */
-.span-gerund .span-participle::after {
-  bottom: -3px; /* Ниже точки-тире */
+/* Вложенный оборот (меньший) должен быть выше внешнего (большего) */
+/* Вложенный причастный оборот внутри деепричастного - подчеркивание выше */
+.span-gerund .span-participle {
+  text-underline-offset: 12px !important; /* Значительно выше - вложенный оборот (меньший) выше */
   z-index: 2;
 }
 
-/* Вложенный деепричастный в причастном - добавляем точку-тире снизу */
-.span-participle .span-gerund::after {
-  bottom: -4px; /* Ниже волнистой линии */
+/* Вложенный деепричастный оборот внутри причастного - подчеркивание выше */
+.span-participle .span-gerund {
+  padding-bottom: 0px !important; /* Убираем отступ полностью - это поднимает линию выше */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='rgba(59,130,246,0.8)' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='rgba(59,130,246,0.8)'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='rgba(59,130,246,0.8)' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+  background-size: 36px 4px !important;
+  background-repeat: repeat-x !important;
+  background-position: left bottom !important; /* С padding-bottom: 0px линия будет ближе к тексту (выше) */
   z-index: 2;
+}
+
+/* Вложенный причастный внутри причастного - меньший выше */
+.span-participle .span-participle {
+  text-underline-offset: 12px !important; /* Вложенный (меньший) выше */
+  z-index: 2;
+}
+
+/* Вложенный деепричастный внутри деепричастного - меньший выше */
+.span-gerund .span-gerund {
+  padding-bottom: 0px !important; /* Убираем отступ - это поднимает линию выше */
+  background-position: left bottom !important; /* С padding-bottom: 0px линия будет ближе к тексту (выше) */
+  z-index: 2;
+}
+
+/* Внешний оборот (больший) остается на стандартных позициях ниже */
+/* Базовые стили уже установлены выше и имеют меньшую специфичность, 
+   поэтому вложенные обороты их переопределят */
+
+/* Для многострочных вложенных оборотов */
+.editor-content .span-participle .span-gerund,
+.editor-content .span-gerund .span-participle,
+.editor-content .span-participle .span-participle,
+.editor-content .span-gerund .span-gerund {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 /* Слоты для запятых */

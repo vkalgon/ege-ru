@@ -28,7 +28,7 @@
         Деепричастный
       </button>
       <button type="button" class="btn btn-sm" id="task17-mark-main-word-text" style="width: 100%; justify-content: flex-start; border: 1px solid rgba(236, 72, 153, 0.5);">
-        ✕ Главное слово
+        Главное слово
       </button>
       <button type="button" class="btn btn-sm btn-secondary" id="task17-remove-mark-text" style="width: 100%; justify-content: flex-start;">
         Убрать выделение
@@ -60,11 +60,6 @@
     text-decoration: underline;
     text-decoration-style: wavy;
     text-decoration-color: rgba(168, 85, 247, 0.8);
-  }
-  
-  .task-page .span-gerund {
-    border-bottom: 2px dashed rgba(59, 130, 246, 0.8);
-    padding-bottom: 2px;
   }
   
   /* Стили для кликабельных цифр в задании №17 */
@@ -357,35 +352,42 @@
         const result = await response.json();
         setCheckResult(result);
         
-        // Если ответ неправильный, сохраняем правильные цифры для подсветки
-        if (result.correctAnswer && result.digits && !result.digits.isCorrect) {
-          setCorrectDigits(new Set(result.correctAnswer));
-        } else {
-          setCorrectDigits(new Set());
-        }
-        
-        // Сохраняем правильные и лишние позиции запятых для режима без цифр
-        if (currentMode === 'commas' && result.commas) {
-          // Сохраняем правильные позиции (показываем ВСЕГДА после проверки)
-          if (result.correctAnswer && Array.isArray(result.correctAnswer)) {
-            // Преобразуем в числа для корректного сравнения
-            const correctPositions = result.correctAnswer.map(p => Number(p));
-            console.log('Сохраняем правильные позиции запятых:', correctPositions);
-            setCorrectCommaPositions(new Set(correctPositions));
+        // Сохраняем правильные и лишние цифры для режима с цифрами
+        if (currentMode === 'digits') {
+          if (result.correctAnswer && result.digits && !result.digits.isCorrect) {
+            setCorrectDigits(new Set(result.correctAnswer));
           } else {
-            console.log('correctAnswer не найден или не массив:', result.correctAnswer);
-            setCorrectCommaPositions(new Set());
+            setCorrectDigits(new Set());
           }
-          // Сохраняем лишние позиции
-          if (result.commas.extra && Array.isArray(result.commas.extra)) {
-            const extraPositions = result.commas.extra.map(p => Number(p));
-            setExtraCommaPositions(new Set(extraPositions));
-          } else {
-            setExtraCommaPositions(new Set());
-          }
-        } else {
+          // Сбрасываем позиции запятых в режиме цифр
           setCorrectCommaPositions(new Set());
           setExtraCommaPositions(new Set());
+        } else {
+          // Режим запятых - сохраняем правильные и лишние позиции запятых
+          if (result.commas) {
+            // Сохраняем правильные позиции (показываем ВСЕГДА после проверки)
+            if (result.correctAnswer && Array.isArray(result.correctAnswer)) {
+              // Преобразуем в числа для корректного сравнения
+              const correctPositions = result.correctAnswer.map(p => Number(p));
+              console.log('Сохраняем правильные позиции запятых:', correctPositions);
+              setCorrectCommaPositions(new Set(correctPositions));
+            } else {
+              console.log('correctAnswer не найден или не массив:', result.correctAnswer);
+              setCorrectCommaPositions(new Set());
+            }
+            // Сохраняем лишние позиции
+            if (result.commas.extra && Array.isArray(result.commas.extra)) {
+              const extraPositions = result.commas.extra.map(p => Number(p));
+              setExtraCommaPositions(new Set(extraPositions));
+            } else {
+              setExtraCommaPositions(new Set());
+            }
+          } else {
+            setCorrectCommaPositions(new Set());
+            setExtraCommaPositions(new Set());
+          }
+          // Сбрасываем цифры в режиме запятых
+          setCorrectDigits(new Set());
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ошибка проверки');
@@ -646,7 +648,8 @@
             <div className="task-solution-block" style={{marginTop: '24px'}}>
               <h3 style={{marginTop: 0, marginBottom: '16px'}}>Результат проверки</h3>
               
-              {checkResult.digits && checkResult.digits.isCorrect ? (
+              {((currentMode === 'digits' && checkResult.digits && checkResult.digits.isCorrect) ||
+                (currentMode === 'commas' && checkResult.commas && checkResult.commas.isCorrect)) ? (
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -909,16 +912,161 @@
       }
 
       try {
+        // Функция для расширения range до ближайших пробелов
+        function expandRangeToSpaces(range) {
+          const expandedRange = range.cloneRange();
+          
+          // Расширяем начало влево до пробела
+          let startContainer = expandedRange.startContainer;
+          let startOffset = expandedRange.startOffset;
+          
+          // Если начало в текстовом узле
+          if (startContainer.nodeType === Node.TEXT_NODE) {
+            const text = startContainer.textContent;
+            let newOffset = startOffset;
+            // Ищем пробел слева
+            while (newOffset > 0 && text[newOffset - 1] !== ' ') {
+              newOffset--;
+            }
+            expandedRange.setStart(startContainer, newOffset);
+          } else {
+            // Если начало в элементе, ищем первый текстовый узел внутри
+            const walker = document.createTreeWalker(
+              startContainer,
+              NodeFilter.SHOW_TEXT,
+              null
+            );
+            const firstTextNode = walker.nextNode();
+            if (firstTextNode) {
+              const text = firstTextNode.textContent;
+              let spacePos = text.lastIndexOf(' ');
+              if (spacePos >= 0) {
+                expandedRange.setStart(firstTextNode, spacePos + 1);
+              } else {
+                expandedRange.setStart(firstTextNode, 0);
+              }
+            }
+          }
+          
+          // Расширяем конец вправо до пробела
+          let endContainer = expandedRange.endContainer;
+          let endOffset = expandedRange.endOffset;
+          
+          // Если конец в текстовом узле
+          if (endContainer.nodeType === Node.TEXT_NODE) {
+            const text = endContainer.textContent;
+            let newOffset = endOffset;
+            // Ищем пробел справа
+            while (newOffset < text.length && text[newOffset] !== ' ') {
+              newOffset++;
+            }
+            // Включаем пробел, если он есть
+            if (newOffset < text.length && text[newOffset] === ' ') {
+              newOffset++;
+            }
+            expandedRange.setEnd(endContainer, newOffset);
+          } else {
+            // Если конец в элементе, ищем последний текстовый узел внутри
+            const walker = document.createTreeWalker(
+              endContainer,
+              NodeFilter.SHOW_TEXT,
+              null
+            );
+            let lastTextNode = null;
+            let node;
+            while (node = walker.nextNode()) {
+              lastTextNode = node;
+            }
+            if (lastTextNode) {
+              const text = lastTextNode.textContent;
+              let spacePos = text.indexOf(' ');
+              if (spacePos >= 0) {
+                expandedRange.setEnd(lastTextNode, spacePos + 1);
+              } else {
+                expandedRange.setEnd(lastTextNode, text.length);
+              }
+            }
+          }
+          
+          // Если range пересекает несколько узлов, расширяем границы
+          // Расширяем начало, проходя по предыдущим узлам
+          while (true) {
+            const startContainer = expandedRange.startContainer;
+            const startOffset = expandedRange.startOffset;
+            
+            if (startContainer.nodeType === Node.TEXT_NODE && startOffset === 0) {
+              // Дошли до начала текстового узла, проверяем предыдущий узел
+              const prevNode = startContainer.previousSibling;
+              if (prevNode && prevNode.nodeType === Node.TEXT_NODE) {
+                const text = prevNode.textContent;
+                const spacePos = text.lastIndexOf(' ');
+                if (spacePos >= 0) {
+                  expandedRange.setStart(prevNode, spacePos + 1);
+                  continue;
+                } else {
+                  expandedRange.setStart(prevNode, 0);
+                  continue;
+                }
+              }
+            }
+            break;
+          }
+          
+          // Расширяем конец, проходя по следующим узлам
+          while (true) {
+            const endContainer = expandedRange.endContainer;
+            const endOffset = expandedRange.endOffset;
+            
+            if (endContainer.nodeType === Node.TEXT_NODE && 
+                endOffset >= endContainer.textContent.length) {
+              // Дошли до конца текстового узла, проверяем следующий узел
+              const nextNode = endContainer.nextSibling;
+              if (nextNode && nextNode.nodeType === Node.TEXT_NODE) {
+                const text = nextNode.textContent;
+                const spacePos = text.indexOf(' ');
+                if (spacePos >= 0) {
+                  expandedRange.setEnd(nextNode, spacePos + 1);
+                  continue;
+                } else {
+                  expandedRange.setEnd(nextNode, text.length);
+                  continue;
+                }
+              }
+            }
+            break;
+          }
+          
+          return expandedRange;
+        }
+
+        // Расширяем range до пробелов
+        const expandedRange = expandRangeToSpaces(range);
+        
+        // Проверяем, что есть выделение
+        const expandedText = expandedRange.toString();
+        if (!expandedText || expandedText.trim() === '') {
+          alert('Не удалось расширить выделение');
+          return;
+        }
+
         const span = document.createElement('span');
         span.className = className;
-        span.textContent = selectedText;
 
         if (className === 'span-main-word') {
           span.setAttribute('data-color-id', '');
         }
 
-        range.deleteContents();
-        range.insertNode(span);
+        // Пытаемся использовать surroundContents для сохранения пробелов
+        try {
+          expandedRange.surroundContents(span);
+        } catch (e) {
+          // Если surroundContents не работает (range пересекает границы элементов),
+          // используем extractContents с сохранением структуры
+          const contents = expandedRange.extractContents();
+          span.appendChild(contents);
+          expandedRange.insertNode(span);
+        }
+        
         selection.removeAllRanges();
       } catch (err) {
         console.error('Ошибка при применении стиля:', err);

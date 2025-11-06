@@ -28,7 +28,7 @@
         Деепричастный
       </button>
       <button type="button" class="btn btn-sm" id="task17-mark-main-word-text" style="width: 100%; justify-content: flex-start; border: 1px solid rgba(236, 72, 153, 0.5);">
-        ✕ Главное слово
+        Главное слово
       </button>
       <button type="button" class="btn btn-sm btn-secondary" id="task17-remove-mark-text" style="width: 100%; justify-content: flex-start;">
         Убрать выделение
@@ -1435,7 +1435,7 @@
         return;
       }
       
-      const range = selection.getRangeAt(0);
+      let range = selection.getRangeAt(0);
       if (range.collapsed) {
         alert('Выделите текст');
         return;
@@ -1451,6 +1451,90 @@
       if (range.commonAncestorContainer.closest && range.commonAncestorContainer.closest('.task17-digit')) {
         return;
       }
+      
+      // Функция для расширения range до ближайших пробелов
+      function expandRangeToSpaces(range) {
+        const expandedRange = range.cloneRange();
+        
+        // Расширяем начало влево до пробела
+        let startContainer = expandedRange.startContainer;
+        let startOffset = expandedRange.startOffset;
+        
+        if (startContainer.nodeType === Node.TEXT_NODE) {
+          const text = startContainer.textContent;
+          let newOffset = startOffset;
+          while (newOffset > 0 && text[newOffset - 1] !== ' ') {
+            newOffset--;
+          }
+          expandedRange.setStart(startContainer, newOffset);
+        }
+        
+        // Расширяем конец вправо до пробела
+        let endContainer = expandedRange.endContainer;
+        let endOffset = expandedRange.endOffset;
+        
+        if (endContainer.nodeType === Node.TEXT_NODE) {
+          const text = endContainer.textContent;
+          let newOffset = endOffset;
+          while (newOffset < text.length && text[newOffset] !== ' ') {
+            newOffset++;
+          }
+          if (newOffset < text.length && text[newOffset] === ' ') {
+            newOffset++;
+          }
+          expandedRange.setEnd(endContainer, newOffset);
+        }
+        
+        // Расширяем начало, проходя по предыдущим узлам
+        while (true) {
+          const startContainer = expandedRange.startContainer;
+          const startOffset = expandedRange.startOffset;
+          
+          if (startContainer.nodeType === Node.TEXT_NODE && startOffset === 0) {
+            const prevNode = startContainer.previousSibling;
+            if (prevNode && prevNode.nodeType === Node.TEXT_NODE) {
+              const text = prevNode.textContent;
+              const spacePos = text.lastIndexOf(' ');
+              if (spacePos >= 0) {
+                expandedRange.setStart(prevNode, spacePos + 1);
+                continue;
+              } else {
+                expandedRange.setStart(prevNode, 0);
+                continue;
+              }
+            }
+          }
+          break;
+        }
+        
+        // Расширяем конец, проходя по следующим узлам
+        while (true) {
+          const endContainer = expandedRange.endContainer;
+          const endOffset = expandedRange.endOffset;
+          
+          if (endContainer.nodeType === Node.TEXT_NODE && 
+              endOffset >= endContainer.textContent.length) {
+            const nextNode = endContainer.nextSibling;
+            if (nextNode && nextNode.nodeType === Node.TEXT_NODE) {
+              const text = nextNode.textContent;
+              const spacePos = text.indexOf(' ');
+              if (spacePos >= 0) {
+                expandedRange.setEnd(nextNode, spacePos + 1);
+                continue;
+              } else {
+                expandedRange.setEnd(nextNode, text.length);
+                continue;
+              }
+            }
+          }
+          break;
+        }
+        
+        return expandedRange;
+      }
+      
+      // Расширяем range до пробелов
+      range = expandRangeToSpaces(range);
       
       const span = document.createElement('span');
       span.className = className;

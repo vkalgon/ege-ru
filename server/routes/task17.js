@@ -101,6 +101,131 @@ function validateOffsets(text, offsets) {
   return true;
 }
 
+// Вычисление позиций запятых из цифр ответа
+// Возвращает массив позиций пробелов в нормализованном commaless_text, где должны быть запятые
+function calculateCommaPositionsFromDigits(sourceText, commalessText, digits) {
+  if (!sourceText || !commalessText || !digits || digits.length === 0) {
+    console.log('calculateCommaPositionsFromDigits: пустые входные данные');
+    return [];
+  }
+  
+  console.log('calculateCommaPositionsFromDigits: входные данные:', { 
+    sourceText: sourceText.substring(0, 100), 
+    commalessText: commalessText.substring(0, 100),
+    digits 
+  });
+  
+  // Строим нормализованный текст из source_text (убираем метки и запятые, нормализуем пробелы)
+  let normalized = sourceText;
+  // Убираем все метки (вместе с пробелом после них, если есть)
+  normalized = normalized.replace(/\(\d+\)\s?/g, '');
+  // Убираем запятые
+  normalized = normalized.replace(/,/g, '');
+  // Нормализуем пробелы
+  normalized = normalized.replace(/\s+/g, ' ').trim();
+  
+  console.log('calculateCommaPositionsFromDigits: normalized текст:', normalized.substring(0, 100));
+  
+  // Проверяем, что normalized совпадает с commaless_text (после нормализации)
+  const normalizedCommaless = commalessText.replace(/\s+/g, ' ').trim();
+  if (normalized !== normalizedCommaless) {
+    console.warn('calculateCommaPositionsFromDigits: normalized не совпадает с normalizedCommaless');
+    console.warn('normalized:', normalized);
+    console.warn('normalizedCommaless:', normalizedCommaless);
+  }
+  
+  // Находим все метки в source_text
+  const digitRegex = /\((\d+)\)/g;
+  const digitPositions = [];
+  let match;
+  
+  while ((match = digitRegex.exec(sourceText)) !== null) {
+    const digit = parseInt(match[1], 10);
+    digitPositions.push({
+      digit,
+      index: match.index,
+      length: match[0].length
+    });
+  }
+  
+  console.log('calculateCommaPositionsFromDigits: найдено меток:', digitPositions.length);
+  
+  // Создаем маппинг: цифра -> позиция в source_text
+  const digitToSourcePos = new Map();
+  digitPositions.forEach(pos => {
+    digitToSourcePos.set(pos.digit, pos.index);
+  });
+  
+  // Для каждой цифры из ответа находим позицию запятой
+  const commaPositions = [];
+  
+  for (const digit of digits) {
+    const sourcePos = digitToSourcePos.get(digit);
+    if (sourcePos === undefined) {
+      console.log(`calculateCommaPositionsFromDigits: цифра ${digit} не найдена в source_text`);
+      continue;
+    }
+    
+    // Находим позицию перед меткой в source_text
+    // Запятая должна быть после слова, которое идет перед меткой
+    let posBeforeDigit = sourcePos;
+    while (posBeforeDigit > 0 && sourceText[posBeforeDigit - 1] === ' ') {
+      posBeforeDigit--;
+    }
+    
+    // Находим конец слова перед меткой
+    let wordEnd = posBeforeDigit;
+    while (wordEnd > 0 && sourceText[wordEnd - 1] !== ' ' && sourceText[wordEnd - 1] !== ',') {
+      wordEnd--;
+    }
+    
+    // Извлекаем слово перед меткой
+    const wordBefore = sourceText.substring(wordEnd, posBeforeDigit).trim();
+    console.log(`calculateCommaPositionsFromDigits: цифра ${digit}, слово перед меткой: "${wordBefore}"`);
+    
+    // Строим normalized текст до posBeforeDigit
+    let normalizedBefore = sourceText.substring(0, posBeforeDigit);
+    // Убираем все метки (вместе с пробелом после них, если есть)
+    normalizedBefore = normalizedBefore.replace(/\(\d+\)\s?/g, '');
+    // Убираем запятые
+    normalizedBefore = normalizedBefore.replace(/,/g, '');
+    // Нормализуем пробелы
+    normalizedBefore = normalizedBefore.replace(/\s+/g, ' ').trim();
+    
+    // Позиция в normalized = длина normalizedBefore
+    // Это позиция конца слова перед меткой в normalized тексте
+    const posInNormalized = normalizedBefore.length;
+    
+    // Находим позицию пробела после слова в normalized
+    // posInNormalized - это конец слова перед меткой
+    // Проверяем, есть ли пробел сразу после слова
+    let spacePos = posInNormalized;
+    
+    // Если на позиции posInNormalized уже пробел, используем его
+    if (spacePos < normalized.length && normalized[spacePos] === ' ') {
+      // Пробел найден
+    } else {
+      // Ищем пробел дальше (пропускаем текущее слово, если оно еще не закончилось)
+      while (spacePos < normalized.length && normalized[spacePos] !== ' ') {
+        spacePos++;
+      }
+    }
+    
+    // Если нашли пробел, это позиция запятой
+    if (spacePos < normalized.length && normalized[spacePos] === ' ') {
+      console.log(`calculateCommaPositionsFromDigits: цифра ${digit}, позиция пробела: ${spacePos}, символ: "${normalized[spacePos]}"`);
+      commaPositions.push(spacePos);
+    } else {
+      console.log(`calculateCommaPositionsFromDigits: цифра ${digit}, пробел не найден после позиции ${posInNormalized}, normalized.length=${normalized.length}`);
+    }
+  }
+  
+  // Убираем дубликаты и сортируем
+  const result = [...new Set(commaPositions)].sort((a, b) => a - b);
+  console.log('calculateCommaPositionsFromDigits: результат:', result);
+  return result;
+}
+
 /* ----------------------
    АДМИНКА
 ----------------------- */
@@ -130,11 +255,18 @@ task17.post('/', (req, res) => {
     }
     
     // comma_positions может быть пустым массивом (для упрощенной формы админки)
-    const finalCommaPositions = comma_positions && Array.isArray(comma_positions) ? comma_positions : [];
+    // Если пустой, вычисляем из digits
+    let finalCommaPositions = comma_positions && Array.isArray(comma_positions) && comma_positions.length > 0 
+      ? comma_positions 
+      : calculateCommaPositionsFromDigits(source_text, commaless_text, digits);
     
     // Валидация индексов только если есть позиции
-    if (finalCommaPositions.length > 0 && !validateOffsets(commaless_text, finalCommaPositions)) {
-      return res.status(400).json({ error: 'Некорректные индексы в comma_positions' });
+    if (finalCommaPositions.length > 0) {
+      // Валидируем относительно нормализованного commaless_text (как на клиенте)
+      const normalizedCommaless = commaless_text.replace(/\s+/g, ' ').trim();
+      if (!validateOffsets(normalizedCommaless, finalCommaPositions)) {
+        return res.status(400).json({ error: 'Некорректные индексы в comma_positions' });
+      }
     }
     
     // spans может быть пустым массивом (обороты в объяснении не требуются для сохранения задания)
@@ -290,12 +422,25 @@ task17.put('/:id', (req, res) => {
     }
     
     // Обрабатываем ответы - разрешаем пустые массивы
-    const finalCommaPositions = comma_positions && Array.isArray(comma_positions) ? comma_positions : [];
+    // Если comma_positions не указаны, но есть digits и source_text, вычисляем их
+    let finalCommaPositions = comma_positions && Array.isArray(comma_positions) && comma_positions.length > 0 
+      ? comma_positions 
+      : [];
+    
+    // Если comma_positions пустой, но есть digits и source_text, вычисляем
+    if (finalCommaPositions.length === 0 && digits && Array.isArray(digits) && digits.length > 0 && source_text && commaless_text) {
+      finalCommaPositions = calculateCommaPositionsFromDigits(source_text, commaless_text, digits);
+    }
+    
     const finalSpans = spans && Array.isArray(spans) ? spans : [];
     
     // Валидация индексов только если есть позиции
-    if (commaless_text && finalCommaPositions.length > 0 && !validateOffsets(commaless_text, finalCommaPositions)) {
-      return res.status(400).json({ error: 'Некорректные индексы в comma_positions' });
+    if (commaless_text && finalCommaPositions.length > 0) {
+      // Валидируем относительно нормализованного commaless_text (как на клиенте)
+      const normalizedCommaless = commaless_text.replace(/\s+/g, ' ').trim();
+      if (!validateOffsets(normalizedCommaless, finalCommaPositions)) {
+        return res.status(400).json({ error: 'Некорректные индексы в comma_positions' });
+      }
     }
     
     // Валидация спанов только если они есть
@@ -455,8 +600,22 @@ task17.post('/:id/check', (req, res) => {
     }
     
     const expectedDigits = JSON.parse(answer.digits_json);
-    const expectedCommas = JSON.parse(answer.comma_positions_json);
+    let expectedCommas = JSON.parse(answer.comma_positions_json);
     const expectedSpans = JSON.parse(answer.spans_json);
+    
+    // Если comma_positions пустой, но есть digits, вычисляем позиции из digits
+    if (mode === 'commas' && (!expectedCommas || expectedCommas.length === 0) && expectedDigits && expectedDigits.length > 0) {
+      console.log('Вычисляем позиции запятых из digits:', expectedDigits);
+      console.log('source_text:', task.source_text);
+      console.log('commaless_text:', task.commaless_text);
+      expectedCommas = calculateCommaPositionsFromDigits(task.source_text, task.commaless_text, expectedDigits);
+      console.log('Вычислены позиции запятых:', expectedCommas);
+    }
+    
+    // Нормализуем commaless_text для режима commas (как на клиенте)
+    const normalizedCommaless = mode === 'commas' 
+      ? task.commaless_text.replace(/\s+/g, ' ').trim()
+      : task.commaless_text;
     
     // Валидация пользовательских данных
     if (mode === 'digits') {
@@ -468,7 +627,8 @@ task17.post('/:id/check', (req, res) => {
       if (!comma_positions || !Array.isArray(comma_positions)) {
         return res.status(400).json({ error: 'comma_positions обязателен для mode=commas' });
       }
-      if (!validateOffsets(task.commaless_text, comma_positions)) {
+      // Валидируем относительно нормализованного текста
+      if (!validateOffsets(normalizedCommaless, comma_positions)) {
         return res.status(400).json({ error: 'Некорректные индексы в comma_positions' });
       }
     }
@@ -506,8 +666,12 @@ task17.post('/:id/check', (req, res) => {
     let expectedCommasNums = null;
     if (mode === 'commas') {
       // Нормализуем типы данных - преобразуем все в числа для корректного сравнения
-      expectedCommasNums = expectedCommas.map(p => Number(p));
+      expectedCommasNums = expectedCommas && expectedCommas.length > 0 
+        ? expectedCommas.map(p => Number(p))
+        : [];
       const userNums = comma_positions.map(p => Number(p));
+      
+      console.log('Проверка запятых: expectedCommasNums=', expectedCommasNums, 'userNums=', userNums);
       
       const expectedSet = new Set(expectedCommasNums);
       const userSet = new Set(userNums);
@@ -577,15 +741,21 @@ task17.post('/:id/check', (req, res) => {
     }
     
     // Формируем ответ
+    let correctAnswer = null;
+    if (mode === 'digits') {
+      correctAnswer = expectedDigits.map(d => Number(d)).sort((a, b) => a - b);
+    } else if (mode === 'commas') {
+      // Всегда возвращаем массив для режима commas (даже если пустой)
+      correctAnswer = expectedCommasNums ? expectedCommasNums.sort((a, b) => a - b) : [];
+    }
+    
     const response = {
       digits: digitsResult,
       commas: commasResult,
       spans: spansReport,
       score,
       explanation,
-      correctAnswer: mode === 'digits' 
-        ? expectedDigits.map(d => Number(d)).sort((a, b) => a - b)
-        : (mode === 'commas' && expectedCommasNums ? expectedCommasNums.sort((a, b) => a - b) : null)
+      correctAnswer
     };
     
     res.json(response);
