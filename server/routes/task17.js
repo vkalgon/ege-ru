@@ -401,9 +401,16 @@ task17.get('/:id/play', (req, res) => {
       return res.status(404).json({ error: 'Задание не найдено' });
     }
     
+    // Нормализуем пробелы в commaless_text для режима без цифр
+    let displayText = mode === 'digits' ? task.source_text : task.commaless_text;
+    if (mode === 'commas' && displayText) {
+      // Убираем множественные пробелы, оставляя только одинарные
+      displayText = displayText.replace(/\s+/g, ' ').trim();
+    }
+    
     res.json({
       mode,
-      text: mode === 'digits' ? task.source_text : task.commaless_text,
+      text: displayText,
       allowSpanSelection: true,
       explanation: {
         answer_text: task.answer_text || null,
@@ -496,12 +503,17 @@ task17.post('/:id/check', (req, res) => {
     
     // Проверка запятых
     let commasResult = null;
+    let expectedCommasNums = null;
     if (mode === 'commas') {
-      const expectedSet = new Set(expectedCommas);
-      const userSet = new Set(comma_positions);
+      // Нормализуем типы данных - преобразуем все в числа для корректного сравнения
+      expectedCommasNums = expectedCommas.map(p => Number(p));
+      const userNums = comma_positions.map(p => Number(p));
       
-      const missing = expectedCommas.filter(p => !userSet.has(p));
-      const extra = comma_positions.filter(p => !expectedSet.has(p));
+      const expectedSet = new Set(expectedCommasNums);
+      const userSet = new Set(userNums);
+      
+      const missing = expectedCommasNums.filter(p => !userSet.has(p));
+      const extra = userNums.filter(p => !expectedSet.has(p));
       const isCorrect = missing.length === 0 && extra.length === 0;
       
       commasResult = { isCorrect, missing, extra };
@@ -572,8 +584,8 @@ task17.post('/:id/check', (req, res) => {
       score,
       explanation,
       correctAnswer: mode === 'digits' 
-        ? expectedDigits.sort((a, b) => Number(a) - Number(b))
-        : (mode === 'commas' ? expectedCommas.sort((a, b) => a - b) : null)
+        ? expectedDigits.map(d => Number(d)).sort((a, b) => a - b)
+        : (mode === 'commas' && expectedCommasNums ? expectedCommasNums.sort((a, b) => a - b) : null)
     };
     
     res.json(response);

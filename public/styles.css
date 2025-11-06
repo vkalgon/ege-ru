@@ -1,46 +1,46 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* ===== CSS VARIABLES ===== */
+/* ===== CSS VARIABLES - DARK THEME (default) ===== */
 :root {
-  /* Dark Theme Colors */
-  --bg-primary: #0a0e27;
-  --bg-secondary: #111633;
-  --bg-tertiary: #1a1f3d;
+  /* Dark Theme Colors - нейтральные черно-серые */
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #181818;
+  --bg-tertiary: #272727;
   
-  /* Glass Effect */
+  /* Glass Effect - минималистичный */
   --glass-bg: rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  --glass-backdrop: blur(10px);
+  --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --glass-backdrop: blur(8px);
   
-  /* Neon Accents */
+  /* Neon Accents - только для подсветки и обводки */
   --neon-cyan: #00f0ff;
   --neon-purple: #a855f7;
   --neon-pink: #ec4899;
   --neon-blue: #3b82f6;
   
-  /* Text Colors */
+  /* Text Colors - нейтральные */
   --text-primary: #ffffff;
-  --text-secondary: #a0aec0;
-  --text-disabled: #64748b;
+  --text-secondary: #aaaaaa;
+  --text-disabled: #717171;
   --text-accent: var(--neon-cyan);
   
-  /* Neon Glow Effects */
-  --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.5), 0 0 40px rgba(0, 240, 255, 0.3);
-  --glow-purple: 0 0 20px rgba(168, 85, 247, 0.5), 0 0 40px rgba(168, 85, 247, 0.3);
-  --glow-pink: 0 0 20px rgba(236, 72, 153, 0.5), 0 0 40px rgba(236, 72, 153, 0.3);
-  --glow-blue: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
+  /* Neon Glow Effects - только для акцентов */
+  --glow-cyan: 0 0 10px rgba(0, 240, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.2);
+  --glow-purple: 0 0 10px rgba(168, 85, 247, 0.4), 0 0 20px rgba(168, 85, 247, 0.2);
+  --glow-pink: 0 0 10px rgba(236, 72, 153, 0.4), 0 0 20px rgba(236, 72, 153, 0.2);
+  --glow-blue: 0 0 10px rgba(59, 130, 246, 0.4), 0 0 20px rgba(59, 130, 246, 0.2);
   
   /* Spacing & Sizing */
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --space-16: 16px;
   --space-24: 24px;
   --space-32: 32px;
   
-  /* Shadows */
-  --shadow-neon: 0 4px 20px rgba(0, 240, 255, 0.3);
-  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
+  /* Shadows - нейтральные */
+  --shadow-neon: 0 2px 8px rgba(0, 240, 255, 0.2);
+  --shadow-glass: 0 4px 16px rgba(0, 0, 0, 0.3);
   
   /* Typography */
   --h2: 24px;
@@ -50,6 +50,42 @@
   --body-lh: 24px;
 }
 
+/* ===== LIGHT THEME ===== */
+[data-theme="light"] {
+  /* Light Theme Colors - нейтральные бело-серые */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9f9f9;
+  --bg-tertiary: #f1f1f1;
+  
+  /* Glass Effect - для светлой темы */
+  --glass-bg: rgba(0, 0, 0, 0.03);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --glass-backdrop: blur(8px);
+  
+  /* Neon Accents - более темные для светлой темы для лучшей читаемости */
+  --neon-cyan: #0099cc;
+  --neon-purple: #7c3aed;
+  --neon-pink: #c026d3;
+  --neon-blue: #2563eb;
+  
+  /* Text Colors - нейтральные */
+  --text-primary: #0f0f0f;
+  --text-secondary: #606060;
+  --text-disabled: #909090;
+  --text-accent: var(--neon-cyan);
+  
+  /* Shadows - для светлой темы */
+  --shadow-neon: 0 2px 8px rgba(0, 153, 204, 0.3);
+  --shadow-glass: 0 4px 16px rgba(0, 0, 0, 0.1);
+  
+  /* Neon Glow Effects - более темные для светлой темы */
+  --glow-cyan: 0 0 10px rgba(0, 153, 204, 0.4), 0 0 20px rgba(0, 153, 204, 0.2);
+  --glow-purple: 0 0 10px rgba(124, 58, 237, 0.4), 0 0 20px rgba(124, 58, 237, 0.2);
+  --glow-pink: 0 0 10px rgba(192, 38, 211, 0.4), 0 0 20px rgba(192, 38, 211, 0.2);
+  --glow-blue: 0 0 10px rgba(37, 99, 235, 0.4), 0 0 20px rgba(37, 99, 235, 0.2);
+}
+
 /* ===== RESET & BASE STYLES ===== */
 * {
   box-sizing: border-box;
@@ -57,36 +93,16 @@
 
 body {
   margin: 0;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
-  background-attachment: fixed;
+  background: var(--bg-primary);
   color: var(--text-primary);
   font: 400 var(--body)/var(--body-lh) "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Animated background gradient */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(0, 240, 255, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-  animation: gradientShift 15s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
+/* Убираем анимированный градиент - нейтральный стиль */
 
 /* Main content should be above background */
 .container {
@@ -140,7 +156,6 @@ body::before {
 .breadcrumbs__link:hover {
   color: var(--neon-cyan);
   background: rgba(0, 240, 255, 0.1);
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 
 .breadcrumbs__current {
@@ -160,7 +175,6 @@ body::before {
 .text-heading {
   font: var(--h2-fw) var(--h2)/var(--h2-lh) "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
 }
 
 .text-meta {
@@ -194,12 +208,13 @@ body::before {
   width: 40px;
   height: 40px;
   flex: 0 0 auto;
-  filter: drop-shadow(var(--glow-cyan));
-  transition: filter 0.3s ease;
+  transition: all 0.3s ease;
+  opacity: 0.9;
 }
 
 .site-header__logo:hover {
-  filter: drop-shadow(0 0 25px rgba(0, 240, 255, 0.8));
+  opacity: 1;
+  filter: drop-shadow(var(--shadow-neon));
 }
 
 .site-header__logo .logo-bg {
@@ -278,23 +293,73 @@ body::before {
   border-radius: 12px;
 }
 
+/* ===== THEME TOGGLE ===== */
+.theme-toggle {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: var(--shadow-neon);
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.theme-toggle__icon {
+  position: absolute;
+  font-size: 18px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.theme-toggle__icon--light {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+.theme-toggle__icon--dark {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+[data-theme="light"] .theme-toggle__icon--light {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+[data-theme="light"] .theme-toggle__icon--dark {
+  opacity: 0;
+  transform: rotate(-90deg);
+}
 
 .site-auth__avatar {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  background: var(--bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--glow-cyan);
   transition: all 0.3s ease;
-  border: 2px solid rgba(0, 240, 255, 0.3);
+  border: 2px solid var(--glass-border);
 }
 
 .site-auth__avatar:hover {
-  box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
-  transform: scale(1.05);
+  border-color: var(--neon-cyan);
+  box-shadow: var(--shadow-neon);
 }
 
 .site-auth__avatar span {
@@ -305,7 +370,6 @@ body::before {
   justify-content: center;
   width: 100%;
   height: 100%;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 
 .site-auth {
@@ -344,7 +408,7 @@ body::before {
   -webkit-backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-glass), var(--glow-cyan);
+  box-shadow: var(--shadow-glass);
   padding: 20px;
   min-width: 220px;
   z-index: 1000;
@@ -416,7 +480,6 @@ body::before {
 
 .user-menu__action:hover {
   color: var(--neon-cyan);
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
 }
 
 /* ===== TASK META ===== */
@@ -435,12 +498,12 @@ body::before {
 .task-meta__number {
   font-weight: 600;
   color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.15);
+  background: var(--bg-tertiary);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 14px;
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+  border: 1px solid var(--neon-cyan);
+  box-shadow: var(--shadow-neon);
 }
 
 .task-meta__source {
@@ -469,7 +532,6 @@ body::before {
 .task-text__button:hover {
   color: var(--neon-cyan);
   text-decoration: underline;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 
 .task-fulltext {
@@ -523,14 +585,14 @@ body::before {
   height: 56px;
   padding: 20px 30px;
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   color: var(--text-primary);
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(168, 85, 247, 0.2));
+  background: var(--bg-tertiary);
   transition: all 0.3s ease;
   font: 500 16px/16px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
@@ -553,7 +615,7 @@ body::before {
 }
 
 .btn:hover {
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.4), 0 0 25px rgba(0, 240, 255, 0.2);
+  box-shadow: var(--shadow-neon);
   transform: translateY(-2px);
   border-color: var(--neon-cyan);
 }
@@ -650,10 +712,9 @@ body::before {
 
 .task-button:hover {
   border-color: var(--neon-cyan);
-  box-shadow: var(--glow-cyan), var(--shadow-glass);
+  box-shadow: var(--shadow-neon), var(--shadow-glass);
   transform: translateY(-4px) scale(1.02);
   color: var(--neon-cyan);
-  text-shadow: 0 0 20px rgba(0, 240, 255, 0.8);
 }
 
 .task-button:active {
@@ -693,7 +754,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 3px;
-  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+  background: var(--neon-cyan);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -703,10 +764,10 @@ body::before {
 }
 
 .subtopic-card:hover {
-  box-shadow: var(--glow-cyan), var(--shadow-glass);
+  box-shadow: var(--shadow-neon), var(--shadow-glass);
   border-color: var(--neon-cyan);
   transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-secondary);
 }
 
 .subtopic-card__title {
@@ -722,7 +783,6 @@ body::before {
   color: var(--neon-cyan);
   font-weight: 600;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 
 /* ===== TASK PAGE ===== */
@@ -734,7 +794,6 @@ body::before {
   font: var(--h2-fw) var(--h2)/var(--h2-lh) "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   margin: 0 0 32px 0;
   color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
 }
 
 .task-card {
@@ -786,7 +845,6 @@ body::before {
   font-weight: 600;
   color: var(--text-primary);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  text-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
 }
 
 .task-prompt h1,
@@ -914,11 +972,12 @@ body::before {
 
 .task-prompt table th,
 .task-fulltext table th {
-  background: var(--glass-bg);
+  background: var(--bg-tertiary);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   font-weight: 600;
   color: var(--neon-cyan);
+  border-color: var(--neon-cyan);
 }
 
 .task-prompt strong,
@@ -1122,14 +1181,14 @@ body::before {
   height: 56px;
   padding: 20px 30px;
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(0, 240, 255, 0.3);
+  border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-glass);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   color: var(--text-primary);
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(168, 85, 247, 0.2));
+  background: var(--bg-tertiary);
   transition: all 0.3s ease;
   font: 500 16px/16px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
@@ -1141,7 +1200,7 @@ body::before {
   height: 56px;
   padding: 0;
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(0, 240, 255, 0.3);
+  border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-glass);
   cursor: pointer;
   display: inline-flex;
@@ -1149,7 +1208,7 @@ body::before {
   justify-content: center;
   gap: 0;
   color: var(--text-primary);
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(168, 85, 247, 0.2));
+  background: var(--bg-tertiary);
   transition: all 0.3s ease;
   font: 500 16px/16px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
@@ -1172,7 +1231,7 @@ body::before {
 }
 
 .task-solution:hover, .task-like:hover {
-  box-shadow: var(--shadow-glass);
+  box-shadow: var(--shadow-neon);
   transform: translateY(-2px);
   border-color: var(--neon-cyan);
 }
@@ -1210,7 +1269,6 @@ body::before {
   font: var(--h2-fw) var(--h2)/var(--h2-lh) "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   margin: 0 0 16px 0;
   color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
 }
 
 /* Хлебные крошки */
@@ -1336,7 +1394,6 @@ body::before {
   font: 600 18px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--text-primary);
   margin: 0 0 20px 0;
-  text-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
 }
 
 .admin-form {
@@ -1793,7 +1850,6 @@ body::before {
 .item-info strong {
   font-weight: 600;
   color: var(--neon-cyan);
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 
 .checkbox-label {
@@ -1846,7 +1902,6 @@ body::before {
   margin: 0 0 16px 0;
   padding-bottom: 8px;
   border-bottom: 2px solid var(--neon-cyan);
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
 }
 
 .answer-item {
@@ -1904,7 +1959,7 @@ body::before {
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: var(--shadow-glass), var(--glow-cyan);
+  box-shadow: var(--shadow-glass);
   border: 1px solid var(--glass-border);
   animation: slideUp 0.3s ease;
 }
@@ -1932,7 +1987,6 @@ body::before {
   font: 600 20px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--text-primary);
   margin: 0;
-  text-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
 }
 
 .modal-close {
@@ -1985,7 +2039,7 @@ body::before {
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-glass), var(--glow-cyan);
+  box-shadow: var(--shadow-glass);
   padding: 40px;
   max-width: 400px;
   width: 100%;
@@ -2003,7 +2057,6 @@ body::before {
   font: 700 28px/36px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--neon-cyan);
   margin: 0 0 8px 0;
-  text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
 }
 
 .login-header p {
@@ -2053,7 +2106,6 @@ body::before {
   font: 600 18px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--text-primary);
   margin: 0 0 16px 0;
-  text-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
 }
 
 .telegram-info {
@@ -2136,15 +2188,15 @@ body::before {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(168, 85, 247, 0.2));
+  background: var(--bg-tertiary);
   color: var(--text-primary);
-  border: 1px solid rgba(0, 240, 255, 0.3);
+  border: 1px solid var(--glass-border);
   padding: 12px 24px;
   border-radius: var(--radius-lg);
   font: 500 16px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: var(--glow-cyan);
+  box-shadow: var(--shadow-glass);
   position: relative;
   overflow: hidden;
 }
@@ -2165,7 +2217,7 @@ body::before {
 }
 
 .btn-primary:hover {
-  box-shadow: var(--glow-cyan), 0 0 30px rgba(0, 240, 255, 0.4);
+  box-shadow: var(--shadow-neon);
   transform: translateY(-2px);
   border-color: var(--neon-cyan);
 }
@@ -2225,7 +2277,6 @@ body::before {
 
 .login-footer a:hover {
   text-decoration: underline;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 
 .login-divider {
@@ -2276,16 +2327,15 @@ body::before {
 
 .task-type-card:hover {
   border-color: var(--neon-cyan);
-  box-shadow: var(--glow-cyan), var(--shadow-glass);
+  box-shadow: var(--shadow-neon), var(--shadow-glass);
   transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-secondary);
 }
 
 .task-type-number {
   font: 700 24px/32px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--neon-cyan);
   margin-bottom: 8px;
-  text-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
 }
 
 .task-type-title {
@@ -2686,16 +2736,15 @@ body::before {
 
 .ce-toolbox__button {
   color: var(--neon-cyan) !important;
-  background: rgba(0, 240, 255, 0.15) !important;
-  border: 1px solid rgba(0, 240, 255, 0.3) !important;
+  background: var(--bg-tertiary) !important;
+  border: 1px solid var(--neon-cyan) !important;
   transition: all 0.3s ease;
   border-radius: 6px;
   padding: 8px 12px;
   margin: 4px;
   font-size: 18px;
   font-weight: 700;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+  box-shadow: var(--shadow-neon);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2704,9 +2753,9 @@ body::before {
 }
 
 .ce-toolbox__button:hover {
-  background: rgba(0, 240, 255, 0.3) !important;
+  background: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+  box-shadow: var(--shadow-neon);
   transform: scale(1.1);
 }
 
@@ -3207,6 +3256,60 @@ u {
 }
 
 /* ===== TASK 17 STYLES ===== */
+
+/* Базовые отступы для задания 17 */
+.task17-wrapper .task-card .task-content {
+  gap: 24px; /* Стандартный отступ между элементами в task-content */
+}
+
+/* Отступ для контейнера с заданием (task-prompt) от остального контента */
+.task17-wrapper .task-card .task-prompt {
+  margin-top: 0; /* Базовый отступ управляется через gap в task-content */
+}
+
+/* Формулировка задания внутри task-prompt */
+.task17-wrapper .task-card .task-prompt > div:first-child {
+  margin-bottom: 12px;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* Базовые скругления для элементов задания 17 */
+.task17-wrapper .task17-text-editable {
+  border-radius: var(--radius-lg) !important; /* 12px - основной контейнер с текстом */
+}
+
+.task17-wrapper .task17-digit {
+  border-radius: 4px; /* Маленькие цифры */
+}
+
+.task17-wrapper .task-input {
+  border-radius: var(--radius-lg) !important; /* 12px - поле ввода */
+}
+
+.task17-wrapper .task-send,
+.task17-wrapper .task-solution,
+.task17-wrapper .task-like {
+  border-radius: var(--radius-lg) !important; /* 12px - кнопки */
+}
+
+/* Блоки результатов проверки */
+.task17-wrapper .task-solution-block > div,
+.task17-wrapper .task-solution-block > div > div {
+  border-radius: var(--radius-lg) !important; /* 12px - блоки результатов */
+}
+
+/* Переключатели в панели управления */
+.task17-wrapper .task17-control-panel label > div {
+  border-radius: var(--radius-lg) !important; /* 12px - переключатели */
+}
+
+.task17-wrapper .task17-control-panel label > div > div {
+  border-radius: 50% !important; /* Круглые элементы переключателей */
+}
 
 /* Причастный оборот — волнистая линия (единая непрерывная линия, концы скруглены автоматически) */
 .span-participle {

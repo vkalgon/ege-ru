@@ -5,6 +5,13 @@
   <title><%= title %></title>
   <link rel="icon" type="image/svg+xml" href="/images/logo.svg">
   <link rel="stylesheet" href="/styles.css">
+  <script>
+    // Устанавливаем тему синхронно перед загрузкой страницы для избежания мерцания
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
 </head>
 <body>
   <%- include('../partials/header') %>
@@ -100,5 +107,6 @@
       });
     });
   </script>
+  <script src="/js/app.js"></script>
 </body>
 </html>

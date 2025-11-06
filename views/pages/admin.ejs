@@ -2628,7 +2628,10 @@
     }
 
     // Генерируем base_text и commaless_text из source_text
-    const baseText = text.replace(/\(\d+\)/g, '').trim();
+    // Удаляем цифры вместе с пробелом после них (если пробел есть)
+    let baseText = text.replace(/\(\d+\)\s?/g, '');
+    // Убираем лишние пробелы, которые могли образоваться
+    baseText = baseText.replace(/\s+/g, ' ').trim();
     const commalessText = baseText.replace(/,/g, '');
 
     // Извлекаем все цифры из исходного текста для проверки

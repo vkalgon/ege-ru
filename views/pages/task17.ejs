@@ -43,7 +43,7 @@
   </div>
   
   <div id="task17Container">
-    <div style={{padding: '20px'}}>
+    <div style="padding: 20px;">
       <p>Загрузка заданий...</p>
     </div>
   </div>
@@ -88,6 +88,41 @@
     color: var(--bg-primary);
     font-weight: bold;
   }
+
+  /* Стили для кликабельных пробелов в режиме без цифр */
+  .task17-space {
+    cursor: pointer !important;
+    display: inline !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    position: relative;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    pointer-events: auto !important;
+    background-color: transparent !important;
+    vertical-align: baseline;
+    border: none !important;
+    z-index: 10;
+  }
+
+  .task17-space:hover {
+    background-color: rgba(0, 240, 255, 0.25) !important;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.5) !important;
+    outline: 1px solid rgba(0, 240, 255, 0.7) !important;
+    outline-offset: -1px;
+    /* Не меняем padding и margin, чтобы не было дрожания */
+  }
+
+  .task17-space:active {
+    background-color: rgba(0, 240, 255, 0.35) !important;
+  }
+
+  .task17-space-with-comma:hover {
+    background-color: rgba(0, 240, 255, 0.4) !important;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.7) !important;
+  }
 </style>
 
 <!-- React через CDN -->
@@ -121,11 +156,72 @@
     return parts;
   }
 
+  // Функция для парсинга текста с пробелами (для режима без цифр)
+  // Обрабатывает все пробелы, делая их кликабельными
+  function parseTextWithSpaces(text, correctCommaPositions = null) {
+    const parts = [];
+    
+    if (!text || text.length === 0) {
+      return parts;
+    }
+    
+    // Преобразуем correctCommaPositions в Set для быстрой проверки
+    const correctCommasSet = correctCommaPositions ? new Set(correctCommaPositions.map(p => Number(p))) : null;
+    
+    // Разбиваем текст на слова и пробелы, сохраняя позиции
+    let currentOffset = 0;
+    
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === ' ') {
+        // Добавляем текст до пробела (если есть)
+        if (i > currentOffset) {
+          const textPart = text.substring(currentOffset, i);
+          if (textPart.length > 0) {
+            parts.push({ 
+              text: textPart, 
+              isClickable: false,
+              offset: null
+            });
+          }
+        }
+        
+        // Проверяем, нужно ли показать правильную запятую после этого символа (до пробела)
+        // Если i - это позиция пробела, то правильная запятая должна быть на позиции i-1 (после последнего символа слова)
+        // Но так как запятые ставятся на позициях пробелов, проверяем позицию i
+        const shouldShowCorrectComma = correctCommasSet && correctCommasSet.has(i);
+        
+        // Пробел - кликабельный элемент
+        parts.push({ 
+          text: ' ', 
+          isClickable: true,
+          offset: i,
+          showCorrectComma: shouldShowCorrectComma
+        });
+        currentOffset = i + 1;
+      }
+    }
+    
+    // Добавляем оставшийся текст (если есть)
+    if (currentOffset < text.length) {
+      const textPart = text.substring(currentOffset);
+      if (textPart.length > 0) {
+        parts.push({ 
+          text: textPart, 
+          isClickable: false,
+          offset: null
+        });
+      }
+    }
+    
+    return parts;
+  }
+
   // Компонент для одного задания
-  function Task17Item({ task, index }) {
-    const mode = 'digits';
+  function Task17Item({ task, index, showDigits }) {
+    const [currentMode, setCurrentMode] = useState('digits');
     const [taskData, setTaskData] = useState(null);
     const [selectedDigits, setSelectedDigits] = useState(new Set());
+    const [commaPositions, setCommaPositions] = useState(new Set()); // Позиции запятых в commaless_text
     const [answerInput, setAnswerInput] = useState('');
     const [checkResult, setCheckResult] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -133,7 +229,19 @@
     const [isLiked, setIsLiked] = useState(false);
     const [showSolution, setShowSolution] = useState(false);
     const [correctDigits, setCorrectDigits] = useState(new Set());
+    const [correctCommaPositions, setCorrectCommaPositions] = useState(new Set()); // Правильные позиции запятых
+    const [extraCommaPositions, setExtraCommaPositions] = useState(new Set()); // Лишние позиции запятых
     const inputRef = useRef(null);
+
+    // Обновляем режим при изменении showDigits
+    useEffect(() => {
+      setCurrentMode(showDigits ? 'digits' : 'commas');
+      setCommaPositions(new Set()); // Сбрасываем позиции запятых при смене режима
+      setSelectedDigits(new Set()); // Сбрасываем выбранные цифры
+      setCorrectCommaPositions(new Set()); // Сбрасываем правильные позиции
+      setExtraCommaPositions(new Set()); // Сбрасываем лишние позиции
+      setAnswerInput('');
+    }, [showDigits]);
 
     // Загружаем задание
     useEffect(() => {
@@ -141,9 +249,14 @@
         try {
           setLoading(true);
           setCorrectDigits(new Set()); // Сбрасываем правильные цифры при загрузке
-          const response = await fetch(`/api/task17/${task.id}/play?mode=${mode}`);
+          setCorrectCommaPositions(new Set()); // Сбрасываем правильные позиции запятых
+          setExtraCommaPositions(new Set()); // Сбрасываем лишние позиции запятых
+          setCheckResult(null); // Сбрасываем результат проверки при загрузке нового задания
+          const response = await fetch(`/api/task17/${task.id}/play?mode=${currentMode}`);
           if (!response.ok) throw new Error('Не удалось загрузить задание');
           const data = await response.json();
+          
+          // Нормализация пробелов уже делается на сервере
           setTaskData(data);
           setError(null);
         } catch (err) {
@@ -153,7 +266,7 @@
         }
       };
       loadTask();
-    }, [task.id]);
+    }, [task.id, currentMode]);
 
     // Применяем цвета при показе решения
     useEffect(() => {
@@ -179,10 +292,27 @@
       });
     };
 
+    const handleSpaceClick = (offset) => {
+      setCommaPositions(prevPositions => {
+        const newSet = new Set(prevPositions);
+        if (newSet.has(offset)) {
+          newSet.delete(offset);
+        } else {
+          newSet.add(offset);
+        }
+        return newSet;
+      });
+    };
+
     useEffect(() => {
-      const sortedDigits = Array.from(selectedDigits).sort((a, b) => a - b);
-      setAnswerInput(sortedDigits.join(''));
-    }, [selectedDigits]);
+      if (currentMode === 'digits') {
+        const sortedDigits = Array.from(selectedDigits).sort((a, b) => a - b);
+        setAnswerInput(sortedDigits.join(''));
+      } else {
+        const sortedPositions = Array.from(commaPositions).sort((a, b) => a - b);
+        setAnswerInput(sortedPositions.join(', '));
+      }
+    }, [selectedDigits, commaPositions, currentMode]);
 
     const handleInputChange = (e) => {
       const value = e.target.value;
@@ -193,14 +323,26 @@
 
     const handleCheck = async () => {
       if (!taskData) return;
-      const currentDigits = Array.from(selectedDigits).sort((a, b) => a - b);
       
-      if (currentDigits.length === 0) {
-        alert('Введите ответ, выбрав цифры в тексте или введя их вручную');
-        if (inputRef.current) {
-          inputRef.current.focus();
+      let payload = { mode: currentMode, spans: [] };
+      
+      if (currentMode === 'digits') {
+        const currentDigits = Array.from(selectedDigits).sort((a, b) => a - b);
+        if (currentDigits.length === 0) {
+          alert('Введите ответ, выбрав цифры в тексте или введя их вручную');
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+          return;
         }
-        return;
+        payload.digits = currentDigits;
+      } else {
+        const currentCommaPositions = Array.from(commaPositions).sort((a, b) => a - b);
+        if (currentCommaPositions.length === 0) {
+          alert('Введите ответ, нажав на пробелы в тексте, где должны быть запятые');
+          return;
+        }
+        payload.comma_positions = currentCommaPositions;
       }
 
       try {
@@ -208,21 +350,42 @@
         const response = await fetch(`/api/task17/${task.id}/check`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mode: 'digits',
-            digits: currentDigits,
-            spans: []
-          })
+          body: JSON.stringify(payload)
         });
 
         if (!response.ok) throw new Error('Ошибка проверки');
         const result = await response.json();
         setCheckResult(result);
+        
         // Если ответ неправильный, сохраняем правильные цифры для подсветки
-        if (result.correctAnswer && !result.digits.isCorrect) {
+        if (result.correctAnswer && result.digits && !result.digits.isCorrect) {
           setCorrectDigits(new Set(result.correctAnswer));
         } else {
           setCorrectDigits(new Set());
+        }
+        
+        // Сохраняем правильные и лишние позиции запятых для режима без цифр
+        if (currentMode === 'commas' && result.commas) {
+          // Сохраняем правильные позиции (показываем ВСЕГДА после проверки)
+          if (result.correctAnswer && Array.isArray(result.correctAnswer)) {
+            // Преобразуем в числа для корректного сравнения
+            const correctPositions = result.correctAnswer.map(p => Number(p));
+            console.log('Сохраняем правильные позиции запятых:', correctPositions);
+            setCorrectCommaPositions(new Set(correctPositions));
+          } else {
+            console.log('correctAnswer не найден или не массив:', result.correctAnswer);
+            setCorrectCommaPositions(new Set());
+          }
+          // Сохраняем лишние позиции
+          if (result.commas.extra && Array.isArray(result.commas.extra)) {
+            const extraPositions = result.commas.extra.map(p => Number(p));
+            setExtraCommaPositions(new Set(extraPositions));
+          } else {
+            setExtraCommaPositions(new Set());
+          }
+        } else {
+          setCorrectCommaPositions(new Set());
+          setExtraCommaPositions(new Set());
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ошибка проверки');
@@ -263,18 +426,12 @@
         </div>
         
         <div className="task-content">
-          <div style={{
-            marginBottom: '20px',
-            padding: '0',
-            color: 'var(--text-primary)',
-            fontSize: '16px',
-            lineHeight: '1.6',
-            fontWeight: '500'
-          }}>
-            Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).
-          </div>
-          
-          <div className="task-prompt" style={{position: 'relative', margin: 0}}>
+          <div className="task-prompt" style={{position: 'relative'}}>
+            <div>
+              {currentMode === 'digits' 
+                ? 'Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).'
+                : 'Нажмите на пробелы в тексте, где должны стоять запятые.'}
+            </div>
             <div 
               className="task17-text-editable"
               id={`task17-text-${task.id}`}
@@ -284,66 +441,151 @@
                 minHeight: '80px',
                 padding: '16px',
                 border: '1px solid var(--glass-border)',
-                borderRadius: '8px',
-                background: 'var(--bg-secondary)'
+                background: 'var(--bg-secondary)',
+                position: 'relative'
               }}
               contentEditable={false}
               suppressContentEditableWarning={true}
             >
-              {parseTextWithDigits(taskData.text).map((part, idx) => {
-                if (part.digit !== null) {
-                  const isSelected = selectedDigits.has(part.digit);
-                  const isCorrect = correctDigits.has(part.digit);
-                  return (
-                    <span
-                      key={`digit-${task.id}-${part.digit}-${idx}`}
-                      className={`task17-digit ${isSelected ? 'selected' : ''} ${isCorrect ? 'correct-highlight' : ''}`}
-                      data-digit={part.digit}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDigitClick(part.digit);
-                      }}
-                      title={`Кликните, чтобы ${isSelected ? 'убрать' : 'добавить'} цифру ${part.digit} в ответ`}
-                      style={{
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        cursor: 'pointer',
-                        contentEditable: 'false',
-                        ...(isCorrect && {
-                          backgroundColor: 'rgba(34, 197, 94, 0.3)',
-                          border: '2px solid rgba(34, 197, 94, 0.8)',
-                          borderRadius: '4px',
-                          padding: '2px 4px'
-                        })
-                      }}
-                      contentEditable={false}
-                      suppressContentEditableWarning={true}
-                    >
-                      {part.text}
-                    </span>
-                  );
-                }
-                return <span key={`text-${task.id}-${idx}`}>{part.text}</span>;
-              })}
+              {currentMode === 'digits' ? (
+                parseTextWithDigits(taskData.text).map((part, idx) => {
+                  if (part.digit !== null) {
+                    const isSelected = selectedDigits.has(part.digit);
+                    const isCorrect = correctDigits.has(part.digit);
+                    return (
+                      <span
+                        key={`digit-${task.id}-${part.digit}-${idx}`}
+                        className={`task17-digit ${isSelected ? 'selected' : ''} ${isCorrect ? 'correct-highlight' : ''}`}
+                        data-digit={part.digit}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDigitClick(part.digit);
+                        }}
+                        title={`Кликните, чтобы ${isSelected ? 'убрать' : 'добавить'} цифру ${part.digit} в ответ`}
+                        style={{
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          cursor: 'pointer',
+                          contentEditable: 'false',
+                          ...(isCorrect && {
+                            backgroundColor: 'rgba(34, 197, 94, 0.3)',
+                            border: '2px solid rgba(34, 197, 94, 0.8)',
+                            padding: '2px 4px'
+                          })
+                        }}
+                        contentEditable={false}
+                        suppressContentEditableWarning={true}
+                      >
+                        {part.text}
+                      </span>
+                    );
+                  }
+                  return <span key={`text-${task.id}-${idx}`}>{part.text}</span>;
+                })
+              ) : (
+                parseTextWithSpaces(
+                  taskData.text, 
+                  checkResult && correctCommaPositions.size > 0
+                    ? Array.from(correctCommaPositions) 
+                    : null
+                ).map((part, idx) => {
+                  if (part.isClickable && part.offset !== null) {
+                    const offset = Number(part.offset); // Убеждаемся, что offset - число
+                    // Проверяем с учетом преобразования типов
+                    const hasComma = commaPositions.has(offset);
+                    // Проверяем правильность и лишние позиции (используем явное сравнение чисел)
+                    const isCorrect = correctCommaPositions.has(offset);
+                    const isExtra = extraCommaPositions.has(offset);
+                    
+                    // Отладка для первых нескольких позиций
+                    if (idx < 3 && checkResult) {
+                      console.log(`Позиция ${offset}: hasComma=${hasComma}, isCorrect=${isCorrect}, correctCommaPositions=`, Array.from(correctCommaPositions));
+                    }
+                    // Определяем стиль в зависимости от статуса позиции
+                    let bgColor = 'transparent';
+                    let textColor = 'inherit';
+                    let fontWeight = 'normal';
+                    // Показываем запятую если: выбрана пользователем ИЛИ правильная позиция после проверки
+                    let displayComma = hasComma || (checkResult && isCorrect);
+                    
+                    if (checkResult) {
+                      // После проверки показываем правильные и неправильные позиции
+                      // Показываем ВСЕ правильные запятые после проверки
+                      if (hasComma && isExtra) {
+                        // Неправильная позиция - красная
+                        bgColor = 'rgba(239, 68, 68, 0.3)';
+                        textColor = '#ef4444';
+                        fontWeight = 'bold';
+                        displayComma = true;
+                      } else if (isCorrect) {
+                        // Правильная позиция (выбранная или нет) - зеленая
+                        // Показываем ВСЕ правильные запятые после проверки
+                        bgColor = 'rgba(34, 197, 94, 0.3)';
+                        textColor = '#22c55e';
+                        fontWeight = 'bold';
+                        displayComma = true;
+                      } else if (hasComma) {
+                        // Выбрана, но не является ни правильной, ни лишней (не должно происходить, но на всякий случай)
+                        bgColor = 'rgba(0, 240, 255, 0.3)';
+                        textColor = 'var(--neon-cyan)';
+                        fontWeight = 'bold';
+                        displayComma = true;
+                      }
+                    } else {
+                      // До проверки - обычная синяя подсветка
+                      if (hasComma) {
+                        bgColor = 'rgba(0, 240, 255, 0.3)';
+                        textColor = 'var(--neon-cyan)';
+                        fontWeight = 'bold';
+                        displayComma = true;
+                      }
+                    }
+                    
+                    return (
+                      <span
+                        key={`space-${task.id}-${offset}-${idx}`}
+                        className={`task17-space ${hasComma ? 'task17-space-with-comma' : ''} ${isCorrect ? 'task17-space-correct' : ''} ${isExtra ? 'task17-space-extra' : ''}`}
+                        data-offset={offset}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleSpaceClick(offset);
+                        }}
+                        title="Кликните, чтобы поставить запятую"
+                        style={{
+                          backgroundColor: bgColor,
+                          color: textColor,
+                          fontWeight: fontWeight
+                        }}
+                      >
+                        {displayComma ? ',' : ' '}
+                      </span>
+                    );
+                  }
+                  return <span key={`text-${task.id}-${idx}`}>{part.text}</span>;
+                })
+              )}
             </div>
           </div>
 
           <div className="task-controls">
-            <input
-              ref={inputRef}
-              className="task-input"
-              type="text"
-              value={answerInput}
-              onChange={handleInputChange}
-              placeholder="Введите свой ответ"
-              inputMode="numeric"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleCheck();
-                }
-              }}
-            />
+            {currentMode === 'digits' && (
+              <input
+                ref={inputRef}
+                className="task-input"
+                type="text"
+                value={answerInput}
+                onChange={handleInputChange}
+                placeholder="Введите свой ответ"
+                inputMode="numeric"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCheck();
+                  }
+                }}
+              />
+            )}
             <button
               className="task-send"
               onClick={handleCheck}
@@ -412,7 +654,6 @@
                   padding: '16px',
                   background: 'rgba(34, 197, 94, 0.1)',
                   border: '2px solid rgba(34, 197, 94, 0.5)',
-                  borderRadius: '8px',
                   marginBottom: '16px'
                 }}>
                   <div style={{
@@ -445,7 +686,6 @@
                       padding: '12px',
                       background: 'rgba(239, 68, 68, 0.1)',
                       border: '1px solid rgba(239, 68, 68, 0.3)',
-                      borderRadius: '8px',
                       marginBottom: '12px'
                     }}>
                       <div style={{
@@ -535,7 +775,7 @@
       <div className="task17-wrapper">
         <div style={{flex: 1, maxWidth: '800px'}}>
           {allTasks.map((task, index) => (
-            <Task17Item key={task.id} task={task} index={index} />
+            <Task17Item key={task.id} task={task} index={index} showDigits={showDigits} />
           ))}
         </div>
         {/* Правая панель с переключателями */}
@@ -564,7 +804,6 @@
                 style={{
                   width: '48px',
                   height: '24px',
-                  borderRadius: '12px',
                   background: showDigits ? 'var(--neon-cyan)' : 'var(--text-disabled)',
                   position: 'relative',
                   cursor: 'pointer',
@@ -602,7 +841,6 @@
                 style={{
                   width: '48px',
                   height: '24px',
-                  borderRadius: '12px',
                   background: showToolbar ? 'var(--neon-cyan)' : 'var(--text-disabled)',
                   position: 'relative',
                   cursor: 'pointer',
