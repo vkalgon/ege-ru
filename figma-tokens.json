@@ -1,0 +1,200 @@
+{
+  "color": {
+    "dark": {
+      "bg-primary": {
+        "type": "color",
+        "value": "#0f0f0f"
+      },
+      "bg-secondary": {
+        "type": "color",
+        "value": "#181818"
+      },
+      "bg-tertiary": {
+        "type": "color",
+        "value": "#272727"
+      },
+      "glass-bg": {
+        "type": "color",
+        "value": "rgba(255, 255, 255, 0.05)"
+      },
+      "glass-border": {
+        "type": "color",
+        "value": "rgba(255, 255, 255, 0.1)"
+      },
+      "glass-shadow": {
+        "type": "color",
+        "value": "0 4px 16px rgba(0, 0, 0, 0.3)"
+      },
+      "glass-backdrop": {
+        "type": "color",
+        "value": "blur(8px)"
+      },
+      "neon-cyan": {
+        "type": "color",
+        "value": "#00f0ff"
+      },
+      "neon-purple": {
+        "type": "color",
+        "value": "#a855f7"
+      },
+      "neon-pink": {
+        "type": "color",
+        "value": "#ec4899"
+      },
+      "neon-blue": {
+        "type": "color",
+        "value": "#3b82f6"
+      },
+      "text-primary": {
+        "type": "color",
+        "value": "#ffffff"
+      },
+      "text-secondary": {
+        "type": "color",
+        "value": "#aaaaaa"
+      },
+      "text-disabled": {
+        "type": "color",
+        "value": "#717171"
+      },
+      "text-accent": {
+        "type": "color",
+        "value": "var(--neon-cyan)"
+      }
+    },
+    "light": {
+      "bg-primary": {
+        "type": "color",
+        "value": "#ffffff"
+      },
+      "bg-secondary": {
+        "type": "color",
+        "value": "#f9f9f9"
+      },
+      "bg-tertiary": {
+        "type": "color",
+        "value": "#f1f1f1"
+      },
+      "glass-bg": {
+        "type": "color",
+        "value": "rgba(0, 0, 0, 0.03)"
+      },
+      "glass-border": {
+        "type": "color",
+        "value": "rgba(0, 0, 0, 0.1)"
+      },
+      "glass-shadow": {
+        "type": "color",
+        "value": "0 4px 16px rgba(0, 0, 0, 0.1)"
+      },
+      "glass-backdrop": {
+        "type": "color",
+        "value": "blur(8px)"
+      },
+      "neon-cyan": {
+        "type": "color",
+        "value": "#0099cc"
+      },
+      "neon-purple": {
+        "type": "color",
+        "value": "#7c3aed"
+      },
+      "neon-pink": {
+        "type": "color",
+        "value": "#c026d3"
+      },
+      "neon-blue": {
+        "type": "color",
+        "value": "#2563eb"
+      },
+      "text-primary": {
+        "type": "color",
+        "value": "#0f0f0f"
+      },
+      "text-secondary": {
+        "type": "color",
+        "value": "#606060"
+      },
+      "text-disabled": {
+        "type": "color",
+        "value": "#909090"
+      },
+      "text-accent": {
+        "type": "color",
+        "value": "var(--neon-cyan)"
+      }
+    }
+  },
+  "spacing": {
+    "radius-lg": {
+      "type": "dimension",
+      "value": "12px"
+    },
+    "radius-xl": {
+      "type": "dimension",
+      "value": "16px"
+    },
+    "space-16": {
+      "type": "dimension",
+      "value": "16px"
+    },
+    "space-24": {
+      "type": "dimension",
+      "value": "24px"
+    },
+    "space-32": {
+      "type": "dimension",
+      "value": "32px"
+    }
+  },
+  "typography": {
+    "h2": {
+      "type": "typography",
+      "value": {
+        "fontFamily": "Inter",
+        "fontSize": "24px",
+        "lineHeight": "32px",
+        "fontWeight": 700
+      }
+    },
+    "body": {
+      "type": "typography",
+      "value": {
+        "fontFamily": "Inter",
+        "fontSize": "16px",
+        "lineHeight": "24px",
+        "fontWeight": 400
+      }
+    }
+  },
+  "shadow": {
+    "glass-shadow": {
+      "type": "boxShadow",
+      "value": "0 4px 16px rgba(0, 0, 0, 0.3)"
+    },
+    "glow-cyan": {
+      "type": "boxShadow",
+      "value": "0 0 10px rgba(0, 240, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.2)"
+    },
+    "glow-purple": {
+      "type": "boxShadow",
+      "value": "0 0 10px rgba(168, 85, 247, 0.4), 0 0 20px rgba(168, 85, 247, 0.2)"
+    },
+    "glow-pink": {
+      "type": "boxShadow",
+      "value": "0 0 10px rgba(236, 72, 153, 0.4), 0 0 20px rgba(236, 72, 153, 0.2)"
+    },
+    "glow-blue": {
+      "type": "boxShadow",
+      "value": "0 0 10px rgba(59, 130, 246, 0.4), 0 0 20px rgba(59, 130, 246, 0.2)"
+    },
+    "shadow-neon": {
+      "type": "boxShadow",
+      "value": "0 2px 8px rgba(0, 240, 255, 0.2)"
+    },
+    "shadow-glass": {
+      "type": "boxShadow",
+      "value": "0 4px 16px rgba(0, 0, 0, 0.3)"
+    }
+  }
+}

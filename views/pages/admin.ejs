@@ -91,6 +91,7 @@
                   <label for="task17-answer">Ответ (цифры через запятую или пробел):</label>
                   <input type="text" id="task17-answer" name="answer" placeholder="1,2,3,4,5,6,7" required>
                   <small>Порядок цифр не важен. Можно ввести: 1,2,3,4,5,6,7 или 1234567 или 7 6 5 4 3 2 1</small>
+                  <small style="display: block; margin-top: 4px; color: var(--text-secondary);">Позиции запятых вычисляются автоматически на основе правильных цифр</small>
                 </div>
 
                 <!-- Редактируемое объяснение (как у учеников) -->
@@ -1974,8 +1975,9 @@
         newSourceInput.value = '';
       }
       
-      // Устанавливаем текст задания
-      document.getElementById('task17-text').value = task.source_text || '';
+      // НОВАЯ ЛОГИКА: нормализуем текст при загрузке (на случай, если в БД старый формат)
+      const normalizedText = normalizeSourceText(task.source_text || '');
+      document.getElementById('task17-text').value = normalizedText;
       
       // Формируем ответ из digits
       const answerDigits = task.digits || [];
@@ -2032,7 +2034,223 @@
   }
   window.resetTask17Form = resetTask17Form;
 
+  // НОВАЯ ЛОГИКА: Нормализация текста - приводит все цифры к формату " (N) " (пробел слева, пробел справа)
+  // Пользователь может вводить текст как угодно, но мы нормализуем его
+  function normalizeSourceText(sourceText) {
+    if (!sourceText) return '';
+    
+    let result = sourceText;
+    const digitRegex = /\((\d+)\)/g;
+    const replacements = [];
+    let match;
+    
+    // Собираем все метки цифр
+    while ((match = digitRegex.exec(sourceText)) !== null) {
+      replacements.push({
+        index: match.index,
+        length: match[0].length,
+        digit: match[1]
+      });
+    }
+    
+    // Применяем замены с конца, чтобы индексы не сдвигались
+    for (let i = replacements.length - 1; i >= 0; i--) {
+      const rep = replacements[i];
+      const before = result.substring(0, rep.index);
+      const after = result.substring(rep.index + rep.length);
+      
+      // Нормализуем: всегда " (N) " (пробел слева, пробел справа)
+      // Убираем все пробелы вокруг метки и добавляем один пробел слева и один справа
+      let beforeNormalized = before.trimEnd(); // Убираем пробелы в конце
+      let afterNormalized = after.trimStart(); // Убираем пробелы в начале
+      
+      // Добавляем пробелы вокруг метки
+      result = beforeNormalized + ' (' + rep.digit + ') ' + afterNormalized;
+    }
+    
+    // Финальная нормализация: убираем множественные пробелы (но сохраняем пробелы вокруг цифр)
+    // Заменяем множественные пробелы на одинарные, но не трогаем пробелы внутри " (N) "
+    result = result.replace(/\s+/g, ' ').trim();
+    
+    return result;
+  }
+
+  // Функция для вычисления позиций запятых в commaless_text
+  // НОВАЯ ЛОГИКА: все цифры уже нормализованы к формату " (N) " (пробел слева, пробел справа)
+  // При клике на цифру берем её с двумя пробелами (один слева, один справа)
+  // Если цифра правильная: заменяем " (N) " на ", " (запятая и пробел)
+  // Если цифра неправильная: заменяем " (N) " на " " (один пробел)
+  function calculateCommaPositions(sourceText, answerDigits) {
+    // Сначала нормализуем исходный текст
+    const normalizedSourceText = normalizeSourceText(sourceText);
+    const correctDigitsSet = new Set(answerDigits.map(d => Number(d)));
+    
+    // НОВАЯ ЛОГИКА: в нормализованном тексте все цифры в формате " (N) " (пробел слева, пробел справа)
+    // Находим все цифры в нормализованном тексте
+    const digitRegex = /\((\d+)\)/g;
+    const digits = [];
+    let match;
+    
+    while ((match = digitRegex.exec(normalizedSourceText)) !== null) {
+      const digit = parseInt(match[1], 10);
+      const startIndex = match.index; // Начало "("
+      const endIndex = match.index + match[0].length; // Конец ")"
+      
+      // В нормализованном тексте всегда есть пробел слева и справа
+      // Проверяем, что это действительно так
+      const hasSpaceBefore = startIndex > 0 && normalizedSourceText[startIndex - 1] === ' ';
+      const hasSpaceAfter = endIndex < normalizedSourceText.length && normalizedSourceText[endIndex] === ' ';
+      
+      digits.push({
+        digit: digit,
+        start: startIndex,
+        end: endIndex,
+        hasSpaceBefore: hasSpaceBefore,
+        hasSpaceAfter: hasSpaceAfter,
+        isCorrect: correctDigitsSet.has(digit)
+      });
+    }
+    
+    // Сортируем по позиции
+    digits.sort((a, b) => a.start - b.start);
+    
+    // Создаем base_text и commaless_text из нормализованного текста
+    let baseText = normalizedSourceText;
+    let commalessText = normalizedSourceText;
+    
+    // Применяем замены с конца, чтобы индексы не сдвигались
+    for (let i = digits.length - 1; i >= 0; i--) {
+      const d = digits[i];
+      
+      // НОВАЯ ЛОГИКА: элемент всегда " (N) " (пробел слева, пробел справа)
+      // Границы элемента: пробел слева + " (N) " + пробел справа
+      const elementStart = d.start - 1; // Начало пробела перед "("
+      const elementEnd = d.end + 1; // Конец пробела после ")"
+      
+      let before = baseText.substring(0, elementStart);
+      let after = baseText.substring(elementEnd);
+      
+      if (d.isCorrect) {
+        // Правильная цифра: заменяем " (N) " на ", " (запятая и пробел)
+        // Убираем пробел перед элементом (он был частью " (N) ")
+        baseText = before + ', ' + after;
+      } else {
+        // Неправильная цифра: заменяем " (N) " на " " (один пробел)
+        // Убираем пробел перед элементом, оставляем один пробел
+        baseText = before + ' ' + after;
+      }
+      
+      // Для commaless_text: всегда заменяем " (N) " на " " (один пробел)
+      let beforeComma = commalessText.substring(0, elementStart);
+      let afterComma = commalessText.substring(elementEnd);
+      commalessText = beforeComma + ' ' + afterComma;
+    }
+    
+    // НОРМАЛИЗАЦИЯ: убираем множественные пробелы (единая логика с сервером)
+    // Важно: нормализация должна быть одинаковой в админке и на сервере
+    // Сначала убираем все множественные пробелы
+    baseText = baseText.replace(/\s+/g, ' ').trim();
+    // Убираем пробелы перед запятыми
+    baseText = baseText.replace(/\s+,/g, ',');
+    // Убираем пробелы после запятых (оставляем только один)
+    baseText = baseText.replace(/,\s+/g, ', ');
+    // Убираем пробелы перед точкой и другими знаками препинания
+    baseText = baseText.replace(/\s+\./g, '.');
+    baseText = baseText.replace(/\s+,/g, ',');
+    // Финальная нормализация - убираем все множественные пробелы еще раз
+    baseText = baseText.replace(/\s{2,}/g, ' ').trim();
+    // Нормализуем commaless_text (та же логика, что и normalizeText на сервере)
+    commalessText = commalessText.replace(/\s+/g, ' ').trim();
+    
+    // НОВАЯ ЛОГИКА: вычисляем индексы пробелов (0, 1, 2...), где стоят запятые
+    // Сравниваем base_text и commaless_text, чтобы найти, на каких пробелах стоят запятые
+    // base_text: "Соня, побледневшая и дрожащая, старалась..."
+    // commaless_text: "Соня побледневшая и дрожащая старалась..."
+    // Запятая в base_text стоит после слова, перед пробелом: "слово, пробел"
+    // В commaless_text это будет "слово пробел"
+    // Нужно найти пробелы в commaless_text, которые соответствуют пробелам после запятых в base_text
+    
+    // Нормализуем оба текста для сравнения
+    const normalizedBase = baseText.replace(/\s+/g, ' ').trim();
+    const normalizedCommaless = commalessText.replace(/\s+/g, ' ').trim();
+    
+    // Вычисляем индексы пробелов, где стоят запятые
+    // Проходим по base_text и для каждой запятой находим соответствующий пробел в commaless_text
+    const spaceIndices = []; // Индексы пробелов (0, 1, 2...)
+    let spaceIndex = 0; // Порядковый номер пробела в commaless_text
+    let basePos = 0; // Позиция в base_text
+    let commalessPos = 0; // Позиция в commaless_text
+    
+    // Проходим по base_text символ за символом
+    while (basePos < normalizedBase.length) {
+      if (normalizedBase[basePos] === ',') {
+        // Нашли запятую в base_text
+        // Пропускаем запятую и пробел после неё в base_text
+        basePos++; // Пропускаем запятую
+        if (basePos < normalizedBase.length && normalizedBase[basePos] === ' ') {
+          basePos++; // Пропускаем пробел после запятой
+        }
+        
+        // Теперь нужно найти соответствующий пробел в commaless_text
+        // Продолжаем с текущей позиции commalessPos и ищем следующий пробел
+        while (commalessPos < normalizedCommaless.length) {
+          if (normalizedCommaless[commalessPos] === ' ') {
+            // Нашли пробел - это тот, где должна быть запятая
+            spaceIndices.push(spaceIndex);
+            console.log(`[calculateCommaPositions] Найден пробел с индексом ${spaceIndex}, где стоит запятая`);
+            spaceIndex++;
+            commalessPos++;
+            break;
+          } else {
+            // Не пробел - пропускаем символ
+            commalessPos++;
+          }
+        }
+      } else if (normalizedBase[basePos] === ' ') {
+        // Пробел в base_text (без запятой)
+        // Пропускаем пробел в commaless_text (он должен быть там же)
+        if (commalessPos < normalizedCommaless.length && normalizedCommaless[commalessPos] === ' ') {
+          spaceIndex++;
+          commalessPos++;
+        }
+        basePos++;
+      } else {
+        // Обычный символ - синхронизируем
+        if (commalessPos < normalizedCommaless.length && normalizedCommaless[commalessPos] === normalizedBase[basePos]) {
+          basePos++;
+          commalessPos++;
+        } else {
+          // Символы не совпадают - ошибка синхронизации
+          console.error('[calculateCommaPositions] ОШИБКА: символы не совпадают!', {
+            commalessPos,
+            basePos,
+            commalessChar: normalizedCommaless[commalessPos],
+            baseChar: normalizedBase[basePos],
+            commalessText: normalizedCommaless.substring(Math.max(0, commalessPos - 10), commalessPos + 10),
+            baseText: normalizedBase.substring(Math.max(0, basePos - 10), basePos + 10)
+          });
+          break;
+        }
+      }
+    }
+    
+    console.log('[calculateCommaPositions] Начало вычисления позиций');
+    console.log('[calculateCommaPositions] sourceText:', sourceText);
+    console.log('[calculateCommaPositions] answerDigits:', answerDigits);
+    console.log('[calculateCommaPositions] digits:', digits);
+    console.log('[calculateCommaPositions] baseText:', baseText);
+    console.log('[calculateCommaPositions] commalessText:', commalessText);
+    console.log('[calculateCommaPositions] Итоговые индексы пробелов:', spaceIndices);
+    
+    return {
+      baseText: baseText,
+      commalessText: commalessText,
+      commaPositions: spaceIndices.sort((a, b) => a - b) // Теперь это индексы пробелов, а не позиции
+    };
+  }
+
   // Функция для обновления объяснения из задания и ответа
+  // НОВАЯ ЛОГИКА: использует нормализованный текст
   function updateExplanationFromTask() {
     const textInput = document.getElementById('task17-text');
     const answerInput = document.getElementById('task17-answer');
@@ -2055,6 +2273,9 @@
       return;
     }
     
+    // НОВАЯ ЛОГИКА: нормализуем исходный текст
+    const normalizedSourceText = normalizeSourceText(sourceText);
+    
     // Парсим ответ - извлекаем цифры
     const answerDigits = answerText
       .split('')
@@ -2062,52 +2283,11 @@
       .filter(n => !isNaN(n) && n > 0)
       .filter((value, index, self) => self.indexOf(value) === index);
     
-    // Парсим предложение и заменяем метки на запятые для цифр из ответа
-    const regex = /\((\d+)\)/g;
-    let result = sourceText;
-    let match;
-    const digitPositions = [];
+    // НОВАЯ ЛОГИКА: используем calculateCommaPositions для получения baseText
+    const { baseText } = calculateCommaPositions(sourceText, answerDigits);
     
-    // Собираем все позиции цифр
-    while ((match = regex.exec(sourceText)) !== null) {
-      const digit = parseInt(match[1], 10);
-      digitPositions.push({
-        index: match.index,
-        length: match[0].length,
-        digit: digit,
-        shouldAddComma: answerDigits.includes(digit)
-      });
-    }
-    
-    // Заменяем метки на запятые (с конца, чтобы индексы не сдвигались)
-    for (let i = digitPositions.length - 1; i >= 0; i--) {
-      const pos = digitPositions[i];
-      const before = result.substring(0, pos.index);
-      const after = result.substring(pos.index + pos.length);
-      
-      if (pos.shouldAddComma) {
-        // Убираем пробел перед меткой, если он есть
-        let beforeText = before;
-        if (beforeText.endsWith(' ')) {
-          beforeText = beforeText.slice(0, -1);
-        }
-        // Заменяем метку на запятую с одним пробелом после
-        result = beforeText + ', ' + after;
-      } else {
-        // Удаляем метку (без запятой)
-        result = before + after;
-      }
-    }
-    
-    // Убираем пробелы перед запятыми, если они есть
-    result = result.replace(/\s+,/g, ',');
-    // Нормализуем все множественные пробелы до одинарных
-    result = result.replace(/\s+/g, ' ').trim();
-    // Убеждаемся, что после запятых есть ровно один пробел (не больше)
-    result = result.replace(/,\s+/g, ', ');
-    
-    // Устанавливаем текст в редактор
-    editor.textContent = result;
+    // Устанавливаем нормализованный baseText в редактор
+    editor.textContent = baseText;
   }
   
   // Функция для форматирования цифр в редакторе (при вводе текста) - устаревшая, оставлена для совместимости
@@ -2852,12 +3032,16 @@
       return;
     }
 
-    // Генерируем base_text и commaless_text из source_text
-    // Удаляем цифры вместе с пробелом после них (если пробел есть)
-    let baseText = text.replace(/\(\d+\)\s?/g, '');
-    // Убираем лишние пробелы, которые могли образоваться
-    baseText = baseText.replace(/\s+/g, ' ').trim();
-    const commalessText = baseText.replace(/,/g, '');
+    // Автоматически вычисляем base_text, commaless_text и позиции запятых
+    // Учитываем сдвиг индексов при удалении цифр (N) и пробела после них
+    const { baseText, commalessText, commaPositions } = calculateCommaPositions(text, answerDigits);
+    
+    console.log('[ADMIN] Вычисленные данные:');
+    console.log('[ADMIN] baseText:', baseText);
+    console.log('[ADMIN] commalessText:', commalessText);
+    console.log('[ADMIN] commaPositions:', commaPositions);
+    console.log('[ADMIN] commaPositions.length:', commaPositions?.length);
+    console.log('[ADMIN] answerDigits:', answerDigits);
 
     // Извлекаем все цифры из исходного текста для проверки
     const allDigitsInText = [];
@@ -2871,18 +3055,25 @@
     // Спаны в объяснении сохраняются как HTML, без индексов
     // Они не требуются для проверки задания, только для отображения
     
+    // НОВАЯ ЛОГИКА: нормализуем source_text перед сохранением
+    const normalizedSourceText = normalizeSourceText(text);
+    
     const formData = {
-      source_text: text,
+      source_text: normalizedSourceText, // Сохраняем нормализованный текст
       base_text: baseText,
       commaless_text: commalessText,
       digits: answerDigits, // Правильные цифры из ответа
-      comma_positions: [], // Пустой массив - не используется в упрощенной форме
+      comma_positions: commaPositions, // Позиции запятых из интерактивного редактора или вычисленные
       spans: [], // Пустой массив - обороты только в объяснении (HTML)
       answer_text: null,
       explanation_md: explanationHtml,
       source: source,
       reveal_policy: 'after_correct'
     };
+    
+    console.log('[ADMIN] Отправляем на сервер:');
+    console.log('[ADMIN] formData.comma_positions:', formData.comma_positions);
+    console.log('[ADMIN] formData.comma_positions.length:', formData.comma_positions?.length);
     
     const taskId = document.getElementById('task17-id').value;
     const url = taskId ? `/api/task17/${taskId}` : '/api/task17';

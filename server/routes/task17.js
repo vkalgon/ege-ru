@@ -92,16 +92,173 @@ function matchSpans(targetSpans, userSpans) {
 
 // Валидация индексов для строки
 function validateOffsets(text, offsets) {
-  const maxOffset = text.length;
+  // НОВАЯ ЛОГИКА: offsets теперь содержат индексы пробелов (0, 1, 2...), а не позиции
+  // Максимальный индекс = количество пробелов - 1
+  const spaceCount = (text.match(/\s/g) || []).length;
+  const maxIndex = spaceCount - 1;
   for (const offset of offsets) {
-    if (typeof offset !== 'number' || offset < 0 || offset > maxOffset) {
+    if (typeof offset !== 'number' || offset < 0 || offset > maxIndex) {
       return false;
     }
   }
   return true;
 }
 
+// Нормализация текста: убирает множественные пробелы, приводит к единому формату
+function normalizeText(text) {
+  if (!text) return '';
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+// НОВАЯ ЛОГИКА: Нормализация source_text - приводит все цифры к формату " (N) " (пробел слева, пробел справа)
+// Пользователь может вводить текст как угодно, но мы нормализуем его
+function normalizeSourceText(sourceText) {
+  if (!sourceText) return '';
+  
+  let result = sourceText;
+  const digitRegex = /\((\d+)\)/g;
+  const replacements = [];
+  let match;
+  
+  // Собираем все метки цифр
+  while ((match = digitRegex.exec(sourceText)) !== null) {
+    replacements.push({
+      index: match.index,
+      length: match[0].length,
+      digit: match[1]
+    });
+  }
+  
+  // Применяем замены с конца, чтобы индексы не сдвигались
+  for (let i = replacements.length - 1; i >= 0; i--) {
+    const rep = replacements[i];
+    const before = result.substring(0, rep.index);
+    const after = result.substring(rep.index + rep.length);
+    
+    // Нормализуем: всегда " (N) " (пробел слева, пробел справа)
+    // Убираем все пробелы вокруг метки и добавляем один пробел слева и один справа
+    let beforeNormalized = before.trimEnd(); // Убираем пробелы в конце
+    let afterNormalized = after.trimStart(); // Убираем пробелы в начале
+    
+    // Добавляем пробелы вокруг метки
+    result = beforeNormalized + ' (' + rep.digit + ') ' + afterNormalized;
+  }
+  
+  // Финальная нормализация: убираем множественные пробелы (но сохраняем пробелы вокруг цифр)
+  result = result.replace(/\s+/g, ' ').trim();
+  
+  return result;
+}
+
+// Пересчет позиций запятых для нормализованного текста
+// Если текст был нормализован, позиции нужно пересчитать
+function recalculateCommaPositionsForNormalized(oldText, newText, oldPositions) {
+  if (!oldText || !newText || !oldPositions || oldPositions.length === 0) {
+    return oldPositions || [];
+  }
+  
+  const normalizedOld = normalizeText(oldText);
+  const normalizedNew = normalizeText(newText);
+  
+  // Если тексты одинаковы после нормализации, позиции не меняются
+  if (normalizedOld === normalizedNew) {
+    return oldPositions;
+  }
+  
+  // Если тексты разные, нужно пересчитать позиции
+  // Строим маппинг позиций из старого текста в новый
+  const newPositions = [];
+  let oldPos = 0;
+  let newPos = 0;
+  
+  // Проходим по старому нормализованному тексту и новому
+  while (oldPos < normalizedOld.length && newPos < normalizedNew.length) {
+    if (normalizedOld[oldPos] === normalizedNew[newPos]) {
+      // Символы совпадают - проверяем, есть ли запятая на этой позиции в старом тексте
+      if (oldPositions.includes(oldPos)) {
+        newPositions.push(newPos);
+      }
+      oldPos++;
+      newPos++;
+    } else if (normalizedOld[oldPos] === ' ' && normalizedNew[newPos] !== ' ') {
+      // В старом тексте пробел, в новом нет - пропускаем старый
+      oldPos++;
+    } else if (normalizedOld[oldPos] !== ' ' && normalizedNew[newPos] === ' ') {
+      // В новом тексте пробел, в старом нет - пропускаем новый
+      newPos++;
+    } else {
+      // Разные символы - пропускаем оба
+      oldPos++;
+      newPos++;
+    }
+  }
+  
+  return newPositions;
+}
+
+// Восстановление commaless_text из source_text с правильными пробелами
+// Убирает метки (N), добавляя пробелы там, где метка находится между буквами
+// ВАЖНО: гарантирует, что все символы сохраняются, только метки удаляются
+function restoreCommalessText(sourceText) {
+  if (!sourceText) return '';
+  
+  // НОВАЯ ЛОГИКА: нормализуем исходный текст (на случай, если он еще не нормализован)
+  const normalizedSourceText = normalizeSourceText(sourceText);
+  let result = normalizedSourceText;
+  const digitRegex = /\((\d+)\)/g;
+  const replacements = [];
+  let match;
+  
+  // Собираем все метки (с конца, чтобы индексы не сдвигались)
+  while ((match = digitRegex.exec(normalizedSourceText)) !== null) {
+    replacements.push({
+      index: match.index,
+      length: match[0].length
+    });
+  }
+  
+  // Применяем замены с конца
+  for (let i = replacements.length - 1; i >= 0; i--) {
+    const rep = replacements[i];
+    const before = result.substring(0, rep.index);
+    const after = result.substring(rep.index + rep.length);
+    
+    // Проверяем, находится ли метка между буквами
+    const charBefore = rep.index > 0 ? result[rep.index - 1] : '';
+    const charAfter = rep.index + rep.length < result.length ? result[rep.index + rep.length] : '';
+    const isBetweenLetters = /[а-яёА-ЯЁa-zA-Z]/.test(charBefore) && /[а-яёА-ЯЁa-zA-Z]/.test(charAfter);
+    
+    // Проверяем пробелы вокруг метки
+    const hasSpaceBefore = rep.index > 0 && result[rep.index - 1] === ' ';
+    const hasSpaceAfter = rep.index + rep.length < result.length && result[rep.index + rep.length] === ' ';
+    
+    if (hasSpaceBefore || hasSpaceAfter) {
+      // Был пробел - убираем пробел перед меткой (если был), оставляем один пробел
+      if (hasSpaceBefore) {
+        result = before.slice(0, -1) + ' ' + after;
+      } else {
+        result = before + ' ' + after;
+      }
+    } else if (isBetweenLetters) {
+      // Метка между буквами - добавляем пробел, чтобы слова не склеились
+      result = before + ' ' + after;
+    } else {
+      // Метка не между буквами - просто удаляем метку, сохраняя все остальные символы
+      result = before + after;
+    }
+  }
+  
+  // Убираем запятые (они не нужны в commaless_text)
+  result = result.replace(/,/g, '');
+  
+  // Финальная нормализация пробелов (убираем множественные пробелы)
+  result = normalizeText(result);
+  
+  return result;
+}
+
 // Вычисление позиций запятых из цифр ответа
+// НОВАЯ ЛОГИКА: source_text уже нормализован к формату " (N) " (пробел слева, пробел справа)
 // Возвращает массив позиций пробелов в нормализованном commaless_text, где должны быть запятые
 function calculateCommaPositionsFromDigits(sourceText, commalessText, digits) {
   if (!sourceText || !commalessText || !digits || digits.length === 0) {
@@ -109,20 +266,24 @@ function calculateCommaPositionsFromDigits(sourceText, commalessText, digits) {
     return [];
   }
   
+  // НОВАЯ ЛОГИКА: нормализуем source_text (на случай, если он еще не нормализован)
+  const normalizedSourceText = normalizeSourceText(sourceText);
+  
   console.log('calculateCommaPositionsFromDigits: входные данные:', { 
-    sourceText: sourceText.substring(0, 100), 
+    sourceText: normalizedSourceText.substring(0, 100), 
     commalessText: commalessText.substring(0, 100),
     digits 
   });
   
   // Строим нормализованный текст из source_text (убираем метки и запятые, нормализуем пробелы)
-  let normalized = sourceText;
-  // Убираем все метки (вместе с пробелом после них, если есть)
-  normalized = normalized.replace(/\(\d+\)\s?/g, '');
+  // НОВАЯ ЛОГИКА: в нормализованном тексте все метки в формате " (N) " (пробел слева, пробел справа)
+  let normalized = normalizedSourceText;
+  // Убираем все метки " (N) " (пробел + метка + пробел) - заменяем на один пробел
+  normalized = normalized.replace(/\s+\(\d+\)\s+/g, ' ');
   // Убираем запятые
   normalized = normalized.replace(/,/g, '');
-  // Нормализуем пробелы
-  normalized = normalized.replace(/\s+/g, ' ').trim();
+  // Нормализуем пробелы (убираем множественные)
+  normalized = normalizeText(normalized);
   
   console.log('calculateCommaPositionsFromDigits: normalized текст:', normalized.substring(0, 100));
   
@@ -134,12 +295,12 @@ function calculateCommaPositionsFromDigits(sourceText, commalessText, digits) {
     console.warn('normalizedCommaless:', normalizedCommaless);
   }
   
-  // Находим все метки в source_text
+  // НОВАЯ ЛОГИКА: находим все метки в нормализованном source_text
   const digitRegex = /\((\d+)\)/g;
   const digitPositions = [];
   let match;
   
-  while ((match = digitRegex.exec(sourceText)) !== null) {
+  while ((match = digitRegex.exec(normalizedSourceText)) !== null) {
     const digit = parseInt(match[1], 10);
     digitPositions.push({
       digit,
@@ -166,31 +327,19 @@ function calculateCommaPositionsFromDigits(sourceText, commalessText, digits) {
       continue;
     }
     
-    // Находим позицию перед меткой в source_text
-    // Запятая должна быть после слова, которое идет перед меткой
-    let posBeforeDigit = sourcePos;
-    while (posBeforeDigit > 0 && sourceText[posBeforeDigit - 1] === ' ') {
-      posBeforeDigit--;
-    }
+    // НОВАЯ ЛОГИКА: в нормализованном тексте метка всегда в формате " (N) " (пробел слева, пробел справа)
+    // Запятая должна быть на позиции пробела перед меткой
+    // Позиция пробела перед меткой = sourcePos - 1
+    const spaceBeforeDigit = sourcePos - 1;
     
-    // Находим конец слова перед меткой
-    let wordEnd = posBeforeDigit;
-    while (wordEnd > 0 && sourceText[wordEnd - 1] !== ' ' && sourceText[wordEnd - 1] !== ',') {
-      wordEnd--;
-    }
-    
-    // Извлекаем слово перед меткой
-    const wordBefore = sourceText.substring(wordEnd, posBeforeDigit).trim();
-    console.log(`calculateCommaPositionsFromDigits: цифра ${digit}, слово перед меткой: "${wordBefore}"`);
-    
-    // Строим normalized текст до posBeforeDigit
-    let normalizedBefore = sourceText.substring(0, posBeforeDigit);
-    // Убираем все метки (вместе с пробелом после них, если есть)
-    normalizedBefore = normalizedBefore.replace(/\(\d+\)\s?/g, '');
+    // Строим normalized текст до пробела перед меткой
+    let normalizedBefore = normalizedSourceText.substring(0, spaceBeforeDigit);
+    // Убираем все метки " (N) " (пробел + метка + пробел) - заменяем на один пробел
+    normalizedBefore = normalizedBefore.replace(/\s+\(\d+\)\s+/g, ' ');
     // Убираем запятые
     normalizedBefore = normalizedBefore.replace(/,/g, '');
     // Нормализуем пробелы
-    normalizedBefore = normalizedBefore.replace(/\s+/g, ' ').trim();
+    normalizedBefore = normalizeText(normalizedBefore);
     
     // Позиция в normalized = длина normalizedBefore
     // Это позиция конца слова перед меткой в normalized тексте
@@ -211,19 +360,107 @@ function calculateCommaPositionsFromDigits(sourceText, commalessText, digits) {
       }
     }
     
-    // Если нашли пробел, это позиция запятой
-    if (spacePos < normalized.length && normalized[spacePos] === ' ') {
-      console.log(`calculateCommaPositionsFromDigits: цифра ${digit}, позиция пробела: ${spacePos}, символ: "${normalized[spacePos]}"`);
-      commaPositions.push(spacePos);
+    // Если нашли пробел, проверяем что после него есть еще символы (не конец строки)
+    // Исправление: проверяем правый пробел
+    if (spacePos < normalized.length && normalized[spacePos] === ' ' && spacePos + 1 < normalized.length) {
+      // НОВАЯ ЛОГИКА: находим индекс этого пробела (порядковый номер пробела в тексте)
+      let spaceIndex = 0;
+      for (let i = 0; i < spacePos; i++) {
+        if (normalized[i] === ' ') {
+          spaceIndex++;
+        }
+      }
+      console.log(`calculateCommaPositionsFromDigits: цифра ${digit}, позиция пробела: ${spacePos}, индекс пробела: ${spaceIndex}`);
+      commaPositions.push(spaceIndex);
     } else {
-      console.log(`calculateCommaPositionsFromDigits: цифра ${digit}, пробел не найден после позиции ${posInNormalized}, normalized.length=${normalized.length}`);
+      console.log(`calculateCommaPositionsFromDigits: цифра ${digit}, пробел не найден или нет символов после пробела, spacePos=${spacePos}, normalized.length=${normalized.length}`);
     }
   }
   
   // Убираем дубликаты и сортируем
   const result = [...new Set(commaPositions)].sort((a, b) => a - b);
-  console.log('calculateCommaPositionsFromDigits: результат:', result);
-  return result;
+  console.log('calculateCommaPositionsFromDigits: результат (индексы пробелов):', result);
+  return result; // Теперь возвращаем индексы пробелов, а не позиции
+}
+
+/**
+ * Вычисляет позиции запятых в commaless_text на основе base_text
+ * @param {string} base_text - текст с запятыми
+ * @param {string} commaless_text - текст без запятых
+ * @returns {number[]} - массив позиций (межсимвольные индексы для commaless_text)
+ */
+function calculateCommaPositions(base_text, commaless_text) {
+  console.log('[calculateCommaPositions] Начало вычисления');
+  console.log('[calculateCommaPositions] base_text:', base_text);
+  console.log('[calculateCommaPositions] commaless_text:', commaless_text);
+  
+  // Нормализуем тексты перед вычислением
+  const normalizedBase = normalizeText(base_text);
+  const normalizedCommaless = normalizeText(commaless_text);
+  
+  console.log('[calculateCommaPositions] normalizedBase.length:', normalizedBase?.length);
+  console.log('[calculateCommaPositions] normalizedCommaless.length:', normalizedCommaless?.length);
+  
+  // НОВАЯ ЛОГИКА: вычисляем индексы пробелов (0, 1, 2...), где стоят запятые
+  // Проходим по base_text и для каждой запятой находим соответствующий пробел в commaless_text
+  const spaceIndices = []; // Индексы пробелов (0, 1, 2...)
+  let spaceIndex = 0; // Порядковый номер пробела в commaless_text
+  let basePos = 0; // Позиция в base_text
+  let commalessPos = 0; // Позиция в commaless_text
+  
+  // Проходим по base_text символ за символом
+  while (basePos < normalizedBase.length) {
+    if (normalizedBase[basePos] === ',') {
+      // Нашли запятую в base_text
+      // Пропускаем запятую и пробел после неё в base_text
+      basePos++; // Пропускаем запятую
+      if (basePos < normalizedBase.length && normalizedBase[basePos] === ' ') {
+        basePos++; // Пропускаем пробел после запятой
+      }
+      
+      // Теперь нужно найти соответствующий пробел в commaless_text
+      // Продолжаем с текущей позиции commalessPos и ищем следующий пробел
+      while (commalessPos < normalizedCommaless.length) {
+        if (normalizedCommaless[commalessPos] === ' ') {
+          // Нашли пробел - это тот, где должна быть запятая
+          spaceIndices.push(spaceIndex);
+          console.log(`[calculateCommaPositions] Найден пробел с индексом ${spaceIndex}, где стоит запятая`);
+          spaceIndex++;
+          commalessPos++;
+          break;
+        } else {
+          // Не пробел - пропускаем символ
+          commalessPos++;
+        }
+      }
+    } else if (normalizedBase[basePos] === ' ') {
+      // Пробел в base_text (без запятой)
+      // Пропускаем пробел в commaless_text (он должен быть там же)
+      if (commalessPos < normalizedCommaless.length && normalizedCommaless[commalessPos] === ' ') {
+        spaceIndex++;
+        commalessPos++;
+      }
+      basePos++;
+    } else {
+      // Обычный символ - синхронизируем
+      if (commalessPos < normalizedCommaless.length && normalizedCommaless[commalessPos] === normalizedBase[basePos]) {
+        basePos++;
+        commalessPos++;
+      } else {
+        // Символы не совпадают - ошибка синхронизации
+        console.error('[calculateCommaPositions] ОШИБКА: символы не совпадают!', {
+          commalessPos,
+          basePos,
+          commalessChar: normalizedCommaless[commalessPos],
+          baseChar: normalizedBase[basePos]
+        });
+        break;
+      }
+    }
+  }
+  
+  console.log('[calculateCommaPositions] Вычисленные индексы пробелов:', spaceIndices);
+  return spaceIndices; // Теперь возвращаем индексы пробелов, а не позиции
 }
 
 /* ----------------------
@@ -254,17 +491,47 @@ task17.post('/', (req, res) => {
       return res.status(400).json({ error: 'digits должен быть массивом чисел' });
     }
     
+    // НОРМАЛИЗУЕМ все тексты перед сохранением
+    // НОВАЯ ЛОГИКА: source_text нормализуем специальной функцией (приводит цифры к формату " (N) ")
+    const normalizedBaseText = normalizeText(base_text);
+    const normalizedCommalessText = normalizeText(commaless_text);
+    const normalizedSourceText = normalizeSourceText(source_text);
+    
     // comma_positions может быть пустым массивом (для упрощенной формы админки)
-    // Если пустой, вычисляем из digits
+    // Если пустой, вычисляем автоматически
     let finalCommaPositions = comma_positions && Array.isArray(comma_positions) && comma_positions.length > 0 
       ? comma_positions 
-      : calculateCommaPositionsFromDigits(source_text, commaless_text, digits);
+      : [];
+    
+    console.log('[CREATE] Получены comma_positions:', comma_positions);
+    console.log('[CREATE] finalCommaPositions до вычисления:', finalCommaPositions);
+    console.log('[CREATE] finalCommaPositions.length:', finalCommaPositions?.length);
+    
+    if (finalCommaPositions.length === 0) {
+      // Пытаемся вычислить из base_text (если есть)
+      if (normalizedBaseText && normalizedCommalessText) {
+        console.log('[CREATE] Вычисляем позиции автоматически из base_text и commaless_text');
+        finalCommaPositions = calculateCommaPositions(normalizedBaseText, normalizedCommalessText);
+        console.log('[CREATE] Вычисленные позиции из base_text:', finalCommaPositions);
+      } 
+      // Если не получилось из base_text, пытаемся из digits (если есть)
+      else if (digits && Array.isArray(digits) && digits.length > 0 && normalizedSourceText && normalizedCommalessText) {
+        console.log('[CREATE] Вычисляем позиции из digits');
+        finalCommaPositions = calculateCommaPositionsFromDigits(normalizedSourceText, normalizedCommalessText, digits);
+        console.log('[CREATE] Вычисленные позиции из digits:', finalCommaPositions);
+      }
+    } else {
+      // Если позиции были переданы, пересчитываем их для нормализованного текста
+      finalCommaPositions = recalculateCommaPositionsForNormalized(commaless_text, normalizedCommalessText, finalCommaPositions);
+    }
+    
+    console.log('[CREATE] ФИНАЛЬНЫЕ finalCommaPositions:', finalCommaPositions);
+    console.log('[CREATE] ФИНАЛЬНЫЕ finalCommaPositions.length:', finalCommaPositions?.length);
     
     // Валидация индексов только если есть позиции
     if (finalCommaPositions.length > 0) {
-      // Валидируем относительно нормализованного commaless_text (как на клиенте)
-      const normalizedCommaless = commaless_text.replace(/\s+/g, ' ').trim();
-      if (!validateOffsets(normalizedCommaless, finalCommaPositions)) {
+      // Валидируем относительно нормализованного commaless_text
+      if (!validateOffsets(normalizedCommalessText, finalCommaPositions)) {
         return res.status(400).json({ error: 'Некорректные индексы в comma_positions' });
       }
     }
@@ -282,14 +549,14 @@ task17.post('/', (req, res) => {
       }
     }
     
-    // Вставляем задание
+    // Вставляем задание с нормализованными текстами
     const taskResult = db.prepare(`
       INSERT INTO task17 (source_text, base_text, commaless_text, answer_text, explanation_md, source, reveal_policy)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
-      source_text,
-      base_text,
-      commaless_text,
+      normalizedSourceText,
+      normalizedBaseText,
+      normalizedCommalessText,
       answer_text || null,
       explanation_md || null,
       source || null,
@@ -421,24 +688,63 @@ task17.put('/:id', (req, res) => {
       return res.status(404).json({ error: 'Задание не найдено' });
     }
     
+    // Нормализуем тексты, если они были переданы
+    const normalizedBaseText = base_text ? normalizeText(base_text) : null;
+    const normalizedCommalessText = commaless_text ? normalizeText(commaless_text) : null;
+    const normalizedSourceText = source_text ? normalizeSourceText(source_text) : null;
+    
+    // Обновляем тексты нормализованными версиями, если они были переданы
+    if (normalizedBaseText || normalizedCommalessText || normalizedSourceText) {
+      db.prepare(`
+        UPDATE task17
+        SET base_text = COALESCE(?, base_text),
+            commaless_text = COALESCE(?, commaless_text),
+            source_text = COALESCE(?, source_text)
+        WHERE id = ?
+      `).run(
+        normalizedBaseText,
+        normalizedCommalessText,
+        normalizedSourceText,
+        id
+      );
+    }
+    
     // Обрабатываем ответы - разрешаем пустые массивы
-    // Если comma_positions не указаны, но есть digits и source_text, вычисляем их
     let finalCommaPositions = comma_positions && Array.isArray(comma_positions) && comma_positions.length > 0 
       ? comma_positions 
       : [];
-    
-    // Если comma_positions пустой, но есть digits и source_text, вычисляем
-    if (finalCommaPositions.length === 0 && digits && Array.isArray(digits) && digits.length > 0 && source_text && commaless_text) {
-      finalCommaPositions = calculateCommaPositionsFromDigits(source_text, commaless_text, digits);
-    }
-    
     const finalSpans = spans && Array.isArray(spans) ? spans : [];
     
+    // Если comma_positions пустой, вычисляем автоматически
+    if (finalCommaPositions.length === 0) {
+      // Получаем текущие значения из базы для вычисления
+      const currentTask = db.prepare('SELECT base_text, commaless_text, source_text FROM task17 WHERE id = ?').get(id);
+      const textToUse = {
+        base_text: normalizedBaseText || normalizeText(currentTask?.base_text || ''),
+        commaless_text: normalizedCommalessText || normalizeText(currentTask?.commaless_text || ''),
+        source_text: normalizedSourceText || normalizeSourceText(currentTask?.source_text || '')
+      };
+      
+      // Пытаемся вычислить из base_text (приоритет)
+      if (textToUse.base_text && textToUse.commaless_text) {
+        finalCommaPositions = calculateCommaPositions(textToUse.base_text, textToUse.commaless_text);
+      } 
+      // Если не получилось из base_text, пытаемся из digits (если есть)
+      else if (digits && Array.isArray(digits) && digits.length > 0 && textToUse.source_text && textToUse.commaless_text) {
+        finalCommaPositions = calculateCommaPositionsFromDigits(textToUse.source_text, textToUse.commaless_text, digits);
+      }
+    } else {
+      // Если позиции были переданы, пересчитываем их для нормализованного текста
+      const currentTask = db.prepare('SELECT commaless_text FROM task17 WHERE id = ?').get(id);
+      const oldCommaless = currentTask?.commaless_text || '';
+      const newCommaless = normalizedCommalessText || normalizeText(oldCommaless);
+      finalCommaPositions = recalculateCommaPositionsForNormalized(oldCommaless, newCommaless, finalCommaPositions);
+    }
+    
     // Валидация индексов только если есть позиции
-    if (commaless_text && finalCommaPositions.length > 0) {
-      // Валидируем относительно нормализованного commaless_text (как на клиенте)
-      const normalizedCommaless = commaless_text.replace(/\s+/g, ' ').trim();
-      if (!validateOffsets(normalizedCommaless, finalCommaPositions)) {
+    if (normalizedCommalessText && finalCommaPositions.length > 0) {
+      // Валидируем относительно нормализованного commaless_text
+      if (!validateOffsets(normalizedCommalessText, finalCommaPositions)) {
         return res.status(400).json({ error: 'Некорректные индексы в comma_positions' });
       }
     }
@@ -546,16 +852,25 @@ task17.get('/:id/play', (req, res) => {
       return res.status(404).json({ error: 'Задание не найдено' });
     }
     
-    // Нормализуем пробелы в commaless_text для режима без цифр
+    // Для режима commas: всегда восстанавливаем commaless_text из source_text,
+    // чтобы гарантировать правильные пробелы (на случай, если в БД сохранен неправильный текст)
     let displayText = mode === 'digits' ? task.source_text : task.commaless_text;
-    if (mode === 'commas' && displayText) {
-      // Убираем множественные пробелы, оставляя только одинарные
-      displayText = displayText.replace(/\s+/g, ' ').trim();
+    
+    if (mode === 'commas' && task.source_text) {
+      // Восстанавливаем commaless_text из source_text с правильными пробелами
+      displayText = restoreCommalessText(task.source_text);
+      // Нормализуем результат
+      displayText = normalizeText(displayText);
+      console.log('[PLAY] Восстановленный и нормализованный commaless_text, длина:', displayText.length);
+    } else if (mode === 'commas') {
+      // Если source_text нет, нормализуем commaless_text
+      displayText = normalizeText(displayText);
     }
     
     res.json({
       mode,
       text: displayText,
+      source_text: task.source_text, // Добавляем исходный текст с цифрами для копирования
       allowSpanSelection: true,
       explanation: {
         answer_text: task.answer_text || null,
@@ -580,10 +895,16 @@ task17.post('/:id/check', (req, res) => {
     
     // Получаем задание и эталонные ответы
     const task = db.prepare(`
-      SELECT source_text, commaless_text, answer_text, explanation_md, reveal_policy
+      SELECT source_text, base_text, commaless_text, answer_text, explanation_md, reveal_policy
       FROM task17
       WHERE id = ?
     `).get(id);
+    
+    console.log('[CHECK] Загружено задание из БД:');
+    console.log('[CHECK] task.id:', id);
+    console.log('[CHECK] task.source_text:', task?.source_text);
+    console.log('[CHECK] task.base_text:', task?.base_text);
+    console.log('[CHECK] task.commaless_text:', task?.commaless_text);
     
     if (!task) {
       return res.status(404).json({ error: 'Задание не найдено' });
@@ -603,19 +924,192 @@ task17.post('/:id/check', (req, res) => {
     let expectedCommas = JSON.parse(answer.comma_positions_json);
     const expectedSpans = JSON.parse(answer.spans_json);
     
-    // Если comma_positions пустой, но есть digits, вычисляем позиции из digits
-    if (mode === 'commas' && (!expectedCommas || expectedCommas.length === 0) && expectedDigits && expectedDigits.length > 0) {
-      console.log('Вычисляем позиции запятых из digits:', expectedDigits);
-      console.log('source_text:', task.source_text);
-      console.log('commaless_text:', task.commaless_text);
-      expectedCommas = calculateCommaPositionsFromDigits(task.source_text, task.commaless_text, expectedDigits);
-      console.log('Вычислены позиции запятых:', expectedCommas);
+    console.log('[CHECK] Исходные позиции из БД:', expectedCommas);
+    console.log('[CHECK] base_text:', task.base_text);
+    console.log('[CHECK] commaless_text:', task.commaless_text);
+    console.log('[CHECK] mode:', mode);
+    
+    // Если позиции запятых пустые, вычисляем автоматически
+    if (!expectedCommas || expectedCommas.length === 0) {
+      let baseTextToUse = task.base_text;
+      let commalessTextToUse = task.commaless_text;
+      
+      // Если base_text отсутствует, пытаемся восстановить его из source_text
+      // с учетом правильных цифр из ответа
+      if (!baseTextToUse && task.source_text) {
+        console.log('[CHECK] base_text отсутствует, восстанавливаем из source_text с учетом правильных цифр...');
+        
+        // Получаем правильные цифры из ответа
+        const correctDigitsSet = new Set(expectedDigits.map(d => Number(d)));
+        console.log('[CHECK] Правильные цифры для восстановления base_text:', Array.from(correctDigitsSet));
+        
+        // Восстанавливаем base_text: заменяем метки (N) на запятые, если N в правильных цифрах
+        let reconstructedBase = task.source_text;
+        const digitRegex = /\((\d+)\)/g;
+        const replacements = [];
+        let match;
+        
+        // Собираем все замены (с конца, чтобы индексы не сдвигались)
+        while ((match = digitRegex.exec(task.source_text)) !== null) {
+          const digit = parseInt(match[1], 10);
+          const shouldAddComma = correctDigitsSet.has(digit);
+          replacements.push({
+            index: match.index,
+            length: match[0].length,
+            shouldAddComma: shouldAddComma
+          });
+        }
+        
+        // Применяем замены с конца
+        for (let i = replacements.length - 1; i >= 0; i--) {
+          const rep = replacements[i];
+          const before = reconstructedBase.substring(0, rep.index);
+          const after = reconstructedBase.substring(rep.index + rep.length);
+          if (rep.shouldAddComma) {
+            reconstructedBase = before + ',' + after;
+          } else {
+            reconstructedBase = before + after;
+          }
+        }
+        
+        // Убираем множественные пробелы
+        baseTextToUse = reconstructedBase.replace(/\s+/g, ' ').trim();
+        console.log('[CHECK] Восстановленный base_text:', baseTextToUse);
+      }
+      
+      // Если commaless_text отсутствует, создаем его из base_text
+      if (!commalessTextToUse && baseTextToUse) {
+        console.log('[CHECK] commaless_text отсутствует, создаем из base_text...');
+        commalessTextToUse = baseTextToUse.replace(/,/g, '');
+        console.log('[CHECK] Созданный commaless_text:', commalessTextToUse);
+      }
+      
+      // Пытаемся вычислить из base_text (приоритет)
+      if (baseTextToUse && commalessTextToUse) {
+        console.log('[CHECK] Вычисляем позиции автоматически из base_text...');
+        expectedCommas = calculateCommaPositions(baseTextToUse, commalessTextToUse);
+        console.log('[CHECK] Вычисленные позиции запятых из base_text:', expectedCommas);
+      } 
+      // Если не получилось из base_text, в режиме commas пытаемся из digits
+      else if (mode === 'commas' && expectedDigits && expectedDigits.length > 0 && task.source_text && task.commaless_text) {
+        console.log('[CHECK] Вычисляем позиции запятых из digits...');
+        expectedCommas = calculateCommaPositionsFromDigits(task.source_text, task.commaless_text, expectedDigits);
+        console.log('[CHECK] Вычисленные позиции запятых из digits:', expectedCommas);
+      } else {
+        console.log('[CHECK] Позиции НЕ вычисляются автоматически, причина:');
+        if (!baseTextToUse) console.log('[CHECK] - base_text отсутствует и не может быть восстановлен');
+        if (!commalessTextToUse) console.log('[CHECK] - commaless_text отсутствует и не может быть создан');
+      }
+    } else {
+      console.log('[CHECK] Используем позиции из БД');
     }
     
+    // Финальная проверка expectedCommas
+    console.log('[CHECK] ФИНАЛЬНЫЙ expectedCommas перед проверкой:', expectedCommas);
+    console.log('[CHECK] ФИНАЛЬНЫЙ expectedCommas.length:', expectedCommas?.length);
+    
     // Нормализуем commaless_text для режима commas (как на клиенте)
-    const normalizedCommaless = mode === 'commas' 
-      ? task.commaless_text.replace(/\s+/g, ' ').trim()
-      : task.commaless_text;
+    // Если commaless_text был восстановлен из source_text, используем его
+    // ВАЖНО: используем тот же алгоритм, что и в /api/task17/:id/play
+    let normalizedCommaless;
+    let needRecalculatePositions = false;
+    if (mode === 'commas' && task.source_text) {
+      // Восстанавливаем commaless_text из source_text с правильными пробелами
+      const restored = restoreCommalessText(task.source_text);
+      // Нормализуем результат (как в /api/task17/:id/play)
+      normalizedCommaless = normalizeText(restored);
+      console.log('[CHECK] Восстановленный commaless_text из source_text, длина:', normalizedCommaless.length);
+      console.log('[CHECK] Первые 100 символов:', normalizedCommaless.substring(0, 100));
+      
+      // Проверяем, совпадает ли восстановленный текст с текстом из БД
+      const normalizedDbText = normalizeText(task.commaless_text || '');
+      if (normalizedCommaless !== normalizedDbText) {
+        console.log('[CHECK] Восстановленный текст отличается от текста в БД!');
+        console.log('[CHECK] Длина восстановленного:', normalizedCommaless.length);
+        console.log('[CHECK] Длина из БД:', normalizedDbText.length);
+        // Нужно пересчитать позиции для восстановленного текста
+        needRecalculatePositions = true;
+      }
+    } else {
+      // Если source_text нет, нормализуем commaless_text из БД
+      normalizedCommaless = normalizeText(task.commaless_text || '');
+    }
+    
+    // Если текст отличается, пересчитываем позиции для восстановленного текста
+    if (needRecalculatePositions && expectedCommas && expectedCommas.length > 0) {
+      console.log('[CHECK] Пересчитываем позиции для восстановленного текста...');
+      console.log('[CHECK] Старые позиции из БД:', expectedCommas);
+      // Используем base_text или source_text с правильными цифрами для пересчета
+      if (task.base_text) {
+        const normalizedBase = normalizeText(task.base_text);
+        expectedCommas = calculateCommaPositions(normalizedBase, normalizedCommaless);
+        console.log('[CHECK] Пересчитанные позиции из base_text:', expectedCommas);
+      } else if (task.source_text && expectedDigits && expectedDigits.length > 0) {
+        expectedCommas = calculateCommaPositionsFromDigits(task.source_text, normalizedCommaless, expectedDigits);
+        console.log('[CHECK] Пересчитанные позиции из digits:', expectedCommas);
+      } else {
+        console.log('[CHECK] Не удалось пересчитать позиции, используем старые из БД');
+      }
+    }
+    
+    // ВАЖНО: В режиме commas ВСЕГДА пересчитываем позиции для восстановленного текста
+    // Позиции в БД могут быть рассчитаны для commaless_text из БД, который может отличаться от восстановленного
+    // Поэтому мы всегда пересчитываем позиции, используя base_text или source_text с правильными цифрами
+    if (mode === 'commas') {
+      console.log('[CHECK] Режим commas: пересчитываем позиции для восстановленного текста');
+      console.log('[CHECK] Длина восстановленного текста:', normalizedCommaless.length);
+      console.log('[CHECK] Количество пробелов в восстановленном тексте:', (normalizedCommaless.match(/\s/g) || []).length);
+      console.log('[CHECK] Старые позиции из БД:', expectedCommas);
+      console.log('[CHECK] task.base_text:', task.base_text ? 'есть' : 'нет');
+      console.log('[CHECK] task.source_text:', task.source_text ? 'есть' : 'нет');
+      console.log('[CHECK] expectedDigits:', expectedDigits);
+      
+      // ВСЕГДА пересчитываем позиции для восстановленного текста
+      // Используем base_text (приоритет) или source_text с правильными цифрами
+      let recalculated = false;
+      let oldExpectedCommas = expectedCommas;
+      
+      if (task.base_text) {
+        console.log('[CHECK] Пересчитываем позиции из base_text...');
+        const normalizedBase = normalizeText(task.base_text);
+        console.log('[CHECK] normalizedBase длина:', normalizedBase.length);
+        console.log('[CHECK] normalizedCommaless длина:', normalizedCommaless.length);
+        expectedCommas = calculateCommaPositions(normalizedBase, normalizedCommaless);
+        console.log('[CHECK] Пересчитанные позиции из base_text:', expectedCommas);
+        console.log('[CHECK] Старые позиции были:', oldExpectedCommas);
+        recalculated = true;
+      } else if (task.source_text && expectedDigits && expectedDigits.length > 0) {
+        console.log('[CHECK] Пересчитываем позиции из digits...');
+        console.log('[CHECK] task.source_text длина:', task.source_text.length);
+        console.log('[CHECK] normalizedCommaless длина:', normalizedCommaless.length);
+        console.log('[CHECK] expectedDigits:', expectedDigits);
+        expectedCommas = calculateCommaPositionsFromDigits(task.source_text, normalizedCommaless, expectedDigits);
+        console.log('[CHECK] Пересчитанные позиции из digits:', expectedCommas);
+        console.log('[CHECK] Старые позиции были:', oldExpectedCommas);
+        recalculated = true;
+      }
+      
+      if (!recalculated) {
+        console.log('[CHECK] ВНИМАНИЕ: Не удалось пересчитать позиции!');
+        console.log('[CHECK] task.base_text:', task.base_text ? `есть (длина: ${task.base_text.length})` : 'нет');
+        console.log('[CHECK] task.source_text:', task.source_text ? `есть (длина: ${task.source_text.length})` : 'нет');
+        console.log('[CHECK] expectedDigits:', expectedDigits);
+        console.log('[CHECK] Используем старые позиции из БД (могут быть невалидными)');
+        // Фильтруем невалидные позиции
+        const maxPosition = normalizedCommaless.length - 1;
+        expectedCommas = (expectedCommas || []).filter(p => {
+          const pos = Number(p);
+          return !isNaN(pos) && pos >= 0 && pos <= maxPosition;
+        });
+        console.log('[CHECK] Отфильтрованные позиции:', expectedCommas);
+      }
+      
+      // Убеждаемся, что expectedCommas - это массив
+      if (!Array.isArray(expectedCommas)) {
+        console.log('[CHECK] ВНИМАНИЕ: expectedCommas не массив, инициализируем пустым массивом');
+        expectedCommas = [];
+      }
+    }
     
     // Валидация пользовательских данных
     if (mode === 'digits') {
@@ -624,12 +1118,23 @@ task17.post('/:id/check', (req, res) => {
       }
       // В режиме digits не валидируем comma_positions
     } else {
+      // НОВАЯ ЛОГИКА: разрешаем пустой массив - пользователь может отправить ответ без выбора запятых
       if (!comma_positions || !Array.isArray(comma_positions)) {
-        return res.status(400).json({ error: 'comma_positions обязателен для mode=commas' });
+        return res.status(400).json({ error: 'comma_positions должен быть массивом для mode=commas' });
       }
-      // Валидируем относительно нормализованного текста
-      if (!validateOffsets(normalizedCommaless, comma_positions)) {
-        return res.status(400).json({ error: 'Некорректные индексы в comma_positions' });
+      // НОВАЯ ЛОГИКА: comma_positions теперь содержит индексы пробелов (0, 1, 2...), а не позиции
+      // Валидируем, что индексы не превышают количество пробелов в тексте (только если массив не пустой)
+      if (comma_positions.length > 0) {
+        const spaceCount = (normalizedCommaless.match(/\s/g) || []).length;
+        const maxIndex = spaceCount - 1;
+        for (const idx of comma_positions) {
+          const index = Number(idx);
+          if (isNaN(index) || index < 0 || index > maxIndex) {
+            return res.status(400).json({ 
+              error: `Некорректный индекс пробела: ${index}. Допустимый диапазон: 0-${maxIndex}` 
+            });
+          }
+        }
       }
     }
     
@@ -664,21 +1169,78 @@ task17.post('/:id/check', (req, res) => {
     // Проверка запятых
     let commasResult = null;
     let expectedCommasNums = null;
+    let expectedSpaceIndices = []; // Индексы пробелов для режима commas
     if (mode === 'commas') {
-      // Нормализуем типы данных - преобразуем все в числа для корректного сравнения
+      // НОВАЯ ЛОГИКА: преобразуем индексы пробелов в позиции в тексте
+      // Функция для преобразования индексов пробелов в позиции
+      function convertSpaceIndicesToPositions(text, spaceIndices) {
+        const normalizedText = normalizeText(text);
+        const spacePositions = [];
+        let spaceIndex = 0;
+        
+        for (let i = 0; i < normalizedText.length; i++) {
+          if (normalizedText[i] === ' ') {
+            if (spaceIndices.includes(spaceIndex)) {
+              spacePositions.push(i);
+            }
+            spaceIndex++;
+          }
+        }
+        
+        return spacePositions;
+      }
+      
+      // НОВАЯ ЛОГИКА: expectedCommas теперь уже содержит индексы пробелов (0, 1, 2...)
+      // Функция calculateCommaPositions теперь возвращает индексы пробелов напрямую
+      // Нужно только проверить валидность индексов
+      console.log('[CHECK] Проверка валидности индексов пробелов:');
+      console.log('[CHECK] normalizedCommaless длина:', normalizedCommaless.length);
+      console.log('[CHECK] normalizedCommaless первые 100 символов:', normalizedCommaless.substring(0, 100));
+      const spaceCount = (normalizedCommaless.match(/\s/g) || []).length;
+      console.log('[CHECK] Количество пробелов в normalizedCommaless:', spaceCount);
+      console.log('[CHECK] expectedCommas (индексы пробелов):', expectedCommas);
+      
+      // ВАЖНО: проверяем, что все индексы валидны
+      const maxValidIndex = spaceCount - 1;
+      expectedSpaceIndices = (expectedCommas || []).filter(idx => {
+        const index = Number(idx);
+        return !isNaN(index) && index >= 0 && index <= maxValidIndex;
+      });
+      
+      if (expectedSpaceIndices.length !== (expectedCommas || []).length) {
+        console.log('[CHECK] ВНИМАНИЕ: Некоторые индексы невалидны!');
+        console.log('[CHECK] Валидные индексы:', expectedSpaceIndices);
+        console.log('[CHECK] Невалидные индексы:', (expectedCommas || []).filter(idx => {
+          const index = Number(idx);
+          return isNaN(index) || index < 0 || index > maxValidIndex;
+        }));
+      }
+      
+      console.log('[CHECK] Валидные индексы пробелов:', expectedSpaceIndices);
+      console.log('[CHECK] Количество индексов пробелов:', expectedSpaceIndices.length);
+      
+      // Пользовательские индексы уже в формате индексов пробелов (0, 1, 2...)
+      const userSpaceIndices = comma_positions.map(p => Number(p));
+      
+      console.log('[CHECK] Ожидаемые индексы пробелов (после преобразования):', expectedSpaceIndices);
+      console.log('[CHECK] Пользовательские индексы пробелов:', userSpaceIndices);
+      console.log('[CHECK] Количество пробелов в тексте:', (normalizedCommaless.match(/\s/g) || []).length);
+      
+      const expectedSet = new Set(expectedSpaceIndices);
+      const userSet = new Set(userSpaceIndices);
+      
+      const missing = expectedSpaceIndices.filter(idx => !userSet.has(idx));
+      const extra = userSpaceIndices.filter(idx => !expectedSet.has(idx));
+      const isCorrect = missing.length === 0 && extra.length === 0;
+      
+      console.log('[CHECK] Отсутствующие индексы:', missing);
+      console.log('[CHECK] Лишние индексы:', extra);
+      console.log('[CHECK] Правильно:', isCorrect);
+      
+      // expectedCommasNums оставляем для обратной совместимости (но не используем)
       expectedCommasNums = expectedCommas && expectedCommas.length > 0 
         ? expectedCommas.map(p => Number(p))
         : [];
-      const userNums = comma_positions.map(p => Number(p));
-      
-      console.log('Проверка запятых: expectedCommasNums=', expectedCommasNums, 'userNums=', userNums);
-      
-      const expectedSet = new Set(expectedCommasNums);
-      const userSet = new Set(userNums);
-      
-      const missing = expectedCommasNums.filter(p => !userSet.has(p));
-      const extra = userNums.filter(p => !expectedSet.has(p));
-      const isCorrect = missing.length === 0 && extra.length === 0;
       
       commasResult = { isCorrect, missing, extra };
     }
@@ -745,10 +1307,21 @@ task17.post('/:id/check', (req, res) => {
     if (mode === 'digits') {
       correctAnswer = expectedDigits.map(d => Number(d)).sort((a, b) => a - b);
     } else if (mode === 'commas') {
-      // Всегда возвращаем массив для режима commas (даже если пустой)
-      correctAnswer = expectedCommasNums ? expectedCommasNums.sort((a, b) => a - b) : [];
+      // НОВАЯ ЛОГИКА: возвращаем индексы пробелов (0, 1, 2...), а не позиции
+      // expectedSpaceIndices уже содержит индексы пробелов
+      if (expectedSpaceIndices && expectedSpaceIndices.length > 0) {
+        correctAnswer = expectedSpaceIndices.sort((a, b) => a - b);
+      } else {
+        // Если expectedSpaceIndices пустой, возвращаем пустой массив
+        correctAnswer = [];
+        console.log('[CHECK] ВНИМАНИЕ: correctAnswer пустой! expectedSpaceIndices:', expectedSpaceIndices);
+      }
     }
     
+    console.log('[CHECK] correctAnswer для отправки:', correctAnswer);
+    console.log('[CHECK] mode:', mode);
+    console.log('[CHECK] expectedCommasNums:', expectedCommasNums);
+    console.log('[CHECK] expectedCommas (исходные):', expectedCommas);
     const response = {
       digits: digitsResult,
       commas: commasResult,
@@ -757,6 +1330,8 @@ task17.post('/:id/check', (req, res) => {
       explanation,
       correctAnswer
     };
+    
+    console.log('[CHECK] Полный ответ:', JSON.stringify(response, null, 2));
     
     res.json(response);
   } catch (error) {

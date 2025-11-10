@@ -499,7 +499,7 @@ body {
   font-weight: 600;
   color: var(--neon-cyan);
   background: var(--bg-tertiary);
-  padding: 6px 12px;
+  padding: 4px 12px;
   border-radius: 8px;
   font-size: 14px;
   border: 1px solid var(--neon-cyan);
@@ -3315,9 +3315,22 @@ u {
 
 /* ===== TASK 17 STYLES ===== */
 
+/* Уменьшаем отступы у карточки для задания 17 */
+.task17-wrapper .task-card,
+.task-card.task17-card {
+  padding: 20px !important; /* Уменьшено с 32px */
+  margin-bottom: 24px !important; /* Нормальный отступ между карточками */
+}
+
+/* Отступ между мета-информацией и контентом */
+.task17-wrapper .task-card .task-meta,
+.task-card.task17-card .task-meta {
+  margin-bottom: 12px; /* Отступ между "№ 1" и текстом задания */
+}
+
 /* Базовые отступы для задания 17 */
 .task17-wrapper .task-card .task-content {
-  gap: 24px; /* Стандартный отступ между элементами в task-content */
+  gap: 8px; /* Уменьшенный отступ между элементами в task-content */
 }
 
 /* Отступ для контейнера с заданием (task-prompt) от остального контента */
@@ -3338,6 +3351,11 @@ u {
 /* Базовые скругления для элементов задания 17 */
 .task17-wrapper .task17-text-editable {
   border-radius: var(--radius-lg) !important; /* 12px - основной контейнер с текстом */
+  word-wrap: break-word; /* Разрешаем перенос длинных слов */
+  overflow-wrap: break-word; /* Альтернативное свойство для переноса */
+  text-align: left; /* Выравнивание по левому краю */
+  word-spacing: normal; /* Нормальные интервалы между словами */
+  letter-spacing: normal; /* Нормальные интервалы между буквами */
 }
 
 .task17-wrapper .task17-digit {
@@ -3374,11 +3392,25 @@ u {
   text-decoration: underline;
   text-decoration-style: wavy;
   text-decoration-thickness: 2px;
-  text-decoration-color: rgba(255, 255, 255, 0.9);
+  text-decoration-color: rgba(255, 255, 255, 0.9) !important;
   text-underline-offset: 2px;
   text-decoration-skip-ink: none;
+  -webkit-text-decoration-color: rgba(255, 255, 255, 0.9) !important;
   color: var(--text-primary);
   display: inline;
+  padding: 2px 4px; /* Такой же отступ как у главного слова */
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  box-decoration-break: clone; /* Обеспечивает повторение подчеркивания и фона на каждой строке */
+  -webkit-box-decoration-break: clone;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Подсветка при наведении на причастный оборот */
+.span-participle:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
 /* Для многострочных спанов в объяснении - позволяем переносы, но сохраняем подчеркивание */
@@ -3392,13 +3424,22 @@ u {
   text-decoration: none;
   display: inline;
   color: var(--text-primary);
-  padding-bottom: 4px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='rgba(59,130,246,0.8)' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='rgba(59,130,246,0.8)'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='rgba(59,130,246,0.8)' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  padding: 2px 4px 6px 4px; /* Такой же отступ как у главного слова, но с нижним отступом для линии */
+  border-radius: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='rgba(255,255,255,0.9)' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='rgba(255,255,255,0.9)'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='rgba(255,255,255,0.9)' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
   background-size: 36px 4px;
   background-repeat: repeat-x;
   background-position: left bottom;
-  box-decoration-break: clone; /* Обеспечивает повторение фона на каждой строке */
+  box-decoration-break: clone; /* Обеспечивает повторение фона и линии на каждой строке */
   -webkit-box-decoration-break: clone;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* Подсветка при наведении на деепричастный оборот */
+.span-gerund:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
 /* Для многострочных спанов в объяснении */
@@ -3406,36 +3447,76 @@ u {
   white-space: normal; /* Разрешаем переносы в объяснении */
 }
 
-/* Главное слово — крестик сверху */
-.span-main-word {
+/* Подлежащее — прямая линия */
+.span-subject {
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: 2px;
+  text-decoration-color: rgba(255, 255, 255, 0.9);
+  text-underline-offset: 2px;
+  text-decoration-skip-ink: none;
+  color: var(--text-primary);
+  display: inline;
+  box-decoration-break: clone; /* Обеспечивает повторение подчеркивания на каждой строке */
+  -webkit-box-decoration-break: clone;
+  cursor: pointer;
   position: relative;
-  display: inline-block;
-  padding: 4px; /* Отступы только для текста */
+  padding: 2px 4px;
   border-radius: 4px;
-  margin: 20px 2px 2px 2px; /* Верхний отступ для крестика */
   transition: all 0.2s ease;
 }
 
+/* Подсветка при наведении на подлежащее */
+.span-subject:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Сказуемое — две прямые линии */
+.span-predicate {
+  text-decoration: underline;
+  text-decoration-style: double;
+  text-decoration-thickness: 2px;
+  text-decoration-color: rgba(255, 255, 255, 0.9);
+  text-underline-offset: 2px;
+  text-decoration-skip-ink: none;
+  color: var(--text-primary);
+  display: inline;
+  box-decoration-break: clone; /* Обеспечивает повторение подчеркивания на каждой строке */
+  -webkit-box-decoration-break: clone;
+  cursor: pointer;
+  position: relative;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* Подсветка при наведении на сказуемое */
+.span-predicate:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Главное слово — цветной контейнер с обводкой */
+.span-main-word {
+  position: relative;
+  display: inline-block;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin: 2px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* Подсветка при наведении на главное слово - будет установлена динамически через JS */
+.span-main-word:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+/* Крестик убран - показываем только контейнер */
 .span-main-word::before {
-  content: "✕";
-  position: absolute;
-  top: -18px; /* Крестик над боксом */
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: bold;
-  line-height: 1;
-  z-index: 10; /* Крестик поверх других элементов */
-}
-
-/* В рабочей версии (текст задания) убираем крестик у главных слов */
-.task17-text-editable .span-main-word::before {
   content: none;
-}
-
-.task17-text-editable .span-main-word {
-  margin-top: 2px; /* Убираем верхний отступ, так как крестика нет */
 }
 
 /* Поддержка вложенных оборотов */
@@ -3457,7 +3538,7 @@ u {
 /* Вложенный деепричастный оборот внутри причастного - подчеркивание выше */
 .span-participle .span-gerund {
   padding-bottom: 0px !important; /* Убираем отступ полностью - это поднимает линию выше */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='rgba(59,130,246,0.8)' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='rgba(59,130,246,0.8)'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='rgba(59,130,246,0.8)' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='rgba(255,255,255,0.9)' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='rgba(255,255,255,0.9)'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='rgba(255,255,255,0.9)' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important;
   background-size: 36px 4px !important;
   background-repeat: repeat-x !important;
   background-position: left bottom !important; /* С padding-bottom: 0px линия будет ближе к тексту (выше) */
@@ -3488,6 +3569,69 @@ u {
 .editor-content .span-gerund .span-gerund {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
+}
+
+/* Плавающая панель инструментов выделения */
+.task17-floating-toolbar {
+  position: fixed;
+  display: none;
+  flex-direction: row;
+  gap: 4px;
+  padding: 8px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glass), var(--glow-cyan);
+  z-index: 10000;
+  animation: slideDown 0.2s ease;
+  pointer-events: auto;
+}
+
+.task17-floating-toolbar.show {
+  display: flex;
+}
+
+.task17-floating-toolbar button {
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  line-height: 1;
+}
+
+.task17-floating-toolbar button svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.task17-floating-toolbar button:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: var(--shadow-neon);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.task17-floating-toolbar button.remove {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+}
+
+.task17-floating-toolbar button.remove:hover {
+  border-color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
 }
 
 /* Слоты для запятых */

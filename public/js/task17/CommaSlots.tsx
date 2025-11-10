@@ -23,6 +23,11 @@ export const CommaSlots: React.FC<CommaSlotsProps> = ({
   const [positions, setPositions] = useState<Set<number>>(new Set(selectedPositions));
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Синхронизируем внутреннее состояние с пропсами
+  useEffect(() => {
+    setPositions(new Set(selectedPositions));
+  }, [selectedPositions]);
+
   const handleSlotClick = useCallback((position: number) => {
     // Разрешаем кликать только между токенами (после пробелов, знаков препинания)
     // Для упрощения разрешаем кликать везде, но можно улучшить логику
@@ -41,6 +46,14 @@ export const CommaSlots: React.FC<CommaSlotsProps> = ({
   const renderText = () => {
     const result: React.ReactNode[] = [];
     const sortedPositions = Array.from(positions).sort((a, b) => a - b);
+    
+    // Проверяем, есть ли результат проверки (если есть correctPositions, значит проверка была)
+    const hasCheckResult = correctPositions.length > 0 || extraPositions.length > 0;
+    
+    console.log('[CommaSlots] correctPositions:', correctPositions);
+    console.log('[CommaSlots] extraPositions:', extraPositions);
+    console.log('[CommaSlots] hasCheckResult:', hasCheckResult);
+    console.log('[CommaSlots] text length:', text.length);
 
     for (let i = 0; i <= text.length; i++) {
       if (i < text.length) {
@@ -51,24 +64,39 @@ export const CommaSlots: React.FC<CommaSlotsProps> = ({
 
       // Добавляем слот для запятой после каждого символа (кроме последнего)
       const isSlotPosition = sortedPositions.includes(i);
-      const isCorrect = correctPositions.includes(i);
-      const isExtra = extraPositions.includes(i);
+      const isCorrect = correctPositions.some(p => Number(p) === i);
+      const isExtra = extraPositions.some(p => Number(p) === i);
+      
+      // Логируем первые несколько позиций для отладки
+      if (i < 10 || isCorrect || isSlotPosition) {
+        console.log(`[CommaSlots] Позиция ${i}: isSlotPosition=${isSlotPosition}, isCorrect=${isCorrect}, isExtra=${isExtra}, hasCheckResult=${hasCheckResult}`);
+      }
+      
+      // Определяем, нужно ли показывать запятую
+      // Показываем запятую если:
+      // 1. Пользователь выбрал эту позицию (isSlotPosition), ИЛИ
+      // 2. Это правильная позиция и есть результат проверки (чтобы показать правильные запятые)
+      const shouldShowComma = isSlotPosition || (isCorrect && hasCheckResult);
       
       // Определяем цвет подсветки: зеленый для правильных, красный для лишних
       let commaColor = 'var(--neon-cyan, #00f0ff)';
       let slotBgColor = 'transparent';
       
-      if (isCorrect && isSlotPosition) {
-        // Правильная позиция - зеленый
-        commaColor = '#22c55e';
-        slotBgColor = 'rgba(34, 197, 94, 0.2)';
-      } else if (isExtra && isSlotPosition) {
-        // Лишняя позиция - красный
+      if (isExtra && isSlotPosition) {
+        // Лишняя позиция выбрана - красный (высший приоритет)
         commaColor = '#ef4444';
         slotBgColor = 'rgba(239, 68, 68, 0.2)';
-      } else if (isCorrect && correctPositions.length > 0) {
-        // Показываем правильные позиции зеленым, даже если не выбраны
+      } else if (isCorrect && isSlotPosition) {
+        // Правильная позиция выбрана - зеленый
+        commaColor = '#22c55e';
+        slotBgColor = 'rgba(34, 197, 94, 0.2)';
+      } else if (isCorrect && hasCheckResult) {
+        // Правильная позиция не выбрана, но есть результат проверки - светло-зеленый
+        commaColor = '#22c55e';
         slotBgColor = 'rgba(34, 197, 94, 0.1)';
+      } else if (isSlotPosition) {
+        // Выбрана, но нет результата проверки - обычный cyan
+        slotBgColor = 'rgba(0, 240, 255, 0.1)';
       }
       
       result.push(
@@ -90,7 +118,7 @@ export const CommaSlots: React.FC<CommaSlotsProps> = ({
           }}
           title={`Позиция ${i}`}
         >
-          {isSlotPosition && (
+          {shouldShowComma && (
             <span
               style={{
                 position: 'absolute',

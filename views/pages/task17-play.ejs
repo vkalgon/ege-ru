@@ -60,8 +60,8 @@
   /* Стили для кликабельных цифр в задании №17 */
   .task17-digit {
     cursor: pointer;
-    padding: 2px 6px;
-    margin: 0 2px;
+    padding: 1px 4px;
+    margin: 0 1px;
     border-radius: 4px;
     transition: all 0.2s;
     display: inline-block;
@@ -322,6 +322,15 @@
               }}
               contentEditable={true}
               suppressContentEditableWarning={true}
+              onCopy={(e) => {
+                // Перехватываем событие копирования и заменяем текст на исходный с цифрами
+                e.preventDefault();
+                // taskData.text уже содержит цифры в режиме digits
+                const originalText = taskData.text || '';
+                if (originalText && e.clipboardData) {
+                  e.clipboardData.setData('text/plain', originalText);
+                }
+              }}
             >
               {parseTextWithDigits(taskData.text).map((part, idx) => {
                 if (part.digit !== null) {
@@ -925,7 +934,7 @@
     return (
       <div className="task17-wrapper">
         <div className="task-card">
-        <div className="task-meta" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
+        <div className="task-meta" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
           <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
             <span className="task-meta__number">№ 17</span>
             {taskData.source && <span className="task-meta__source">{taskData.source}</span>}
@@ -978,30 +987,40 @@
         <div className="task-content">
           {/* Текст задания */}
           <div className="task-prompt" id="task17-text-container" style={{position: 'relative', margin: 0}}>
-            <div style={{
-              marginBottom: '12px',
-              padding: '0',
-              color: 'var(--text-primary)',
-              fontSize: '16px',
-              lineHeight: '1.6',
-              fontWeight: '500'
-            }}>
-              Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).
-            </div>
             <div 
               id="task17-text-editable"
               style={{
-                fontSize: '18px',
-                lineHeight: '1.8',
-                minHeight: '80px',
                 padding: '16px',
                 border: '1px solid var(--glass-border)',
                 borderRadius: '8px',
-                background: 'var(--bg-secondary)'
+                background: 'var(--bg-secondary)',
+                fontSize: '18px',
+                lineHeight: '1.8',
+                minHeight: '80px'
               }}
               contentEditable={false}
               suppressContentEditableWarning={true}
+              onCopy={(e) => {
+                // Перехватываем событие копирования и заменяем текст на исходный с цифрами
+                e.preventDefault();
+                // taskData.text уже содержит цифры
+                const originalText = taskData.text || '';
+                if (originalText && e.clipboardData) {
+                  e.clipboardData.setData('text/plain', originalText);
+                }
+              }}
             >
+              <div style={{
+                paddingBottom: '12px',
+                marginBottom: '12px',
+                borderBottom: '1px solid var(--glass-border)',
+                fontSize: '16px',
+                lineHeight: '1.6',
+                color: 'var(--text-primary)',
+                fontWeight: '500'
+              }}>
+                Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).
+              </div>
               {parseTextWithDigits(taskData.text).map((part, idx) => {
                 if (part.digit !== null) {
                   if (!showDigits) {

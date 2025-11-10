@@ -109,6 +109,9 @@ export const Task17App: React.FC<Task17AppProps> = ({ taskId }) => {
 
       if (!response.ok) throw new Error('Ошибка проверки');
       const result = await response.json();
+      console.log('[Task17App] Результат проверки:', result);
+      console.log('[Task17App] correctAnswer:', result.correctAnswer);
+      console.log('[Task17App] commas result:', result.commas);
       setCheckResult(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка проверки');
@@ -170,7 +173,12 @@ export const Task17App: React.FC<Task17AppProps> = ({ taskId }) => {
             text={taskData.text}
             onCommaPositionsChange={setCommaPositions}
             selectedPositions={commaPositions}
-            correctPositions={checkResult?.commas ? checkResult.correctAnswer || [] : []}
+            correctPositions={(() => {
+              const correct = checkResult?.commas ? checkResult.correctAnswer || [] : [];
+              console.log('[Task17App] Передаем correctPositions в CommaSlots:', correct);
+              console.log('[Task17App] checkResult?.commas:', checkResult?.commas);
+              return correct;
+            })()}
             extraPositions={checkResult?.commas?.extra || []}
           />
         )}
