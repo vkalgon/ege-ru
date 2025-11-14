@@ -1,47 +1,6 @@
 <div class="task-page" id="task17App">
   <h2 class="task-page__title">Задание №17: Пунктуация</h2>
   
-  <!-- Панель инструментов слева для выделений в предложении (sticky) -->
-  <div id="task17-toolbar-left" class="task17-student-toolbar-left" style="
-    position: fixed;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 200px;
-    padding: 16px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    display: block;
-  ">
-    <div style="margin-bottom: 12px; color: var(--text-primary); font-weight: 600; font-size: 14px;">
-      Инструменты выделения
-    </div>
-    
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-      <button type="button" class="btn btn-sm" id="task17-mark-participle-text" style="width: 100%; justify-content: flex-start;">
-        <span style="text-decoration: underline wavy;">Причастный</span>
-      </button>
-      <button type="button" class="btn btn-sm" id="task17-mark-gerund-text" style="width: 100%; justify-content: flex-start;">
-        Деепричастный
-      </button>
-      <button type="button" class="btn btn-sm" id="task17-mark-main-word-text" style="width: 100%; justify-content: flex-start; border: 1px solid rgba(236, 72, 153, 0.5);">
-        Главное слово
-      </button>
-      <button type="button" class="btn btn-sm btn-secondary" id="task17-remove-mark-text" style="width: 100%; justify-content: flex-start;">
-        Убрать выделение
-      </button>
-    </div>
-    
-    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--glass-border); font-size: 11px; color: var(--text-secondary); line-height: 1.6;">
-      <div style="margin-bottom: 6px;"><span class="span-participle" style="display: inline-block;">Причастный</span></div>
-      <div style="margin-bottom: 6px;"><span class="span-gerund" style="display: inline-block; position: relative; padding-bottom: 2px;">Деепричастный</span></div>
-      <div><span class="span-main-word" style="display: inline-block; position: relative;">Главное слово</span></div>
-    </div>
-  </div>
-  
   <!-- Плавающая панель инструментов выделения -->
   <div id="task17-floating-toolbar" class="task17-floating-toolbar">
     <!-- Кнопки будут добавлены динамически -->
@@ -129,6 +88,7 @@
 <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="/js/text-selection-toolbar.js"></script>
 
 <script type="text/babel">
   const { useState, useEffect, useRef } = React;
@@ -890,7 +850,7 @@
     const [allTasks, setAllTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showDigits, setShowDigits] = useState(true);
-    const [showToolbar, setShowToolbar] = useState(true);
+    const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
 
     useEffect(() => {
       const loadAllTasks = async () => {
@@ -907,14 +867,6 @@
       };
       loadAllTasks();
     }, []);
-
-    // Управление видимостью левой панели инструментов
-    useEffect(() => {
-      const toolbarLeft = document.getElementById('task17-toolbar-left');
-      if (toolbarLeft) {
-        toolbarLeft.style.display = showToolbar ? 'block' : 'none';
-      }
-    }, [showToolbar]);
 
     // Применяем скрытие цифр ко всем заданиям
     useEffect(() => {
@@ -951,73 +903,108 @@
           ))}
         </div>
         {/* Правая панель с переключателями */}
-        <div className="task17-control-panel">
-          <div style={{
-            marginBottom: '16px',
-            color: 'var(--text-primary)',
-            fontWeight: 600,
-            fontSize: '14px'
-          }}>
-            Настройки отображения
-          </div>
+        <div 
+          className="task17-control-panel"
+                style={{
+            width: isSettingsExpanded ? 'auto' : '40px',
+            minWidth: isSettingsExpanded ? '240px' : '40px',
+            height: isSettingsExpanded ? 'auto' : '40px',
+            padding: isSettingsExpanded ? '12px' : '0',
+            borderRadius: '8px',
+            background: 'var(--bg-tertiary)',
+            border: '1px solid var(--glass-border)',
+                  transition: 'all 0.3s ease',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: isSettingsExpanded ? 'row' : 'column',
+            alignItems: isSettingsExpanded ? 'center' : 'stretch',
+            gap: isSettingsExpanded ? '12px' : '0'
+                }}
+              >
+                <div
+            onClick={() => setIsSettingsExpanded(!isSettingsExpanded)}
+                  style={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              userSelect: 'none',
+              width: '40px',
+              height: '40px',
+              minWidth: '40px',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s ease',
+              flexShrink: 0
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            title="Настройки отображения"
+          >
+            <svg 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              style={{
+                transform: isSettingsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                transition: 'transform 0.3s ease',
+                color: 'var(--text-primary)'
+              }}
+            >
+              <path 
+                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+              <path 
+                d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 16.96 19.71L16.9 19.65C16.6643 19.4195 16.365 19.2648 16.0406 19.206C15.7162 19.1472 15.3816 19.1869 15.08 19.32C14.7842 19.4468 14.532 19.6572 14.3543 19.9255C14.1766 20.1938 14.0813 20.5082 14.08 20.83V21C14.08 21.5304 13.8693 22.0391 13.4942 22.4142C13.1191 22.7893 12.6104 23 12.08 23C11.5496 23 11.0409 22.7893 10.6658 22.4142C10.2907 22.0391 10.08 21.5304 10.08 21V20.91C10.0723 20.579 9.96512 20.258 9.77251 19.9887C9.5799 19.7194 9.31074 19.5143 9 19.4C8.69838 19.2669 8.36381 19.2272 8.03941 19.286C7.71502 19.3448 7.41568 19.4995 7.18 19.73L7.12 19.79C6.93425 19.976 6.71368 20.1235 6.47088 20.2241C6.22808 20.3248 5.96783 20.3766 5.705 20.3766C5.44217 20.3766 5.18192 20.3248 4.93912 20.2241C4.69632 20.1235 4.47575 19.976 4.29 19.79C4.10405 19.6043 3.95653 19.3837 3.85588 19.1409C3.75523 18.8981 3.70343 18.6378 3.70343 18.375C3.70343 18.1122 3.75523 17.8519 3.85588 17.6091C3.95653 17.3663 4.10405 17.1457 4.29 16.96L4.35 16.9C4.58054 16.6643 4.73519 16.365 4.794 16.0406C4.85282 15.7162 4.81312 15.3816 4.68 15.08C4.55324 14.7842 4.34276 14.532 4.07447 14.3543C3.80618 14.1766 3.49179 14.0813 3.17 14.08H3C2.46957 14.08 1.96086 13.8693 1.58579 13.4942C1.21071 13.1191 1 12.6104 1 12.08C1 11.5496 1.21071 11.0409 1.58579 10.6658C1.96086 10.2907 2.46957 10.08 3 10.08H3.09C3.42099 10.0723 3.742 9.96512 4.0113 9.77251C4.28059 9.5799 4.48572 9.31074 4.6 9C4.73312 8.69838 4.77282 8.36381 4.714 8.03941C4.65519 7.71502 4.50054 7.41568 4.27 7.18L4.21 7.12C4.02405 6.93425 3.87653 6.71368 3.77588 6.47088C3.67523 6.22808 3.62343 5.96783 3.62343 5.705C3.62343 5.44217 3.67523 5.18192 3.77588 4.93912C3.87653 4.69632 4.02405 4.47575 4.21 4.29C4.39575 4.10405 4.61632 3.95653 4.85912 3.85588C5.10192 3.75523 5.36217 3.70343 5.625 3.70343C5.88783 3.70343 6.14808 3.75523 6.39088 3.85588C6.63368 3.95653 6.85425 4.10405 7.04 4.29L7.1 4.35C7.33568 4.58054 7.63502 4.73519 7.95941 4.794C8.28381 4.85282 8.61838 4.81312 8.92 4.68H9C9.29577 4.55324 9.54802 4.34276 9.72569 4.07447C9.90337 3.80618 9.99872 3.49179 10 3.17V3C10 2.46957 10.2107 1.96086 10.5858 1.58579C10.9609 1.21071 11.4696 1 12 1C12.5304 1 13.0391 1.21071 13.4142 1.58579C13.7893 1.96086 14 2.46957 14 3V3.09C14.0013 3.41179 14.0966 3.72618 14.2743 3.99447C14.452 4.26276 14.7042 4.47324 15 4.6C15.3016 4.73312 15.6362 4.77282 15.9606 4.714C16.285 4.65519 16.5843 4.50054 16.82 4.27L16.88 4.21C17.0657 4.02405 17.2863 3.87653 17.5291 3.77588C17.7719 3.67523 18.0322 3.62343 18.295 3.62343C18.5578 3.62343 18.8181 3.67523 19.0609 3.77588C19.3037 3.87653 19.5243 4.02405 19.71 4.21C19.896 4.39575 20.0435 4.61632 20.1441 4.85912C20.2448 5.10192 20.2966 5.36217 20.2966 5.625C20.2966 5.88783 20.2448 6.14808 20.1441 6.39088C20.0435 6.63368 19.896 6.85425 19.71 7.04L19.65 7.1C19.4195 7.33568 19.2648 7.63502 19.206 7.95941C19.1472 8.28381 19.1869 8.61838 19.32 8.92V9C19.4468 9.29577 19.6572 9.54802 19.9255 9.72569C20.1938 9.90337 20.5082 9.99872 20.83 10H21C21.5304 10 22.0391 10.2107 22.4142 10.5858C22.7893 10.9609 23 11.4696 23 12C23 12.5304 22.7893 13.0391 22.4142 13.4142C22.0391 13.7893 21.5304 14 21 14H20.91C20.5882 14.0013 20.2738 14.0966 20.0055 14.2743C19.7372 14.452 19.5268 14.7042 19.4 15Z" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
+              </div>
           
-          <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+          {isSettingsExpanded && (
+            <div style={{
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '12px',
+              animation: 'slideDown 0.3s ease',
+              overflow: 'hidden',
+              flex: 1,
+              minWidth: 0
+            }}>
             <label style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               cursor: 'pointer',
               color: 'var(--text-primary)',
-              fontSize: '14px'
+                fontSize: '14px',
+                gap: '12px',
+                padding: '4px 0'
             }}>
-              <span>Показывать цифры</span>
+                <span style={{ flex: 1, minWidth: 0 }}>Показывать цифры</span>
               <div
-                onClick={() => setShowDigits(!showDigits)}
-                style={{
-                  width: '48px',
-                  height: '24px',
-                  background: showDigits ? 'var(--neon-cyan)' : 'var(--text-disabled)',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: showDigits ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none'
-                }}
-              >
-                <div
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    background: '#fff',
-                    position: 'absolute',
-                    top: '2px',
-                    left: showDigits ? '26px' : '2px',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDigits(!showDigits);
                   }}
-                />
-              </div>
-            </label>
-            
-            <label style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              color: 'var(--text-primary)',
-              fontSize: '14px'
-            }}>
-              <span>Панель выделений</span>
-              <div
-                onClick={() => setShowToolbar(!showToolbar)}
                 style={{
                   width: '48px',
                   height: '24px',
-                  background: showToolbar ? 'var(--neon-cyan)' : 'var(--text-disabled)',
+                    background: showDigits ? 'var(--neon-cyan)' : 'var(--text-disabled)',
                   position: 'relative',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
-                  boxShadow: showToolbar ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none'
+                    boxShadow: showDigits ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none',
+                    borderRadius: '12px',
+                    flexShrink: 0
                 }}
               >
                 <div
@@ -1028,7 +1015,7 @@
                     background: '#fff',
                     position: 'absolute',
                     top: '2px',
-                    left: showToolbar ? '26px' : '2px',
+                      left: showDigits ? '26px' : '2px',
                     transition: 'all 0.3s ease',
                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
                   }}
@@ -1036,6 +1023,7 @@
               </div>
             </label>
           </div>
+          )}
         </div>
       </div>
     );
@@ -1047,6 +1035,18 @@
 
 <script>
   // Инициализация панели инструментов для выделений
+  // Палитра цветов для главных слов (глобальная константа)
+  const COLOR_PALETTE = [
+    { bg: 'rgba(59, 130, 246, 0.3)', border: 'rgba(59, 130, 246, 0.8)', text: 'rgba(59, 130, 246, 1)' }, // Синий
+    { bg: 'rgba(34, 197, 94, 0.3)', border: 'rgba(34, 197, 94, 0.8)', text: 'rgba(34, 197, 94, 1)' }, // Зеленый
+    { bg: 'rgba(236, 72, 153, 0.3)', border: 'rgba(236, 72, 153, 0.8)', text: 'rgba(236, 72, 153, 1)' }, // Розовый
+    { bg: 'rgba(251, 191, 36, 0.3)', border: 'rgba(251, 191, 36, 0.8)', text: 'rgba(251, 191, 36, 1)' }, // Желтый
+    { bg: 'rgba(168, 85, 247, 0.3)', border: 'rgba(168, 85, 247, 0.8)', text: 'rgba(168, 85, 247, 1)' }, // Фиолетовый
+    { bg: 'rgba(239, 68, 68, 0.3)', border: 'rgba(239, 68, 68, 0.8)', text: 'rgba(239, 68, 68, 1)' }, // Красный
+    { bg: 'rgba(14, 165, 233, 0.3)', border: 'rgba(14, 165, 233, 0.8)', text: 'rgba(14, 165, 233, 1)' }, // Голубой
+    { bg: 'rgba(245, 158, 11, 0.3)', border: 'rgba(245, 158, 11, 0.8)', text: 'rgba(245, 158, 11, 1)' }, // Оранжевый
+  ];
+
   // Выносим функцию applySpanClass в глобальную область для использования в плавающей панели
   function applySpanClass(className) {
       const selection = window.getSelection();
@@ -1086,10 +1086,12 @@
           if (startContainer.nodeType === Node.TEXT_NODE) {
             const text = startContainer.textContent;
             let newOffset = startOffset;
-            // Ищем пробел слева
+            // Ищем пробел слева, но начинаем после него (не включая пробел)
             while (newOffset > 0 && text[newOffset - 1] !== ' ') {
               newOffset--;
             }
+            // Если нашли пробел, начинаем после него (newOffset уже указывает на позицию после пробела)
+            // Если не нашли пробел, newOffset = 0, что тоже правильно
             expandedRange.setStart(startContainer, newOffset);
           } else {
             // Если начало в элементе, ищем первый текстовый узел внутри
@@ -1110,7 +1112,7 @@
             }
           }
           
-          // Расширяем конец вправо до пробела
+          // Расширяем конец вправо до пробела (не включая пробел)
           let endContainer = expandedRange.endContainer;
           let endOffset = expandedRange.endOffset;
           
@@ -1118,14 +1120,11 @@
           if (endContainer.nodeType === Node.TEXT_NODE) {
             const text = endContainer.textContent;
             let newOffset = endOffset;
-            // Ищем пробел справа
+            // Ищем пробел справа, но не включаем его
             while (newOffset < text.length && text[newOffset] !== ' ') {
               newOffset++;
             }
-            // Включаем пробел, если он есть
-            if (newOffset < text.length && text[newOffset] === ' ') {
-              newOffset++;
-            }
+            // НЕ включаем пробел - останавливаемся перед ним
             expandedRange.setEnd(endContainer, newOffset);
           } else {
             // Если конец в элементе, ищем последний текстовый узел внутри
@@ -1143,7 +1142,8 @@
               const text = lastTextNode.textContent;
               let spacePos = text.indexOf(' ');
               if (spacePos >= 0) {
-                expandedRange.setEnd(lastTextNode, spacePos + 1);
+                // НЕ включаем пробел - останавливаемся перед ним
+                expandedRange.setEnd(lastTextNode, spacePos);
               } else {
                 expandedRange.setEnd(lastTextNode, text.length);
               }
@@ -1187,7 +1187,8 @@
                 const text = nextNode.textContent;
                 const spacePos = text.indexOf(' ');
                 if (spacePos >= 0) {
-                  expandedRange.setEnd(nextNode, spacePos + 1);
+                  // НЕ включаем пробел - останавливаемся перед ним
+                  expandedRange.setEnd(nextNode, spacePos);
                   continue;
                 } else {
                   expandedRange.setEnd(nextNode, text.length);
@@ -1201,7 +1202,7 @@
           return expandedRange;
         }
 
-        // Всегда расширяем range до пробелов, даже для вложенных выделений
+        // Расширяем range до ближайших пробелов (не включая пробелы) для всех типов
         let expandedRange;
         try {
           expandedRange = expandRangeToSpaces(range);
@@ -1223,22 +1224,141 @@
           expandedRange = range.cloneRange();
         }
 
+        // Проверяем ограничения на вложенные обороты и замену выделений
+        // Разрешенные комбинации: причастный в деепричастном, деепричастный в причастном, 
+        // причастный в причастном, деепричастный в деепричастном
+        const underlineClasses = ['span-participle', 'span-gerund', 'span-subject', 'span-predicate'];
+        const isUnderlineClass = underlineClasses.includes(className);
+        
+        if (isUnderlineClass) {
+          // Проверяем, находится ли выделение полностью внутри существующего span с подчеркиванием
+          const startContainer = expandedRange.startContainer;
+          const endContainer = expandedRange.endContainer;
+          
+          // Ищем ближайший родительский span с подчеркиванием для начала
+          let startParent = startContainer.nodeType === 1 ? startContainer : startContainer.parentElement;
+          let parentUnderlineSpan = null;
+          while (startParent && startParent !== editor) {
+            if (startParent.classList) {
+              for (const cls of underlineClasses) {
+                if (startParent.classList.contains(cls)) {
+                  parentUnderlineSpan = startParent;
+                  break;
+                }
+              }
+              if (parentUnderlineSpan) break;
+            }
+            startParent = startParent.parentElement;
+          }
+          
+          // Если выделение находится внутри существующего span с подчеркиванием
+          if (parentUnderlineSpan) {
+            // Проверяем, является ли выделение строго вложенным (не совпадает с родителем)
+            // Если выделение совпадает с родителем или покрывает его полностью - заменяем
+            const parentText = parentUnderlineSpan.textContent.trim();
+            const rangeText = expandedRange.toString().trim();
+            
+            // Проверяем, совпадают ли границы выделения с границами родительского span
+            const spanRange = document.createRange();
+            spanRange.selectNodeContents(parentUnderlineSpan);
+            
+            // Если тексты совпадают или выделение покрывает весь родительский span - заменяем
+            const isExactMatch = expandedRange.compareBoundaryPoints(Range.START_TO_START, spanRange) === 0 &&
+                                 expandedRange.compareBoundaryPoints(Range.END_TO_END, spanRange) === 0;
+            const isAlmostMatch = rangeText === parentText || 
+                                  (rangeText.length >= parentText.length * 0.95 && rangeText.length <= parentText.length * 1.05);
+            
+            if (isExactMatch || isAlmostMatch) {
+              // Заменяем старое выделение на новое
+              const grandParent = parentUnderlineSpan.parentNode;
+              if (grandParent) {
+                // Удаляем старый span
+                while (parentUnderlineSpan.firstChild) {
+                  grandParent.insertBefore(parentUnderlineSpan.firstChild, parentUnderlineSpan);
+                }
+                grandParent.removeChild(parentUnderlineSpan);
+              }
+              
+              // Продолжаем создание нового span (код ниже)
+            } else {
+              // Это вложенное выделение (меньше родителя), проверяем правила
+              const parentClass = parentUnderlineSpan.classList.contains('span-participle') ? 'span-participle' :
+                                 parentUnderlineSpan.classList.contains('span-gerund') ? 'span-gerund' :
+                                 parentUnderlineSpan.classList.contains('span-subject') ? 'span-subject' :
+                                 parentUnderlineSpan.classList.contains('span-predicate') ? 'span-predicate' : null;
+              
+              // Проверяем, разрешена ли эта комбинация
+              const allowedCombinations = {
+                'span-participle': ['span-gerund', 'span-participle'], // причастный может содержать деепричастный или причастный
+                'span-gerund': ['span-participle', 'span-gerund'] // деепричастный может содержать причастный или деепричастный
+              };
+              
+              // Если родитель - причастный или деепричастный, проверяем разрешенные комбинации
+              if (parentClass === 'span-participle' || parentClass === 'span-gerund') {
+                if (!allowedCombinations[parentClass].includes(className)) {
+                  alert('Невозможно создать вложенный оборот: разрешены только комбинации причастный/деепричастный внутри причастного/деепричастного');
+                  selection.removeAllRanges();
+                  return;
+                }
+              } else {
+                // Если родитель - подлежащее или сказуемое, вложенные обороты не разрешены
+                alert('Невозможно создать вложенный оборот внутри подлежащего или сказуемого');
+                selection.removeAllRanges();
+                return;
+              }
+            }
+          } else {
+            // Если выделение не внутри существующего span, проверяем, содержит ли оно span с подчеркиванием
+            // Проверяем, пересекается ли выделение с существующим span
+            const tempRange = expandedRange.cloneRange();
+            const tempDiv = document.createElement('div');
+            tempDiv.appendChild(tempRange.cloneContents());
+            const existingSpans = tempDiv.querySelectorAll('.span-participle, .span-gerund, .span-subject, .span-predicate');
+            
+            // Если внутри выделения есть span с подчеркиванием - заменяем его
+            if (existingSpans.length > 0) {
+              // Находим span, который полностью находится внутри выделения
+              // Проверяем все span в редакторе, которые пересекаются с выделением
+              const allUnderlineSpans = editor.querySelectorAll('.span-participle, .span-gerund, .span-subject, .span-predicate');
+              for (const realSpan of allUnderlineSpans) {
+                // Проверяем, находится ли span полностью внутри выделения
+                const spanRange = document.createRange();
+                spanRange.selectNodeContents(realSpan);
+                
+                // Проверяем, что начало и конец span находятся внутри expandedRange
+                if (expandedRange.compareBoundaryPoints(Range.START_TO_START, spanRange) <= 0 &&
+                    expandedRange.compareBoundaryPoints(Range.END_TO_END, spanRange) >= 0) {
+                  // Span полностью внутри выделения - заменяем его
+                  const grandParent = realSpan.parentNode;
+                  if (grandParent) {
+                    while (realSpan.firstChild) {
+                      grandParent.insertBefore(realSpan.firstChild, realSpan);
+                    }
+                    grandParent.removeChild(realSpan);
+                  }
+                  break;
+                }
+              }
+              // Продолжаем создание нового span (код ниже)
+            }
+          }
+        }
+
+        // Проверяем, есть ли уже span с подчеркиванием внутри выделения
+        // Если есть и мы создаем главное слово, нужно правильно обернуть, сохранив подчеркивание
+        let existingUnderlinedSpan = null;
+        if (className === 'span-main-word') {
+          // Проверяем, есть ли внутри выделения span с подчеркиванием
+          const tempRange = expandedRange.cloneRange();
+          const tempDiv = document.createElement('div');
+          tempDiv.appendChild(tempRange.cloneContents());
+          existingUnderlinedSpan = tempDiv.querySelector('.span-participle, .span-gerund, .span-subject, .span-predicate');
+        }
+
         const span = document.createElement('span');
         span.className = className;
 
         if (className === 'span-main-word') {
-          // Автоматически назначаем цвет при создании главного слова
-          const colorPalette = [
-            { bg: 'rgba(59, 130, 246, 0.3)', border: 'rgba(59, 130, 246, 0.8)', text: 'rgba(59, 130, 246, 1)' }, // Синий
-            { bg: 'rgba(34, 197, 94, 0.3)', border: 'rgba(34, 197, 94, 0.8)', text: 'rgba(34, 197, 94, 1)' }, // Зеленый
-            { bg: 'rgba(236, 72, 153, 0.3)', border: 'rgba(236, 72, 153, 0.8)', text: 'rgba(236, 72, 153, 1)' }, // Розовый
-            { bg: 'rgba(251, 191, 36, 0.3)', border: 'rgba(251, 191, 36, 0.8)', text: 'rgba(251, 191, 36, 1)' }, // Желтый
-            { bg: 'rgba(168, 85, 247, 0.3)', border: 'rgba(168, 85, 247, 0.8)', text: 'rgba(168, 85, 247, 1)' }, // Фиолетовый
-            { bg: 'rgba(239, 68, 68, 0.3)', border: 'rgba(239, 68, 68, 0.8)', text: 'rgba(239, 68, 68, 1)' }, // Красный
-            { bg: 'rgba(14, 165, 233, 0.3)', border: 'rgba(14, 165, 233, 0.8)', text: 'rgba(14, 165, 233, 1)' }, // Голубой
-            { bg: 'rgba(245, 158, 11, 0.3)', border: 'rgba(245, 158, 11, 0.8)', text: 'rgba(245, 158, 11, 1)' }, // Оранжевый
-          ];
-          
           // Находим следующий свободный цвет
           const usedColors = new Set();
           const textEditor = editor.closest('.task17-text-editable') || document.querySelector('.task17-text-editable');
@@ -1252,30 +1372,149 @@
           }
           
           let freeIndex = 0;
-          while (usedColors.has(freeIndex) && freeIndex < colorPalette.length) {
+          while (usedColors.has(freeIndex) && freeIndex < COLOR_PALETTE.length) {
             freeIndex++;
           }
           
-          const color = colorPalette[freeIndex % colorPalette.length];
+          const color = COLOR_PALETTE[freeIndex % COLOR_PALETTE.length];
           span.setAttribute('data-color-id', freeIndex);
           span.style.backgroundColor = color.bg;
-          span.style.borderColor = color.border;
-          span.style.borderWidth = '2px';
+          // Используем обычный border для обводки главного слова
+          span.style.border = `2px solid ${color.border}`;
           span.style.borderStyle = 'solid';
+          span.style.borderWidth = '2px';
+          span.style.borderColor = color.border;
+          // Не устанавливаем text-decoration: none - подчеркивание сохранится автоматически при оборачивании
         }
 
-        // Пытаемся использовать surroundContents для сохранения пробелов
+        // Пытаемся использовать surroundContents для сохранения пробелов и подчеркивания
         try {
+          // Проверяем, что range не пустой и валидный
+          if (expandedRange.collapsed || !expandedRange.toString().trim()) {
+            alert('Не удалось создать выделение: пустое выделение');
+            selection.removeAllRanges();
+            return;
+          }
           expandedRange.surroundContents(span);
         } catch (e) {
           // Если surroundContents не работает (range пересекает границы элементов),
           // используем extractContents с сохранением структуры
+          try {
           const contents = expandedRange.extractContents();
+            if (!contents || contents.childNodes.length === 0) {
+              alert('Не удалось создать выделение: пустое содержимое');
+              selection.removeAllRanges();
+              return;
+            }
           span.appendChild(contents);
           expandedRange.insertNode(span);
+          } catch (extractError) {
+            console.error('Ошибка при создании выделения:', extractError);
+            alert('Не удалось создать выделение. Попробуйте выделить текст заново.');
+            selection.removeAllRanges();
+            return;
+          }
+        }
+        
+        // Сразу после оборачивания восстанавливаем подчеркивание для элементов внутри
+        if (className === 'span-main-word') {
+          // Убеждаемся, что цвет сохранился после вставки в DOM
+          requestAnimationFrame(() => {
+            const colorId = span.getAttribute('data-color-id');
+            if (colorId !== null && colorId !== '') {
+              const colorIndex = parseInt(colorId);
+              const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
+              span.style.backgroundColor = color.bg;
+              // Используем обычный border для обводки главного слова
+              span.style.border = `2px solid ${color.border}`;
+              span.style.borderStyle = 'solid';
+              span.style.borderWidth = '2px';
+              span.style.borderColor = color.border;
+            }
+          });
+          // Находим все элементы с подчеркиванием внутри только что созданного span
+          const underlinedSpans = span.querySelectorAll('.span-participle, .span-gerund, .span-subject, .span-predicate');
+          underlinedSpans.forEach(underlinedSpan => {
+            if (underlinedSpan.classList.contains('span-subject')) {
+              // Для подлежащего - сплошное подчеркивание
+              underlinedSpan.style.textDecoration = 'underline';
+              underlinedSpan.style.textDecorationStyle = 'solid';
+              underlinedSpan.style.textDecorationThickness = '2px';
+              underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
+              underlinedSpan.style.textUnderlineOffset = '2px';
+            } else if (underlinedSpan.classList.contains('span-predicate')) {
+              // Для сказуемого - двойное подчеркивание
+              underlinedSpan.style.textDecoration = 'underline';
+              underlinedSpan.style.textDecorationStyle = 'double';
+              underlinedSpan.style.textDecorationThickness = '2px';
+              underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
+              underlinedSpan.style.textUnderlineOffset = '2px';
+            } else if (underlinedSpan.classList.contains('span-participle')) {
+              // Для причастного оборота - волнистое подчеркивание
+              underlinedSpan.style.textDecoration = 'underline';
+              underlinedSpan.style.textDecorationStyle = 'wavy';
+              underlinedSpan.style.textDecorationThickness = '2px';
+              underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
+              underlinedSpan.style.textUnderlineOffset = '2px';
+            } else if (underlinedSpan.classList.contains('span-gerund')) {
+              // Для деепричастного оборота - устанавливаем z-index для видимости
+              underlinedSpan.style.position = 'relative';
+              underlinedSpan.style.zIndex = '1';
+            }
+            // Для деепричастного оборота background-image должен сохраниться автоматически из CSS
+          });
         }
         
         selection.removeAllRanges();
+        
+        // Дополнительная проверка после вставки в DOM на случай, если что-то потерялось
+        if (className === 'span-main-word') {
+          const colorId = span.getAttribute('data-color-id');
+          // Используем requestAnimationFrame для гарантии, что DOM обновлен
+          requestAnimationFrame(() => {
+            // Находим span-main-word в DOM по data-color-id
+            const mainWordSpan = editor.querySelector('.span-main-word[data-color-id="' + colorId + '"]');
+            if (mainWordSpan) {
+              // Принудительно восстанавливаем подчеркивание для всех элементов с подчеркиванием
+              const underlinedSpans = mainWordSpan.querySelectorAll('.span-participle, .span-gerund, .span-subject, .span-predicate');
+              underlinedSpans.forEach(underlinedSpan => {
+                if (underlinedSpan.classList.contains('span-subject')) {
+                  // Для подлежащего - сплошное подчеркивание
+                  underlinedSpan.style.textDecoration = 'underline';
+                  underlinedSpan.style.textDecorationStyle = 'solid';
+                  underlinedSpan.style.textDecorationThickness = '2px';
+                  underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
+                  underlinedSpan.style.textUnderlineOffset = '6px'; // Увеличено для видимости поверх border
+                  underlinedSpan.style.position = 'relative';
+                  underlinedSpan.style.zIndex = '1';
+                } else if (underlinedSpan.classList.contains('span-predicate')) {
+                  // Для сказуемого - двойное подчеркивание
+                  underlinedSpan.style.textDecoration = 'underline';
+                  underlinedSpan.style.textDecorationStyle = 'double';
+                  underlinedSpan.style.textDecorationThickness = '2px';
+                  underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
+                  underlinedSpan.style.textUnderlineOffset = '6px'; // Увеличено для видимости поверх border
+                  underlinedSpan.style.position = 'relative';
+                  underlinedSpan.style.zIndex = '1';
+                } else if (underlinedSpan.classList.contains('span-participle')) {
+                  // Для причастного оборота - волнистое подчеркивание
+                  underlinedSpan.style.textDecoration = 'underline';
+                  underlinedSpan.style.textDecorationStyle = 'wavy';
+                  underlinedSpan.style.textDecorationThickness = '2px';
+                  underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
+                  underlinedSpan.style.textUnderlineOffset = '6px'; // Увеличено для видимости поверх border
+                  underlinedSpan.style.position = 'relative';
+                  underlinedSpan.style.zIndex = '1';
+                } else if (underlinedSpan.classList.contains('span-gerund')) {
+                  // Для деепричастного оборота - устанавливаем z-index для видимости
+                  underlinedSpan.style.position = 'relative';
+                  underlinedSpan.style.zIndex = '1';
+                }
+                // Для деепричастного оборота background-image должен сохраниться автоматически из CSS
+              });
+            }
+          });
+        }
       } catch (err) {
         console.error('Ошибка при применении стиля:', err);
       }
@@ -1299,271 +1538,78 @@
                    parent.classList.contains('span-main-word') ||
                    parent.classList.contains('span-subject') ||
                    parent.classList.contains('span-predicate'))) {
+      const grandParent = parent.parentNode;
+      if (grandParent) {
       const textNode = document.createTextNode(parent.textContent);
-      parent.parentNode.replaceChild(textNode, parent);
+        grandParent.replaceChild(textNode, parent);
       selection.removeAllRanges();
+      } else {
+        alert('Ошибка: не удалось найти родительский элемент');
+      }
     } else {
       alert('Выделите текст с отметкой для удаления');
     }
   }
 
-  function initTextToolbar() {
-    const markParticipleBtn = document.getElementById('task17-mark-participle-text');
-    const markGerundBtn = document.getElementById('task17-mark-gerund-text');
-    const markMainWordBtn = document.getElementById('task17-mark-main-word-text');
-    const removeMarkBtn = document.getElementById('task17-remove-mark-text');
-
-    if (!markParticipleBtn || !markGerundBtn || !markMainWordBtn || !removeMarkBtn) return;
-
-    markParticipleBtn.addEventListener('click', () => applySpanClass('span-participle'));
-    markGerundBtn.addEventListener('click', () => applySpanClass('span-gerund'));
-    markMainWordBtn.addEventListener('click', () => applySpanClass('span-main-word'));
-    removeMarkBtn.addEventListener('click', removeMark);
-  }
-
   setTimeout(() => {
-    initTextToolbar();
     initFloatingToolbar();
   }, 500);
 
-  // Инициализация плавающей панели инструментов
-  let floatingToolbar = null; // Делаем глобальной переменной
+  // Инициализация плавающей панели инструментов через переиспользуемый модуль
+  let textSelectionToolbar = null;
+  let floatingToolbar = null; // Сохраняем для обратной совместимости
+  
   function initFloatingToolbar() {
-    floatingToolbar = document.getElementById('task17-floating-toolbar');
-    if (!floatingToolbar) return;
-
-    // Функция для подсчета слов в выделении
-    function countWords(text) {
-      return text.trim().split(/\s+/).filter(word => word.length > 0).length;
-    }
-
-    // Функция для показа панели
-    function showToolbar(range) {
-      if (!range || range.collapsed) {
-        floatingToolbar.classList.remove('show');
-        return;
-      }
-
-      // Получаем текст из range, а не из selection
-      const selectedText = range.toString().trim();
-      
-      if (!selectedText) {
-        floatingToolbar.classList.remove('show');
-        return;
-      }
-      
-      // Устанавливаем selection для корректной работы
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-
-      // Проверяем, что выделение внутри текста задания
-      const editor = range.commonAncestorContainer.nodeType === 3 
-        ? range.commonAncestorContainer.parentElement 
-        : range.commonAncestorContainer;
-      
-      // Игнорируем клики по цифрам
-      if (editor.closest && editor.closest('.task17-digit')) {
-        floatingToolbar.classList.remove('show');
-        return;
-      }
-      
-      let textEditor = editor;
-      while (textEditor && !textEditor.classList.contains('task17-text-editable')) {
-        textEditor = textEditor.parentElement;
-      }
-
-      if (!textEditor) {
-        floatingToolbar.classList.remove('show');
-        return;
-      }
-
-      // Очищаем панель
-      floatingToolbar.innerHTML = '';
-
-      // Сохраняем текущее выделение для использования в обработчиках
-      const savedRange = range.cloneRange();
-
-      // Всегда показываем все опции подчеркивания
-      const buttons = [
-        { 
-          class: 'span-participle', 
-          icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><path d="M 2 6 Q 4 4, 6 6 T 10 6 T 14 6 T 18 6 T 22 6" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>', 
-          title: 'Причастный' 
-        },
-        { 
-          class: 'span-gerund', 
-          icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="6" x2="8" y2="6" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="6" r="1.5" fill="rgba(255, 255, 255, 0.9)"/><line x1="16" y1="6" x2="22" y2="6" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/></svg>', 
-          title: 'Деепричастный' 
-        },
-        { 
-          class: 'span-subject', 
-          icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="6" x2="22" y2="6" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/></svg>', 
-          title: 'Подлежащее' 
-        },
-        { 
-          class: 'span-predicate', 
-          icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="5" x2="22" y2="5" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="7" x2="22" y2="7" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/></svg>', 
-          title: 'Сказуемое' 
-        },
-        { 
-          class: 'span-main-word', 
-          icon: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="2" x2="14" y2="14" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="2" x2="2" y2="14" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/></svg>', 
-          title: 'Главное слово' 
+    // Используем переиспользуемый модуль
+    textSelectionToolbar = new TextSelectionToolbar({
+      containerId: 'task17-floating-toolbar',
+      editorSelector: '.task17-text-editable',
+      ignoreSelectors: ['.task17-digit'],
+      defaultButtons: true,
+      onButtonClick: (buttonConfig, savedRange, selection) => {
+        // Используем глобальную функцию applySpanClass
+        if (buttonConfig.class && typeof window.applySpanClass === 'function') {
+          window.applySpanClass(buttonConfig.class);
         }
-      ];
-
-      buttons.forEach(item => {
-        const button = document.createElement('button');
-        button.innerHTML = item.icon;
-        button.title = item.title;
-        button.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          floatingToolbar.classList.remove('show');
-          
-          // Восстанавливаем выделение перед применением
-          try {
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(savedRange);
-            
-            // Проверяем, что выделение восстановлено
-            if (sel.rangeCount > 0) {
-              // Используем глобальную функцию applySpanClass
-              applySpanClass(item.class);
-            } else {
-              console.error('Не удалось восстановить выделение');
-            }
-          } catch (err) {
-            console.error('Ошибка при восстановлении выделения:', err);
-            // Пытаемся восстановить выделение через текст
-            const sel = window.getSelection();
-            const textEditor = document.querySelector('.task17-text-editable');
-            if (textEditor && savedRange.toString()) {
-              const text = savedRange.toString();
-              const walker = document.createTreeWalker(textEditor, NodeFilter.SHOW_TEXT);
-              let node;
-              while (node = walker.nextNode()) {
-                const index = node.textContent.indexOf(text);
-                if (index >= 0) {
-                  const newRange = document.createRange();
-                  newRange.setStart(node, index);
-                  newRange.setEnd(node, index + text.length);
-                  sel.removeAllRanges();
-                  sel.addRange(newRange);
-                  applySpanClass(item.class);
-                  break;
-                }
-              }
-            }
-          }
-        };
-        floatingToolbar.appendChild(button);
-      });
-
-      // Добавляем кнопку удаления
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'remove';
-      removeBtn.innerHTML = '🗑';
-      removeBtn.title = 'Удалить выделение';
-      removeBtn.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        floatingToolbar.classList.remove('show');
-        
-        // Восстанавливаем выделение перед удалением
-        try {
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(savedRange);
-          
-          // Проверяем, что выделение восстановлено
-          if (sel.rangeCount > 0) {
-            // Используем глобальную функцию removeMark
-            removeMark();
-          } else {
-            console.error('Не удалось восстановить выделение');
-          }
-        } catch (err) {
-          console.error('Ошибка при восстановлении выделения:', err);
+      },
+      onRemoveClick: (savedRange, selection) => {
+        // Используем глобальную функцию removeMark
+        if (typeof window.removeMark === 'function') {
+          window.removeMark();
         }
-      };
-      floatingToolbar.appendChild(removeBtn);
-
-      // Позиционируем панель прямо над выделением
-      const rect = range.getBoundingClientRect();
-      
-      // Показываем панель, чтобы получить её размеры
-      floatingToolbar.style.visibility = 'hidden';
-      floatingToolbar.style.position = 'fixed'; // Используем fixed для позиционирования относительно viewport
-      floatingToolbar.classList.add('show');
-      
-      // Ждем один кадр, чтобы панель отрисовалась
-      requestAnimationFrame(() => {
-        const toolbarRect = floatingToolbar.getBoundingClientRect();
-        
-        // Позиционируем панель прямо над выделением по центру
-        let top = rect.top - toolbarRect.height - 10;
-        let left = rect.left + (rect.width / 2) - (toolbarRect.width / 2);
-
-        // Проверяем, не выходит ли панель за правую границу
-        if (left + toolbarRect.width > window.innerWidth) {
-          left = window.innerWidth - toolbarRect.width - 8;
-        }
-
-        // Проверяем, не выходит ли панель за левую границу
-        if (left < 8) {
-          left = 8;
-        }
-
-        // Если панель не помещается сверху, показываем снизу
-        if (top < 8) {
-          top = rect.bottom + 10;
-        }
-
-        floatingToolbar.style.top = top + 'px';
-        floatingToolbar.style.left = left + 'px';
-        floatingToolbar.style.visibility = 'visible';
-      });
-    }
-
-    // Отслеживаем выделение текста
-    document.addEventListener('mouseup', (e) => {
-      // Не показываем панель, если клик был на самой панели
-      if (floatingToolbar && floatingToolbar.contains(e.target)) {
-        return;
-      }
-      
-      // Проверяем выделение текста
-      const selection = window.getSelection();
-      if (selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        if (!range.collapsed) {
-          // Проверяем, что это действительно новое выделение, а не клик на уже выделенный элемент
-          // Если выделение полностью внутри одного span элемента и совпадает с его содержимым - это клик, не выделение
-          const clickedMark = e.target.closest('.span-participle, .span-gerund, .span-subject, .span-predicate, .span-main-word');
-          if (clickedMark) {
-            const markRange = document.createRange();
-            markRange.selectNodeContents(clickedMark);
-            const selectedText = range.toString().trim();
-            const markText = clickedMark.textContent.trim();
-            // Если выделение точно совпадает с содержимым span - это клик, не новое выделение
-            if (selectedText === markText) {
-              // Не обрабатываем здесь - обработчик клика на выделенные элементы покажет панель
-              return;
-            }
-          }
-          
-          // Это новое выделение текста - показываем панель
-          showToolbar(range);
-        } else {
-          if (floatingToolbar) floatingToolbar.classList.remove('show');
-        }
-      } else {
-        if (floatingToolbar) floatingToolbar.classList.remove('show');
       }
     });
+    
+    floatingToolbar = document.getElementById('task17-floating-toolbar');
+    if (!floatingToolbar) return;
+    
+    // Сохраняем старую функцию showToolbar для обратной совместимости
+    const showToolbar = (range) => {
+      if (!textSelectionToolbar) return;
+      
+      // Проверяем, является ли выделение главным словом (специфичная логика для task17)
+      const isMainWord = range.commonAncestorContainer.nodeType === 1 
+        ? range.commonAncestorContainer.classList.contains('span-main-word')
+        : range.commonAncestorContainer.parentElement?.classList.contains('span-main-word');
+      
+      const mainWordElement = isMainWord 
+        ? (range.commonAncestorContainer.nodeType === 1 
+            ? range.commonAncestorContainer 
+            : range.commonAncestorContainer.parentElement)
+        : null;
+      
+      // Показываем панель через модуль
+      textSelectionToolbar.show(range, {
+        showRemoveButton: true
+      });
+    };
+    
+    // Делаем функцию доступной глобально для обратной совместимости
+    window.showToolbar = showToolbar;
+    
+    // Настраиваем автоматический показ панели (модуль сам обработает mouseup)
+    // Но нам нужно добавить специфичную логику для кликов на уже выделенные элементы
+    textSelectionToolbar.setupAutoShow();
 
     // Обработчик клика на уже выделенные элементы - показывает панель
     function setupClickOnMarks() {
@@ -1595,23 +1641,10 @@
             return;
           }
           
-          // Если клик по главному слову - проверяем режим связывания
+          // Если клик по главному слову
           if (this.classList.contains('span-main-word')) {
-            // Если режим связывания активен - не показываем панель
-            if (typeof isLinkingMode !== 'undefined' && isLinkingMode) {
-              return;
-            }
-            
-            const toolbar = document.getElementById('task17-floating-toolbar');
-            const isToolbarVisible = toolbar && toolbar.classList.contains('show');
-            
-            // Если панель уже видна - это второй клик, включаем режим связывания
-            if (isToolbarVisible) {
-              // Не блокируем событие, чтобы initMainWordColorSelection мог обработать клик для режима связывания
-              return;
-            }
-            
-            // Если панель не видна - это первый клик, показываем панель
+            // Если режим связывания уже активен для этого слова - второй клик показывает панель
+            if (typeof isLinkingMode !== 'undefined' && isLinkingMode && selectedMainWord === this) {
             e.preventDefault();
             e.stopPropagation();
             
@@ -1621,6 +1654,25 @@
             
             // Показываем панель над этим элементом
             showToolbar(range);
+              return;
+            }
+            
+            // Если режим связывания не активен - первый клик открывает режим связывания
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Закрываем панель, если она открыта
+            const toolbar = document.getElementById('task17-floating-toolbar');
+            if (toolbar) {
+              toolbar.classList.remove('show');
+            }
+            
+            // Включаем режим связывания
+            if (typeof window.activateLinkingMode === 'function') {
+              window.activateLinkingMode(this);
+            } else if (typeof activateLinkingMode === 'function') {
+              activateLinkingMode(this);
+            }
             return;
           }
           
@@ -1671,18 +1723,6 @@
 
   // Функция для применения цветов в объяснении
   function applyColorsInExplanation() {
-    // Палитра цветов (та же, что в админке)
-    const colorPalette = [
-      { bg: 'rgba(59, 130, 246, 0.3)', border: 'rgba(59, 130, 246, 0.8)', text: 'rgba(59, 130, 246, 1)' }, // Синий
-      { bg: 'rgba(34, 197, 94, 0.3)', border: 'rgba(34, 197, 94, 0.8)', text: 'rgba(34, 197, 94, 1)' }, // Зеленый
-      { bg: 'rgba(236, 72, 153, 0.3)', border: 'rgba(236, 72, 153, 0.8)', text: 'rgba(236, 72, 153, 1)' }, // Розовый
-      { bg: 'rgba(251, 191, 36, 0.3)', border: 'rgba(251, 191, 36, 0.8)', text: 'rgba(251, 191, 36, 1)' }, // Желтый
-      { bg: 'rgba(168, 85, 247, 0.3)', border: 'rgba(168, 85, 247, 0.8)', text: 'rgba(168, 85, 247, 1)' }, // Фиолетовый
-      { bg: 'rgba(239, 68, 68, 0.3)', border: 'rgba(239, 68, 68, 0.8)', text: 'rgba(239, 68, 68, 1)' }, // Красный
-      { bg: 'rgba(14, 165, 233, 0.3)', border: 'rgba(14, 165, 233, 0.8)', text: 'rgba(14, 165, 233, 1)' }, // Голубой
-      { bg: 'rgba(245, 158, 11, 0.3)', border: 'rgba(245, 158, 11, 0.8)', text: 'rgba(245, 158, 11, 1)' }, // Оранжевый
-    ];
-    
     // Применяем цвет к элементу
     function applyColor(element, color) {
       element.style.backgroundColor = color.bg;
@@ -1708,7 +1748,7 @@
         if (!colorId || colorId === '') return;
         
         const colorIndex = parseInt(colorId);
-        const color = colorPalette[colorIndex % colorPalette.length];
+        const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
         
         // Применяем цвет к главному слову
         applyColor(mainWord, color);
@@ -1731,24 +1771,17 @@
 
   // Функционал для выбора цвета главного слова и связывания с оборотами
   function initMainWordColorSelection() {
-    const colorPalette = [
-      { bg: 'rgba(59, 130, 246, 0.3)', border: 'rgba(59, 130, 246, 0.8)', text: 'rgba(59, 130, 246, 1)' }, // Синий
-      { bg: 'rgba(34, 197, 94, 0.3)', border: 'rgba(34, 197, 94, 0.8)', text: 'rgba(34, 197, 94, 1)' }, // Зеленый
-      { bg: 'rgba(236, 72, 153, 0.3)', border: 'rgba(236, 72, 153, 0.8)', text: 'rgba(236, 72, 153, 1)' }, // Розовый
-      { bg: 'rgba(251, 191, 36, 0.3)', border: 'rgba(251, 191, 36, 0.8)', text: 'rgba(251, 191, 36, 1)' }, // Желтый
-      { bg: 'rgba(168, 85, 247, 0.3)', border: 'rgba(168, 85, 247, 0.8)', text: 'rgba(168, 85, 247, 1)' }, // Фиолетовый
-      { bg: 'rgba(239, 68, 68, 0.3)', border: 'rgba(239, 68, 68, 0.8)', text: 'rgba(239, 68, 68, 1)' }, // Красный
-      { bg: 'rgba(14, 165, 233, 0.3)', border: 'rgba(14, 165, 233, 0.8)', text: 'rgba(14, 165, 233, 1)' }, // Голубой
-      { bg: 'rgba(245, 158, 11, 0.3)', border: 'rgba(245, 158, 11, 0.8)', text: 'rgba(245, 158, 11, 1)' }, // Оранжевый
-    ];
+    // Используем глобальную константу COLOR_PALETTE
 
     // Применяем цвет к элементу
     function applyColor(element, color) {
       element.style.backgroundColor = color.bg;
       if (element.classList.contains('span-main-word')) {
-        element.style.borderColor = color.border;
-        element.style.borderWidth = '2px';
+        // Используем обычный border для обводки главного слова
+        element.style.border = `2px solid ${color.border}`;
         element.style.borderStyle = 'solid';
+        element.style.borderWidth = '2px';
+        element.style.borderColor = color.border;
       } else {
         // Для оборотов - только фон, без обводки, текст остается белым
         element.style.color = 'var(--text-primary)'; // Оставляем белый цвет текста
@@ -1760,11 +1793,13 @@
     // Удаляем цвет с элемента
     function removeColor(element) {
       element.style.backgroundColor = '';
-      element.style.borderColor = '';
       element.style.color = '';
       if (element.classList.contains('span-main-word')) {
-        element.style.borderWidth = '';
+        element.style.border = '';
         element.style.borderStyle = '';
+        element.style.borderWidth = '';
+        element.style.borderColor = '';
+        element.style.outline = '';
       }
     }
 
@@ -1773,7 +1808,7 @@
       const colorId = mainWord.getAttribute('data-color-id');
       if (colorId !== null && colorId !== '') {
         const index = parseInt(colorId);
-        return { index: index, color: colorPalette[index % colorPalette.length] };
+        return { index: index, color: COLOR_PALETTE[index % COLOR_PALETTE.length] };
       }
       // Если цвета нет, находим следующий свободный
       const usedColors = new Set();
@@ -1785,11 +1820,11 @@
       });
       
       let freeIndex = 0;
-      while (usedColors.has(freeIndex) && freeIndex < colorPalette.length) {
+      while (usedColors.has(freeIndex) && freeIndex < COLOR_PALETTE.length) {
         freeIndex++;
       }
       
-      return { index: freeIndex, color: colorPalette[freeIndex % colorPalette.length] };
+      return { index: freeIndex, color: COLOR_PALETTE[freeIndex % COLOR_PALETTE.length] };
     }
 
     // Назначаем цвет главному слову автоматически
@@ -1800,12 +1835,41 @@
       // Применяем цвет к главному слову
       mainWord.setAttribute('data-color-id', colorData.index);
       applyColor(mainWord, colorData.color);
+    }
+    
+    // Активируем режим связывания для главного слова
+    function activateLinkingMode(mainWord) {
+      // Убеждаемся, что у главного слова есть цвет
+      let colorId = mainWord.getAttribute('data-color-id');
+      if (!colorId || colorId === '') {
+        assignColorToMainWord(mainWord);
+        colorId = mainWord.getAttribute('data-color-id');
+      } else {
+        // ВСЕГДА восстанавливаем цвет явно, чтобы гарантировать его наличие
+        const colorIndex = parseInt(colorId);
+        const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
+        applyColor(mainWord, color);
+      }
+      
+      // Если уже был активен режим для другого слова - отменяем его
+      if (isLinkingMode && selectedMainWord && selectedMainWord !== mainWord) {
+        if (typeof window.cancelLinkingMode === 'function') {
+          window.cancelLinkingMode();
+        }
+      }
       
       // Включаем режим связывания
       selectedMainWord = mainWord;
       isLinkingMode = true;
       mainWord.style.outline = '3px solid rgba(236, 72, 153, 0.8)';
       mainWord.style.outlineOffset = '2px';
+      
+      // Настраиваем подсветку оборотов при наведении
+      setTimeout(() => {
+        if (typeof window.setupLinkingModeHover === 'function') {
+          window.setupLinkingModeHover();
+        }
+      }, 100);
     }
 
     // Связываем оборот с главным словом
@@ -1814,11 +1878,113 @@
       if (!colorId || colorId === '') return;
 
       const colorIndex = parseInt(colorId);
-      const color = colorPalette[colorIndex % colorPalette.length];
+      const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
 
       // Применяем цвет к обороту
       applyColor(turn, color);
       turn.setAttribute('data-linked-to', colorId);
+      
+      // Визуальная обратная связь - кратковременная анимация
+      turn.style.transform = 'scale(1.05)';
+      turn.style.transition = 'transform 0.2s ease';
+      setTimeout(() => {
+        turn.style.transform = '';
+      }, 200);
+      
+      // Дополнительно восстанавливаем цвет через requestAnimationFrame для гарантии сохранения
+      requestAnimationFrame(() => {
+        if (turn.getAttribute('data-linked-to') === colorId) {
+          applyColor(turn, color);
+        }
+      });
+      
+      // Автоматически выключаем режим связывания после назначения зависимого оборота
+      if (typeof window.cancelLinkingMode === 'function') {
+        window.cancelLinkingMode();
+      }
+    }
+    
+    // Показываем подсказку режима связывания
+    function showLinkingModeHint() {
+      // Удаляем предыдущую подсказку, если есть
+      const existingHint = document.getElementById('linking-mode-hint');
+      if (existingHint) {
+        existingHint.remove();
+      }
+      
+      const hint = document.createElement('div');
+      hint.id = 'linking-mode-hint';
+      hint.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--bg-tertiary);
+        border: 2px solid rgba(236, 72, 153, 0.8);
+        border-radius: 8px;
+        padding: 12px 20px;
+        color: var(--text-primary);
+        font-size: 14px;
+        z-index: 10001;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(236, 72, 153, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideDown 0.3s ease;
+      `;
+      hint.innerHTML = `
+        <span>Режим связывания: кликните на оборот для связи с главным словом</span>
+        <button id="cancel-linking-btn" style="
+          background: rgba(239, 68, 68, 0.3);
+          border: 1px solid rgba(239, 68, 68, 0.8);
+          color: var(--text-primary);
+          padding: 4px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
+        ">Отмена (ESC)</button>
+      `;
+      document.body.appendChild(hint);
+      
+      // Обработчик кнопки отмены
+      const cancelBtn = hint.querySelector('#cancel-linking-btn');
+      cancelBtn.onclick = () => {
+        cancelLinkingMode();
+      };
+    }
+    
+    // Отменяем режим связывания
+    function cancelLinkingMode() {
+      if (selectedMainWord) {
+        // Сохраняем ссылку на главное слово для восстановления цвета
+        const mainWordRef = selectedMainWord;
+        const colorId = mainWordRef.getAttribute('data-color-id');
+        
+        // Убираем только outline (розовую обводку режима связывания)
+        selectedMainWord.style.outline = '';
+        selectedMainWord.style.outlineOffset = '';
+        
+        // ВСЕГДА восстанавливаем цвет и обводку главного слова явно
+        if (colorId && colorId !== '') {
+          const colorIndex = parseInt(colorId);
+          const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
+          // Применяем цвет заново, чтобы гарантировать его сохранение
+          applyColor(mainWordRef, color);
+          
+          // Дополнительно восстанавливаем через requestAnimationFrame для гарантии
+          requestAnimationFrame(() => {
+            if (mainWordRef.getAttribute('data-color-id') === colorId) {
+              applyColor(mainWordRef, color);
+            }
+          });
+        }
+        
+        selectedMainWord = null;
+      }
+      isLinkingMode = false;
+      
+      // Убираем подсветку с оборотов
+      removeLinkingModeHover();
     }
 
     // Обработчик клика на главное слово для режима связывания
@@ -1830,10 +1996,7 @@
           e.preventDefault();
           e.stopPropagation();
           linkTurnToMainWord(selectedMainWord, turn);
-          selectedMainWord.style.outline = '';
-          selectedMainWord.style.outlineOffset = '';
-          selectedMainWord = null;
-          isLinkingMode = false;
+          // Режим автоматически выключится в linkTurnToMainWord
           return;
         }
       }
@@ -1847,19 +2010,122 @@
           return;
         }
         
-        // Если клик по главному слову и панель видна - это второй клик, включаем режим связывания
-        const toolbar = document.getElementById('task17-floating-toolbar');
-        if (toolbar && toolbar.classList.contains('show')) {
-          // Включаем режим связывания (цвет уже назначен при создании)
+        // Если режим связывания активен и клик по другому главному слову - переключаем режим
+        if (isLinkingMode && selectedMainWord && mainWord !== selectedMainWord) {
           e.preventDefault();
           e.stopPropagation();
-          selectedMainWord = mainWord;
-          isLinkingMode = true;
-          mainWord.style.outline = '3px solid rgba(236, 72, 153, 0.8)';
-          mainWord.style.outlineOffset = '2px';
+          if (typeof window.activateLinkingMode === 'function') {
+            window.activateLinkingMode(mainWord);
+          } else if (typeof activateLinkingMode === 'function') {
+            activateLinkingMode(mainWord);
+          }
+          return;
+        }
+        
+        // Если клик по тому же главному слову в режиме связывания - показываем панель
+        // (это обрабатывается в setupClickOnMarks, но на всякий случай проверяем здесь тоже)
+        if (isLinkingMode && selectedMainWord === mainWord) {
+          // Не блокируем событие, чтобы setupClickOnMarks мог обработать показ панели
+          return;
         }
       }
+      
+      // Если режим связывания активен и клик вне элементов - не отменяем (позволяем связать несколько оборотов)
+      // Отмена только через ESC или кнопку
     }, false); // Используем bubble phase
+    
+    // Обработчик ESC для отмены режима связывания
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isLinkingMode) {
+        if (typeof window.cancelLinkingMode === 'function') {
+          window.cancelLinkingMode();
+        }
+      }
+    });
+    
+    // Подсветка оборотов при наведении в режиме связывания
+    let hoverHandlers = new WeakMap();
+    function setupLinkingModeHover() {
+      if (!isLinkingMode || !selectedMainWord) return;
+      
+      const colorId = selectedMainWord.getAttribute('data-color-id');
+      if (!colorId) return;
+      
+      const colorIndex = parseInt(colorId);
+      const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
+      
+      document.querySelectorAll('.span-participle, .span-gerund').forEach(turn => {
+        // Пропускаем уже связанные обороты
+        if (turn.getAttribute('data-linked-to') === colorId) {
+          return;
+        }
+        
+        // Удаляем старые обработчики, если есть
+        const existingHandlers = hoverHandlers.get(turn);
+        if (existingHandlers) {
+          turn.removeEventListener('mouseenter', existingHandlers.enter);
+          turn.removeEventListener('mouseleave', existingHandlers.leave);
+        }
+        
+        turn.style.cursor = 'pointer';
+        turn.style.transition = 'all 0.2s ease';
+        
+        const enterHandler = function() {
+          if (isLinkingMode && this.getAttribute('data-linked-to') !== colorId) {
+            this.style.backgroundColor = color.bg;
+            this.style.opacity = '0.8';
+          }
+        };
+        
+        const leaveHandler = function() {
+          if (this.getAttribute('data-linked-to') !== colorId) {
+            this.style.backgroundColor = '';
+            this.style.opacity = '';
+          }
+        };
+        
+        turn.addEventListener('mouseenter', enterHandler);
+        turn.addEventListener('mouseleave', leaveHandler);
+        
+        // Сохраняем обработчики для последующего удаления
+        hoverHandlers.set(turn, { enter: enterHandler, leave: leaveHandler });
+      });
+    }
+    
+    // Удаляем обработчики при выходе из режима связывания
+    function removeLinkingModeHover() {
+      document.querySelectorAll('.span-participle, .span-gerund').forEach(turn => {
+        const handlers = hoverHandlers.get(turn);
+        if (handlers) {
+          turn.removeEventListener('mouseenter', handlers.enter);
+          turn.removeEventListener('mouseleave', handlers.leave);
+          hoverHandlers.delete(turn);
+        }
+        turn.style.cursor = '';
+        turn.style.opacity = '';
+        
+        // НЕ удаляем цвет у уже связанных оборотов (которые имеют data-linked-to)
+        // Удаляем только временную подсветку при наведении
+        const linkedTo = turn.getAttribute('data-linked-to');
+        if (!linkedTo || linkedTo === '') {
+          // Если оборот не связан, убираем временную подсветку
+          turn.style.backgroundColor = '';
+        } else {
+          // Если оборот связан, восстанавливаем его цвет из главного слова
+          const colorId = linkedTo;
+          const colorIndex = parseInt(colorId);
+          const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
+          applyColor(turn, color);
+        }
+      });
+    }
+    
+    // Делаем функции доступными глобально
+    window.showLinkingModeHint = showLinkingModeHint;
+    window.cancelLinkingMode = cancelLinkingMode;
+    window.setupLinkingModeHover = setupLinkingModeHover;
+    window.removeLinkingModeHover = removeLinkingModeHover;
+    window.activateLinkingMode = activateLinkingMode;
   }
 
   // Устанавливаем подсветку при наведении в тон цвета главного слова
@@ -1870,7 +2136,36 @@
       if (processedElements.has(mainWord)) return;
       processedElements.add(mainWord);
 
-      const borderColor = mainWord.style.borderColor;
+      // Получаем цвет из CSS переменной (теперь используется для псевдоэлемента)
+      let borderColor = null;
+      const cssVar = getComputedStyle(mainWord).getPropertyValue('--main-word-border-color').trim();
+      if (cssVar && cssVar !== 'transparent') {
+        borderColor = cssVar;
+      }
+      
+      // Для обратной совместимости проверяем outline, borderColor и boxShadow
+      if (!borderColor) {
+        const outline = mainWord.style.outline;
+        if (outline) {
+          const match = outline.match(/rgba?\([^)]+\)/);
+          if (match) {
+            borderColor = match[0];
+          }
+        }
+      }
+      if (!borderColor) {
+        borderColor = mainWord.style.borderColor;
+      }
+      if (!borderColor) {
+        const boxShadow = mainWord.style.boxShadow;
+        if (boxShadow && boxShadow.includes('inset')) {
+          const match = boxShadow.match(/rgba?\([^)]+\)/);
+          if (match) {
+            borderColor = match[0];
+          }
+        }
+      }
+      
       if (borderColor) {
         // Преобразуем цвет в rgba для свечения
         let glowColor = borderColor;
@@ -1888,9 +2183,12 @@
         }
 
         mainWord.addEventListener('mouseenter', function() {
+          // Сохраняем текущий outline и добавляем свечение через box-shadow
+          const currentOutline = this.style.outline || '';
           this.style.boxShadow = `0 0 12px ${glowColor}, 0 0 6px ${glowColorInner}`;
         });
         mainWord.addEventListener('mouseleave', function() {
+          // Убираем свечение, outline остается
           this.style.boxShadow = '';
         });
       }
@@ -1951,7 +2249,7 @@
       deleteButton.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (currentMark) {
+        if (currentMark && currentMark.parentNode) {
           // Удаляем выделение
           const textNode = document.createTextNode(currentMark.textContent);
           currentMark.parentNode.replaceChild(textNode, currentMark);
