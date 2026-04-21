@@ -1,0 +1,116 @@
+<div class="theory-hub-page">
+
+  <div class="theory-hub-header">
+    <h2 class="theory-hub-title">Теория</h2>
+    <p class="theory-hub-desc">Выберите задание, чтобы изучить теоретический материал.</p>
+  </div>
+
+  <div class="theory-hub-grid">
+
+    <a href="/task5/theory" class="theory-hub-card">
+      <span class="theory-hub-card__num">5</span>
+      <div class="theory-hub-card__info">
+        <div class="theory-hub-card__title">Паронимы</div>
+        <div class="theory-hub-card__desc">Пары и группы слов, близких по звучанию, но разных по значению</div>
+      </div>
+      <span class="theory-hub-card__arrow">→</span>
+    </a>
+
+    <a href="/task9/theory" class="theory-hub-card">
+      <span class="theory-hub-card__num">9</span>
+      <div class="theory-hub-card__info">
+        <div class="theory-hub-card__title">Гласные в корне слова</div>
+        <div class="theory-hub-card__desc">Проверяемые, чередующиеся и словарные гласные</div>
+      </div>
+      <span class="theory-hub-card__arrow">→</span>
+    </a>
+
+    <!-- Остальные задания появятся здесь по мере наполнения -->
+
+
+  </div>
+
+</div>
+
+<style>
+.theory-hub-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+.theory-hub-header { margin-bottom: 32px; }
+.theory-hub-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+.theory-hub-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.theory-hub-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.theory-hub-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  text-decoration: none;
+  transition: border-color .2s, background .2s, transform .15s;
+}
+.theory-hub-card:hover {
+  border-color: var(--brand);
+  background: var(--brand-muted);
+  transform: translateX(2px);
+}
+
+.theory-hub-card__num {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--brand-muted);
+  border: 1px solid rgba(164, 190, 226, 0.2);
+  color: var(--brand);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theory-hub-card__info { flex: 1; min-width: 0; }
+.theory-hub-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+.theory-hub-card__desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.theory-hub-card__arrow {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--text-secondary);
+  transition: color .18s, transform .18s;
+}
+.theory-hub-card:hover .theory-hub-card__arrow {
+  color: var(--brand);
+  transform: translateX(3px);
+}
+</style>

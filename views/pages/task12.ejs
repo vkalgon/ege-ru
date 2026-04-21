@@ -1,0 +1,147 @@
+<div class="task-page" id="task12-list">
+  <h2 class="task-page__title">Задание №12 — Личные окончания и суффиксы причастий</h2>
+
+  <div class="task17-wrapper">
+    <div class="task9-column task9-feed-inner">
+      <h3 class="task10-section-title">Сгенерировать задание</h3>
+      <div class="task10-generate-wrap" style="margin-bottom:32px;">
+        <div class="task10-generate-grid task9-generate-grid">
+          <div class="form-group" style="margin:0;min-width:240px;">
+            <label>Пары букв</label>
+            <div class="task10-check-grid">
+              <label><input type="checkbox" class="task12-pair-checkbox" value="е/и"> е / и (окончания, страдат.)</label>
+              <label><input type="checkbox" class="task12-pair-checkbox" value="у/а"> у / а (действит., твёрд.)</label>
+              <label><input type="checkbox" class="task12-pair-checkbox" value="ю/я"> ю / я (действит., мягк.)</label>
+            </div>
+            <div style="margin-top:8px;color:var(--text-secondary);font-size:12px;">Если ничего не выбрать — используются все пары.</div>
+          </div>
+          <div class="form-group" style="margin:0;min-width:280px;">
+            <label>Тип формы</label>
+            <div class="task10-check-grid">
+              <label><input type="checkbox" class="task12-form-checkbox" value="verb"> глаголы</label>
+              <label><input type="checkbox" class="task12-form-checkbox" value="active_part"> действит. причастия</label>
+              <label><input type="checkbox" class="task12-form-checkbox" value="passive_part"> страдат. причастия</label>
+              <label><input type="checkbox" class="task12-form-checkbox" value="wsh"> ВШ отвлекатели</label>
+              <label><input type="checkbox" class="task12-form-checkbox" value="nn"> НН отвлекатели</label>
+            </div>
+            <div style="margin-top:8px;color:var(--text-secondary);font-size:12px;">Если ничего не выбрать — используются все типы.</div>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Правильных строк</label>
+            <div class="task10-check-grid task10-count-grid">
+              <label><input type="checkbox" class="task12-count-checkbox" value="2" checked> 2</label>
+              <label><input type="checkbox" class="task12-count-checkbox" value="3"> 3</label>
+              <label><input type="checkbox" class="task12-count-checkbox" value="4"> 4</label>
+              <label><input type="checkbox" class="task12-count-checkbox" value="5"> 5</label>
+            </div>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Количество заданий</label>
+            <input type="number" id="task12-tasks-count" min="1" max="20" value="1">
+          </div>
+        </div>
+        <div class="task10-generate-actions">
+          <button class="btn" id="btn-generate-task12" type="button">Сгенерировать</button>
+        </div>
+      </div>
+
+      <h3 class="task10-section-title">Все задания</h3>
+      <div id="tasks-feed" class="task9-task-feed">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/task-play-card.js"></script>
+<script>
+async function loadFeed() {
+  const feed = document.getElementById('tasks-feed');
+  let tasks;
+  try {
+    const res = await fetch('/api/task12/tasks');
+    if (!res.ok) throw new Error('Ошибка загрузки');
+    tasks = await res.json();
+  } catch {
+    feed.innerHTML = '<p style="color:#D69295;margin:0;">Не удалось загрузить задания.</p>';
+    return;
+  }
+  if (!Array.isArray(tasks) || !tasks.length) {
+    feed.innerHTML =
+      '<p style="color:var(--text-secondary);margin:0;">Пока нет заданий. Сгенерируйте вариант или добавьте задания в админке.</p>';
+    return;
+  }
+
+  const plays = await Promise.all(
+    tasks.map(t => fetch('/api/task12/tasks/' + t.id + '/play').then(r => r.ok ? r.json() : null))
+  );
+
+  const blocks = [];
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    const play = plays[i];
+    if (!play) continue;
+    blocks.push(
+      '<div class="task9-feed-item" data-task-id="' + t.id + '" id="task12-feed-' + t.id + '">' +
+      renderTask12CardHTML(t.id, play, { standalone: false }) +
+      '</div>'
+    );
+  }
+
+  if (!blocks.length) {
+    feed.innerHTML = '<p style="color:var(--text-secondary);margin:0;">Не удалось загрузить содержимое заданий.</p>';
+    return;
+  }
+
+  feed.innerHTML = blocks.join('');
+
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    const play = plays[i];
+    if (!play) continue;
+    const root = document.getElementById('task12-feed-' + t.id);
+    if (root) initTask12Card(root, t.id, play, { standalone: false });
+  }
+}
+
+document.getElementById('btn-generate-task12').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-generate-task12');
+  btn.disabled = true;
+  btn.textContent = 'Генерируем...';
+  try {
+    const body = {};
+    const pairs      = Array.from(document.querySelectorAll('.task12-pair-checkbox:checked')).map(el => el.value);
+    const formTypes  = Array.from(document.querySelectorAll('.task12-form-checkbox:checked')).map(el => el.value);
+    const correctCounts = Array.from(document.querySelectorAll('.task12-count-checkbox:checked')).map(el => el.value);
+    if (pairs.length)     body.vowel_pairs = pairs;
+    if (formTypes.length) body.form_types = formTypes;
+    if (!correctCounts.length) { alert('Выберите количество правильных строк'); return; }
+    body.correct_counts = correctCounts;
+    body.tasks_count = +document.getElementById('task12-tasks-count').value || 1;
+
+    const res = await fetch('/api/task12/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    await loadFeed();
+    location.href = '/task12/' + data.id;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Сгенерировать';
+  }
+});
+
+document.querySelectorAll('.task12-count-checkbox').forEach(checkbox => {
+  checkbox.addEventListener('change', () => {
+    if (!checkbox.checked) return;
+    document.querySelectorAll('.task12-count-checkbox').forEach(other => {
+      if (other !== checkbox) other.checked = false;
+    });
+  });
+});
+
+loadFeed();
+</script>

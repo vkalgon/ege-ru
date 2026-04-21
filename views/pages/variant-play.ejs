@@ -1,0 +1,958 @@
+<div id="variantPlayPage" data-id="<%= variantId %>">
+  <div class="vplay-header">
+    <h1 class="vplay-title">Вариант <span class="vplay-title__id">#<%= variantId %></span></h1>
+    <div class="vplay-progress-wrap">
+      <div class="vplay-progress-bar"><div class="vplay-progress-fill" id="vProgressFill"></div></div>
+      <span class="vplay-progress-text" id="vProgressText">0 / 0</span>
+    </div>
+  </div>
+  <div id="variantList"><p class="vplay-loading">Загрузка…</p></div>
+  <div class="vplay-footer">
+    <a href="/variant" class="btn">Создать новый вариант</a>
+    <button class="btn btn-secondary" id="vResetBtn">Сбросить прогресс</button>
+  </div>
+</div>
+
+<style>
+/* ── Layout ─────────────────────────────────────────────── */
+#variantPlayPage { max-width: 780px; margin: 0 auto; padding: 32px 16px; display: flex; flex-direction: column; gap: 32px; }
+
+.vplay-header { display: flex; flex-direction: column; gap: 14px; }
+.vplay-title  { font-size: 26px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.vplay-title__id { color: var(--brand); }
+
+.vplay-progress-wrap { display: flex; align-items: center; gap: 12px; }
+.vplay-progress-bar  { flex: 1; height: 5px; border-radius: 3px; background: var(--bg-tertiary); overflow: hidden; }
+.vplay-progress-fill { height: 100%; background: var(--brand); border-radius: 3px; transition: width .3s ease; width: 0%; }
+.vplay-progress-text { font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+
+.vplay-loading { color: var(--text-secondary); padding: 32px 0; text-align: center; }
+
+/* ── Task sections ──────────────────────────────────────── */
+.vplay-section { display: flex; flex-direction: column; gap: 10px; }
+.vplay-divider  { border: none; border-top: 1px solid var(--glass-border); margin: 8px 0; }
+
+.vplay-label {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em;
+}
+.vplay-label__index {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--bg-tertiary); border: 1px solid var(--glass-border);
+  color: var(--text-primary); font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.vplay-label--done .vplay-label__index { background: var(--brand-muted); border-color: var(--brand); color: var(--brand); }
+.vplay-label__done-mark { color: var(--brand); font-size: 14px; margin-left: auto; }
+.vplay-label__text { color: var(--brand); }
+
+.vplay-slot { min-height: 40px; }
+
+/* ── Footer ─────────────────────────────────────────────── */
+.vplay-footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--glass-border); }
+
+/* ── Task 17 digit styles (needed inline) ───────────────── */
+.task17-digit { cursor: pointer; padding: 1px 4px; margin: 0 1px; border-radius: 4px; transition: all .2s; display: inline-block; position: relative; }
+.task17-digit:hover:not(.selected):not(.correct-selected):not(.extra-selected):not(.correct) { background-color: var(--brand-muted); }
+.task17-digit.selected       { background-color: rgba(164,190,226,.2); color: var(--brand); outline: 1.5px solid var(--brand-dim); outline-offset: -1px; }
+.task17-digit.correct        { background-color: transparent !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; }
+.task17-digit.correct-selected { background-color: rgba(164,226,208,0.12) !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; font-weight: bold; }
+.task17-digit.extra-selected { background-color: #D69295 !important; color: #0f1117 !important; font-weight: bold; }
+/* Task19 bracket handles */
+.bracket-handle { display:inline-block; font-weight:bold; font-size:1.15em; line-height:1; padding:0 2px; border-radius:3px; cursor:grab; user-select:none; transition:background .15s, transform .1s; }
+.bracket-handle:hover { transform:scale(1.2); }
+.bracket-handle:active { cursor:grabbing; }
+.bracket-handle.bh-main { color:#4a9eff; }
+.bracket-handle.bh-main:hover { background:rgba(74,158,255,.18); }
+.bracket-handle.bh-sub  { color:#ff8c42; }
+.bracket-handle.bh-sub:hover  { background:rgba(255,140,66,.18); }
+.bracket-handle[data-dragging="true"] { opacity:.3; }
+.task17-text-editable.bh-drag-over { outline:2px dashed var(--glass-border); }
+@keyframes bhBlink { 0%,100%{opacity:1} 50%{opacity:.2} }
+/* Task18 word cards */
+.task18-word-card { padding:10px 14px; border-radius:8px; border:1px solid var(--glass-border); font-size:.9rem; margin-bottom:8px; }
+.task18-word-card.ok  { border-color:rgba(164,226,208,.5); background:rgba(164,226,208,.07); }
+.task18-word-card.err { border-color:rgba(214,146,149,.5); background:rgba(214,146,149,.07); }
+.task18-word-card__phrase { font-weight:700; font-size:1rem; }
+.task18-word-card__type   { font-size:.8rem; color:var(--text-secondary); margin-left:6px; }
+.task18-word-card__rule   { margin-top:4px; color:var(--text-secondary); font-size:.88rem; }
+/* Task5/7 styles */
+.t5-sentences-wrap,.t7-phrases-wrap { display:flex; flex-direction:column; gap:12px; }
+.t5-sentence-item,.t7-phrase-item { display:flex; gap:14px; align-items:flex-start; background:var(--bg-secondary); border:1px solid var(--glass-border); border-radius:8px; padding:14px 16px; font-size:15px; line-height:1.6; transition:border-color .25s,background .25s; }
+.t5-sentence-item.state-error,.t7-phrase-item.state-error { border-color:#D69295; }
+.t5-sentence-item.state-ok,.t7-phrase-item.state-ok       { border-color:var(--brand); }
+.t5-sentence-num,.t7-phrase-num { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--glass-border); color:var(--text-secondary); font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.t5-sentence-item.state-error .t5-sentence-num,.t7-phrase-item.state-error .t7-phrase-num { background:rgba(214,146,149,.2); color:#D69295; }
+.t5-sentence-item.state-ok    .t5-sentence-num,.t7-phrase-item.state-ok    .t7-phrase-num { background:var(--brand-muted); color:var(--brand); }
+.t5-sentence-text,.t7-phrase-text { flex:1; }
+.t5-hl,.t7-hl { font-weight:700; font-variant:small-caps; letter-spacing:.04em; text-decoration:underline dotted; text-underline-offset:3px; }
+/* Task4 styles */
+.t4-items { display:flex; flex-direction:column; gap:10px; }
+.t4-item  { display:flex; align-items:center; gap:14px; padding:12px 18px; background:var(--bg-secondary); border:1px solid var(--glass-border); border-radius:8px; transition:border-color .2s,background .2s; }
+.t4-item.selected        { border-color:var(--brand); background:var(--brand-muted); }
+.t4-item.result-correct  { border-color:var(--brand); background:var(--brand-muted); }
+.t4-item.result-missed   { border-color:#f59e0b; background:rgba(245,158,11,.06); }
+.t4-item.result-wrong    { border-color:#D69295; background:rgba(214,146,149,.08); }
+.t4-item.result-neutral  { border-color:var(--glass-border); opacity:.65; }
+.t4-num  { width:32px; height:32px; border-radius:6px; border:1px solid var(--glass-border); background:none; cursor:pointer; font-size:14px; font-weight:700; color:var(--text-secondary); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:border-color .2s,color .2s,background .2s; }
+.t4-num:hover:not(:disabled) { border-color:var(--brand); color:var(--brand); }
+.t4-num.selected { border-color:var(--brand); color:var(--brand); background:var(--brand-muted); }
+.t4-num:disabled { cursor:default; }
+.t4-word { font-size:20px; cursor:default; }
+.t4-ch   { cursor:pointer; border-radius:3px; }
+.t4-ch:hover { background:rgba(255,255,255,.08); }
+.t4-ch.marked  { background:rgba(245,158,11,.35); }
+.t4-ch.locked  { cursor:default; }
+.t4-ch.locked:hover { background:none; }
+.t4-ch.answer-ch { color:var(--brand); font-weight:700; }
+.t4-result-block { display:flex; flex-direction:column; gap:10px; }
+.t4-result-row   { display:flex; align-items:flex-start; gap:10px; font-size:14px; line-height:1.5; }
+.t4-result-icon  { font-weight:700; width:18px; flex-shrink:0; padding-top:1px; }
+.t4-rule { margin-top:3px; font-size:12px; color:var(--text-secondary); }
+</style>
+
+<!-- ── Shared task JS ─────────────────────────────────────── -->
+<script src="/js/task-card-shell.js"></script>
+<script src="/js/task-play-card.js"></script>
+<script src="/js/text-selection-toolbar.js"></script>
+
+<!-- ── Plain JS loaders (tasks 4, 5, 7, 9–12) ──────────────── -->
+<script>
+window._VL = {}; // VariantLoaders namespace
+
+const _esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function _errCard(msg) {
+  return `<div class="task-card task17-card"><div class="task-content"><p style="color:#D69295;margin:0;">${_esc(msg)}</p></div></div>`;
+}
+
+/* ── Tasks 9/10/11/12 — shared task-play-card.js ─────────── */
+['9','10','11','12'].forEach(n => {
+  window._VL['task'+n] = async (slot, taskId) => {
+    try {
+      const res = await fetch(`/api/task${n}/tasks/${taskId}/play`);
+      if (!res.ok) { slot.innerHTML = _errCard('Задание не найдено'); return; }
+      const task = await res.json();
+      slot.innerHTML = window[`renderTask${n}CardHTML`](taskId, task, { standalone: true });
+      window[`initTask${n}Card`](slot, taskId, task, { standalone: true });
+    } catch(e) { slot.innerHTML = _errCard(e.message); }
+  };
+});
+
+/* ── Task 4 — Ударения ───────────────────────────────────── */
+window._VL.task4 = async (slot, taskId) => {
+  const uid = 't4-' + taskId;
+  const esc = _esc;
+
+  function stressIdx(word, wordStressed) {
+    const p = wordStressed.indexOf('\u0301');
+    return p >= 1 ? p - 1 : -1;
+  }
+  function renderWord(word, stressIndex, itemIndex) {
+    return Array.from(word).map((ch, i) => {
+      const display = i === stressIndex ? ch.toUpperCase() : ch;
+      return `<span class="t4-ch" data-item="${itemIndex}" data-pos="${i}">${esc(display)}</span>`;
+    }).join('');
+  }
+  function renderAnswerWord(word, correctIndex) {
+    return Array.from(word).map((ch, i) => {
+      if (i === correctIndex) return `<span class="t4-ch locked answer-ch">${ch.toUpperCase()}</span>`;
+      return `<span class="t4-ch locked">${esc(ch)}</span>`;
+    }).join('');
+  }
+  function renderCard(task) {
+    const itemsHtml = task.items.map(it => `
+      <div class="t4-item" id="t4-item-${taskId}-${it.item_index}">
+        <button class="t4-num" data-index="${it.item_index}">${it.item_index}</button>
+        <span class="t4-word" id="t4-word-${taskId}-${it.item_index}">
+          ${renderWord(it.word, stressIdx(it.word, it.word_stressed), it.item_index)}
+        </span>
+      </div>`).join('');
+    const bodyHtml = `<p class="task-prompt" style="margin:0;">Укажите варианты ответов, в которых <strong>верно</strong> выделено ударение.</p>
+      <div class="t4-items" id="t4-items-${taskId}">${itemsHtml}</div>`;
+    const controlsHtml = `<button type="button" class="task-send" id="t4-check-${taskId}">Проверить</button>`;
+    return TaskCardShell.buildCardShell({ taskNum:4, taskId, bodyHtml, controlsHtml, uid });
+  }
+  function renderResult(data, task) {
+    data.items.forEach(item => {
+      const card   = document.getElementById(`t4-item-${taskId}-${item.item_index}`);
+      const wordEl = document.getElementById(`t4-word-${taskId}-${item.item_index}`);
+      card.classList.remove('selected');
+      if      (item.is_correct && item.user_selected)  card.classList.add('result-correct');
+      else if (item.is_correct && !item.user_selected) card.classList.add('result-missed');
+      else if (!item.is_correct && item.user_selected) card.classList.add('result-wrong');
+      else                                              card.classList.add('result-neutral');
+      wordEl.innerHTML = renderAnswerWord(item.word, item.correct_stress_index);
+    });
+    const correctStr = data.correct_indices.join(', ');
+    let itemsHtml = '';
+    data.items.forEach(item => {
+      const color = item.item_ok ? 'var(--brand)' : '#D69295';
+      const icon  = item.item_ok ? '✓' : '✗';
+      const ci = item.correct_stress_index;
+      const correctDisplay = esc(item.word.slice(0,ci)) + `<strong>${item.word[ci].toUpperCase()}</strong>` + esc(item.word.slice(ci+1));
+      let desc = item.is_correct ? `${correctDisplay} — ударение верное` : `${esc(item.word_stressed)} — неверное, правильно: ${correctDisplay}`;
+      if (item.hint) desc += ` <span style="color:var(--text-secondary);font-size:13px;">— ${esc(item.hint)}</span>`;
+      let ruleHtml = '';
+      if (item.category_rule) ruleHtml = `<div class="t4-rule">${esc(item.category_name)}: ${esc(item.category_rule)}</div>`;
+      itemsHtml += `<div class="t4-result-row"><span class="t4-result-icon" style="color:${color};">${icon}</span><div><span style="font-size:15px;">${item.item_index}. </span>${desc}${ruleHtml}</div></div>`;
+    });
+    const bodyHtml = `<p style="margin:0;font-size:15px;">Правильный ответ: <strong style="color:var(--brand);">${esc(correctStr)}</strong></p><div class="t4-result-block">${itemsHtml}</div>`;
+    TaskCardShell.showResult(uid, data.all_correct, bodyHtml);
+  }
+
+  try {
+    const res = await fetch(`/api/task4/tasks/${taskId}/play`);
+    if (!res.ok) { slot.innerHTML = _errCard('Задание не найдено'); return; }
+    const task = await res.json();
+    slot.innerHTML = renderCard(task);
+
+    const selected = new Set();
+    const grid     = document.getElementById('t4-items-' + taskId);
+    const checkBtn = document.getElementById('t4-check-' + taskId);
+
+    grid.addEventListener('click', e => {
+      const numBtn = e.target.closest('.t4-num');
+      if (numBtn && !numBtn.disabled) {
+        const idx  = +numBtn.dataset.index;
+        const card = document.getElementById(`t4-item-${taskId}-${idx}`);
+        if (selected.has(idx)) { selected.delete(idx); numBtn.classList.remove('selected'); card.classList.remove('selected'); }
+        else                   { selected.add(idx);    numBtn.classList.add('selected');    card.classList.add('selected');    }
+        return;
+      }
+      const ch = e.target.closest('.t4-ch');
+      if (ch && !ch.classList.contains('locked')) {
+        const itemIdx = ch.dataset.item;
+        grid.querySelectorAll(`.t4-ch[data-item="${itemIdx}"]`).forEach(l => { if (l!==ch) l.classList.remove('marked'); });
+        ch.classList.toggle('marked');
+      }
+    });
+    checkBtn.addEventListener('click', async () => {
+      checkBtn.disabled = true; checkBtn.textContent = '...';
+      try {
+        const data = await fetch(`/api/task4/tasks/${taskId}/check`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ selected: Array.from(selected) })
+        }).then(r => r.json());
+        if (data.error) { alert(data.error); return; }
+        grid.querySelectorAll('.t4-ch').forEach(c => c.classList.add('locked'));
+        TaskCardShell.lockCard(uid);
+        renderResult(data, task);
+      } finally { checkBtn.textContent = 'Проверить'; }
+    });
+  } catch(e) { slot.innerHTML = _errCard(e.message); }
+};
+
+/* ── Task 5 — Паронимы ───────────────────────────────────── */
+window._VL.task5 = async (slot, taskId) => {
+  const uid = 't5-' + taskId;
+  const esc = _esc;
+  let taskData = null;
+
+  function escRx(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+  function renderSentences(items, resultItems) {
+    return items.map(it => {
+      const safe = esc(it.sentence);
+      const rendered = safe.replace(new RegExp('\\{\\{' + escRx(it.highlighted_word) + '\\}\\}','i'), `<span class="t5-hl">${esc(it.highlighted_word)}</span>`);
+      let stateClass='', extraHtml='';
+      if (resultItems) {
+        const ri = resultItems.find(r => r.item_index===it.item_index);
+        if (ri && ri.is_error) { stateClass='state-error'; extraHtml=`<div style="margin-top:8px;font-size:13px;color:#D69295;">«${esc(ri.highlighted_word)}» → <strong style="color:var(--brand)">${esc(ri.correct_word)}</strong></div>`; }
+        else stateClass='state-ok';
+      }
+      return `<div class="t5-sentence-item ${stateClass}"><div class="t5-sentence-num">${it.item_index}</div><div class="t5-sentence-text">${rendered}${extraHtml}</div></div>`;
+    }).join('');
+  }
+  function renderCard() {
+    const bodyHtml = `<p class="task-prompt" style="margin:0;">В одном из предложений <strong>НЕВЕРНО</strong> употреблено выделенное слово. Запишите пароним.</p>
+      <div class="t5-sentences-wrap" id="t5-sentences-${taskId}">${renderSentences(taskData.items)}</div>`;
+    const controlsHtml = `<input id="t5-input-${taskId}" class="task-input" type="text" placeholder="Введите правильное слово…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button id="t5-check-${taskId}" class="task-send">Проверить</button>`;
+    return TaskCardShell.buildCardShell({ taskNum:5, taskId, bodyHtml, controlsHtml, uid });
+  }
+  try {
+    const res = await fetch(`/api/task5/tasks/${taskId}/play`);
+    if (!res.ok) { slot.innerHTML = _errCard('Задание не найдено'); return; }
+    taskData = await res.json();
+    slot.innerHTML = renderCard();
+    const input = document.getElementById('t5-input-'+taskId);
+    const btn   = document.getElementById('t5-check-'+taskId);
+    input.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); btn.click(); } });
+    btn.addEventListener('click', async () => {
+      const answer = input.value.trim();
+      if (!answer) { input.focus(); return; }
+      btn.disabled = true;
+      try {
+        const resp = await fetch(`/api/task5/tasks/${taskId}/check`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({answer}) }).then(r=>r.json());
+        const wrap = document.getElementById('t5-sentences-'+taskId);
+        if (wrap) wrap.innerHTML = renderSentences(taskData.items, resp.items);
+        TaskCardShell.lockCard(uid);
+        TaskCardShell.showResult(uid, resp.is_correct, `<p style="margin:0;">Правильный ответ: <strong style="color:var(--brand);">${esc(resp.correct_answer)}</strong></p>`);
+      } catch(e) { btn.disabled=false; alert('Ошибка при проверке.'); }
+    });
+  } catch(e) { slot.innerHTML = _errCard(e.message); }
+};
+
+/* ── Task 7 — Морфологические нормы ─────────────────────── */
+window._VL.task7 = async (slot, taskId) => {
+  const uid = 't7-' + taskId;
+  const esc = _esc;
+  let taskData = null;
+
+  function renderPhrases(items, resultItems) {
+    return items.map(it => {
+      let stateClass='', extraHtml='';
+      if (resultItems) {
+        const ri = resultItems.find(r => r.item_index===it.item_index);
+        if (ri && ri.is_error) { stateClass='state-error'; extraHtml=`<div style="margin-top:8px;font-size:13px;color:#D69295;">Ошибка → <strong style="color:var(--brand)">${esc(ri.correct_form)}</strong></div>`; }
+        else stateClass='state-ok';
+      }
+      const hl = esc(it.display_phrase).replace(/\b([А-ЯЁA-Z]{2,})\b/g, '<span class="t7-hl">$1</span>');
+      return `<div class="t7-phrase-item ${stateClass}"><div class="t7-phrase-num">${it.item_index}</div><div class="t7-phrase-text">${hl}${extraHtml}</div></div>`;
+    }).join('');
+  }
+  function renderCard() {
+    const bodyHtml = `<p class="task-prompt" style="margin:0;">В одном из выделенных слов допущена ошибка в образовании формы. Исправьте и запишите.</p>
+      <div class="t7-phrases-wrap" id="t7-phrases-${taskId}">${renderPhrases(taskData.items)}</div>`;
+    const controlsHtml = `<input id="t7-input-${taskId}" class="task-input" type="text" placeholder="Введите правильную форму…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button id="t7-check-${taskId}" class="task-send">Проверить</button>`;
+    return TaskCardShell.buildCardShell({ taskNum:7, taskId, bodyHtml, controlsHtml, uid });
+  }
+  try {
+    const res = await fetch(`/api/task7/tasks/${taskId}/play`);
+    if (!res.ok) { slot.innerHTML = _errCard('Задание не найдено'); return; }
+    taskData = await res.json();
+    slot.innerHTML = renderCard();
+    const input = document.getElementById('t7-input-'+taskId);
+    const btn   = document.getElementById('t7-check-'+taskId);
+    input.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); btn.click(); } });
+    btn.addEventListener('click', async () => {
+      const answer = input.value.trim();
+      if (!answer) { input.focus(); return; }
+      btn.disabled = true;
+      try {
+        const resp = await fetch(`/api/task7/tasks/${taskId}/check`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({answer}) }).then(r=>r.json());
+        const wrap = document.getElementById('t7-phrases-'+taskId);
+        if (wrap) wrap.innerHTML = renderPhrases(taskData.items, resp.items);
+        TaskCardShell.lockCard(uid);
+        TaskCardShell.showResult(uid, resp.is_correct, `<p style="margin:0;">Правильная форма: <strong style="color:var(--brand);">${esc(resp.correct_answer)}</strong></p>`);
+      } catch(e) { btn.disabled=false; alert('Ошибка при проверке.'); }
+    });
+  } catch(e) { slot.innerHTML = _errCard(e.message); }
+};
+
+// Placeholders: React loaders set by Babel script below
+window._VL.task17 = null;
+window._VL.task18 = null;
+window._VL.task19 = null;
+</script>
+
+<!-- ── React loaders (tasks 17, 18, 19) ─────────────────── -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+(function() {
+  const { useState, useEffect, useRef } = React;
+
+  function parseDigits(text) {
+    const parts = []; const re = /\((\d+)\)/g; let last=0, m;
+    while ((m=re.exec(text))!==null) {
+      if (m.index>last) parts.push({text:text.substring(last,m.index),digit:null});
+      parts.push({text:m[0],digit:parseInt(m[1],10)});
+      last=m.index+m[0].length;
+    }
+    if (last<text.length) parts.push({text:text.substring(last),digit:null});
+    return parts;
+  }
+
+  /* ── Task 17 ──────────────────────────────────────────── */
+  function Task17Item({ taskId }) {
+    const [taskData,setTaskData]=useState(null);
+    const [selDigits,setSelDigits]=useState(new Set());
+    const [answerInput,setAnswerInput]=useState('');
+    const [checkResult,setCheckResult]=useState(null);
+    const [correctDigits,setCorrectDigits]=useState(new Set());
+    const [extraDigits,setExtraDigits]=useState(new Set());
+    const [loading,setLoading]=useState(false);
+    const [error,setError]=useState(null);
+    const [showSolution,setShowSolution]=useState(false);
+    const inputRef=useRef(null);
+
+    useEffect(()=>{
+      (async()=>{
+        try { setLoading(true); setCorrectDigits(new Set()); setExtraDigits(new Set()); setCheckResult(null);
+          const r=await fetch(`/api/task17/${taskId}/play?mode=digits`);
+          if(!r.ok) throw new Error('Не удалось загрузить задание');
+          setTaskData(await r.json()); setError(null);
+        } catch(e){setError(e.message);} finally{setLoading(false);}
+      })();
+    },[taskId]);
+
+    useEffect(()=>{setAnswerInput(Array.from(selDigits).sort((a,b)=>a-b).join(''));},[selDigits]);
+
+    const handleDigit=(d)=>{ if(checkResult) return; setSelDigits(prev=>{const s=new Set(prev);s.has(d)?s.delete(d):s.add(d);return s;}); };
+    const handleInput=(e)=>{ const v=e.target.value; setAnswerInput(v); setSelDigits(new Set(v.split('').map(c=>parseInt(c,10)).filter(n=>!isNaN(n)&&n>0))); };
+    const handleCheck=async()=>{
+      if(!taskData) return;
+      const digits=Array.from(selDigits).sort((a,b)=>a-b);
+      if(!digits.length){alert('Выберите цифры или введите ответ');inputRef.current?.focus();return;}
+      try{
+        setLoading(true);
+        const r=await fetch(`/api/task17/${taskId}/check`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'digits',digits,spans:[]})});
+        if(!r.ok) throw new Error('Ошибка проверки');
+        const result=await r.json(); setCheckResult(result);
+        setCorrectDigits(new Set(result.correctAnswer||[]));
+        setExtraDigits(new Set((result.digits?.extra)||[]));
+      } catch(e){setError(e.message);} finally{setLoading(false);}
+    };
+
+    if(loading&&!taskData) return <div className="task-card task17-card task-play-card"><div className="task-content"><p>Загрузка…</p></div></div>;
+    if(error) return <div className="task-card task17-card task-play-card"><div className="task-content"><p style={{color:'red'}}>Ошибка: {error}</p></div></div>;
+    if(!taskData) return null;
+
+    const hasChecked=!!checkResult;
+
+    return (<div className="task-card task17-card task-play-card">
+      <div className="task-meta">
+        <span className="task-meta__number">№ {taskId}</span>
+        {taskData.source&&<span className="task-meta__source">{taskData.source}</span>}
+      </div>
+      <div className="task-content">
+        <div className="task-prompt">
+          <div className="task17-text-editable" style={{fontSize:'18px',lineHeight:'1.8',padding:'16px',border:'1px solid var(--glass-border)',borderRadius:'8px',background:'var(--bg-secondary)'}}>
+            <div style={{paddingBottom:'12px',marginBottom:'12px',borderBottom:'1px solid var(--glass-border)',fontSize:'16px',lineHeight:'1.6',fontWeight:'500'}}>
+              Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).
+            </div>
+            {parseDigits(taskData.text).map((part,idx)=>{
+              if(part.digit!==null){
+                const isSel=selDigits.has(part.digit),isCorr=correctDigits.has(part.digit),isExtra=extraDigits.has(part.digit);
+                let cls='task17-digit';
+                if(hasChecked){if(isExtra&&isSel)cls+=' extra-selected';else if(isCorr&&isSel)cls+=' correct-selected';else if(isCorr)cls+=' correct';}
+                else if(isSel)cls+=' selected';
+                return <span key={`d17-${taskId}-${idx}`} className={cls} onClick={()=>handleDigit(part.digit)} style={{userSelect:'none',cursor:hasChecked?'default':'pointer'}}>{part.text}</span>;
+              }
+              return <span key={`t17-${taskId}-${idx}`}>{part.text}</span>;
+            })}
+          </div>
+        </div>
+        <div className="task-controls">
+          <input ref={inputRef} className="task-input" type="text" value={answerInput} onChange={handleInput} placeholder="Введите ответ" inputMode="numeric" disabled={hasChecked} onKeyPress={e=>{if(e.key==='Enter')handleCheck();}}/>
+          <button className="task-send" onClick={handleCheck} disabled={loading||hasChecked}><span>{loading?'Проверка…':'Отправить'}</span></button>
+          <button className="task-solution" onClick={()=>setShowSolution(s=>!s)}><span>Решение</span><img src={showSolution?'/images/eye on.svg':'/images/eye off.svg'} alt="Глаз" width="16" height="16"/></button>
+        </div>
+        {showSolution&&taskData.explanation&&(<div style={{marginTop:'24px'}}>
+          {taskData.explanation.answer_text&&<p style={{margin:'0 0 8px'}}><strong>Ответ:</strong> {taskData.explanation.answer_text}</p>}
+          {taskData.explanation.explanation_md&&<div dangerouslySetInnerHTML={{__html:taskData.explanation.explanation_md.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}} style={{fontSize:'16px',lineHeight:'1.7'}}/>}
+        </div>)}
+        {hasChecked&&(<div className="task-solution-block" style={{marginTop:'24px'}}>
+          {checkResult.digits?.isCorrect?(<div style={{display:'flex',alignItems:'center',gap:'12px',padding:'16px',background:'rgba(164,226,208,0.07)',border:'1px solid rgba(164,226,208,0.4)',borderRadius:'8px'}}><div style={{fontSize:'32px',color:'#A4E2D0'}}>✓</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>Верно!</div></div>):(<div><div style={{fontWeight:'bold',color:'#f6b462',marginBottom:'8px'}}>Неверно</div>{checkResult.correctAnswer&&<div style={{padding:'12px',background:'rgba(214,146,149,.1)',border:'1px solid rgba(214,146,149,.3)',borderRadius:'8px'}}><div style={{color:'var(--text-secondary)',fontSize:'14px'}}>Правильный ответ:</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>{checkResult.correctAnswer.join(', ')}</div></div>}</div>)}
+        </div>)}
+      </div>
+    </div>);
+  }
+
+  /* ── Task 18 ──────────────────────────────────────────── */
+  const INTRO_LABELS={always:'всегда вводное',never:'никогда не вводное',context:'зависит от контекста'};
+  function Task18Item({ taskId }) {
+    const [taskData,setTaskData]=useState(null);
+    const [selDigits,setSelDigits]=useState(new Set());
+    const [answerInput,setAnswerInput]=useState('');
+    const [checkResult,setCheckResult]=useState(null);
+    const [correctDigits,setCorrectDigits]=useState(new Set());
+    const [extraDigits,setExtraDigits]=useState(new Set());
+    const [loading,setLoading]=useState(false);
+    const [error,setError]=useState(null);
+    const [showSolution,setShowSolution]=useState(false);
+    const inputRef=useRef(null);
+
+    useEffect(()=>{
+      (async()=>{
+        try{setLoading(true);setCorrectDigits(new Set());setExtraDigits(new Set());setCheckResult(null);
+          const r=await fetch(`/api/task18/tasks/${taskId}/play`);
+          if(!r.ok) throw new Error('Не удалось загрузить задание');
+          setTaskData(await r.json());setError(null);
+        }catch(e){setError(e.message);}finally{setLoading(false);}
+      })();
+    },[taskId]);
+
+    useEffect(()=>{setAnswerInput(Array.from(selDigits).sort((a,b)=>a-b).join(''));},[selDigits]);
+    const handleDigit=(d)=>{if(checkResult)return;setSelDigits(prev=>{const s=new Set(prev);s.has(d)?s.delete(d):s.add(d);return s;});};
+    const handleInput=(e)=>{const v=e.target.value;setAnswerInput(v);setSelDigits(new Set(v.split('').map(c=>parseInt(c,10)).filter(n=>!isNaN(n)&&n>0)));};
+    const handleCheck=async()=>{
+      if(!taskData||checkResult)return;
+      const digits=Array.from(selDigits).sort((a,b)=>a-b);
+      if(!digits.length){alert('Выберите цифры или введите ответ');inputRef.current?.focus();return;}
+      try{setLoading(true);
+        const r=await fetch(`/api/task18/tasks/${taskId}/check`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selected:digits})});
+        if(!r.ok)throw new Error('Ошибка проверки');
+        const result=await r.json();setCheckResult(result);
+        setCorrectDigits(new Set(result.comma_positions));
+        setExtraDigits(new Set(digits.filter(d=>!result.comma_positions.includes(d))));
+      }catch(e){setError(e.message);}finally{setLoading(false);}
+    };
+
+    if(loading&&!taskData)return <div className="task-card task17-card task-play-card"><div className="task-content"><p>Загрузка…</p></div></div>;
+    if(error)return <div className="task-card task17-card task-play-card"><div className="task-content"><p style={{color:'red'}}>Ошибка: {error}</p></div></div>;
+    if(!taskData)return null;
+    const hasChecked=!!checkResult;
+
+    return(<div className="task-card task17-card task-play-card">
+      <div className="task-meta"><span className="task-meta__number">№ {taskId}</span>{taskData.source&&<span className="task-meta__source">{taskData.source}</span>}</div>
+      <div className="task-content">
+        <div className="task-prompt">
+          <div className="task17-text-editable" style={{padding:'16px',border:'1px solid var(--glass-border)',borderRadius:'8px',background:'var(--bg-secondary)'}}>
+            <div style={{paddingBottom:'12px',marginBottom:'12px',borderBottom:'1px solid var(--glass-border)',fontSize:'16px',lineHeight:'1.6',fontWeight:'500'}}>Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).</div>
+            {parseDigits(taskData.source_text).map((part,idx)=>{
+              if(part.digit!==null){
+                const isSel=selDigits.has(part.digit),isCorr=correctDigits.has(part.digit),isExtra=extraDigits.has(part.digit);
+                let cls='task17-digit';
+                if(hasChecked){if(isExtra&&isSel)cls+=' extra-selected';else if(isCorr&&isSel)cls+=' correct-selected';else if(isCorr)cls+=' correct';}
+                else if(isSel)cls+=' selected';
+                return <span key={`d18-${taskId}-${idx}`} className={cls} onClick={()=>handleDigit(part.digit)} style={{userSelect:'none',cursor:hasChecked?'default':'pointer'}}>{part.text}</span>;
+              }
+              return <span key={`t18-${taskId}-${idx}`}>{part.text}</span>;
+            })}
+          </div>
+        </div>
+        <div className="task-controls">
+          <input ref={inputRef} className="task-input" type="text" value={answerInput} onChange={handleInput} placeholder="Введите ответ" inputMode="numeric" disabled={hasChecked} onKeyPress={e=>{if(e.key==='Enter')handleCheck();}}/>
+          <button className="task-send" onClick={handleCheck} disabled={loading||hasChecked}><span>{loading?'Проверка…':'Отправить'}</span></button>
+          <button className="task-solution" onClick={()=>setShowSolution(s=>!s)}><span>Решение</span><img src={showSolution?'/images/eye on.svg':'/images/eye off.svg'} alt="Глаз" width="16" height="16"/></button>
+        </div>
+        {showSolution&&taskData.explanation&&<div style={{marginTop:'24px'}} dangerouslySetInnerHTML={{__html:taskData.explanation.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}}/>}
+        {hasChecked&&(<div className="task-solution-block" style={{marginTop:'24px'}}>
+          {checkResult.is_correct?(<div style={{display:'flex',alignItems:'center',gap:'12px',padding:'16px',background:'rgba(164,226,208,0.07)',border:'1px solid rgba(164,226,208,0.4)',borderRadius:'8px'}}><div style={{fontSize:'32px',color:'#A4E2D0'}}>✓</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>Всё верно!</div></div>):(<div><div style={{fontWeight:'bold',color:'#f6b462',marginBottom:'8px'}}>Неверно</div><div style={{padding:'12px',background:'rgba(214,146,149,.1)',border:'1px solid rgba(214,146,149,.3)',borderRadius:'8px'}}><div style={{color:'var(--text-secondary)',fontSize:'14px'}}>Правильный ответ:</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>{checkResult.comma_positions.join(', ')||'(нет запятых)'}</div></div></div>)}
+          {checkResult.word_results?.length>0&&(<div style={{marginTop:'12px'}}>{checkResult.word_results.map(wr=>(<div key={wr.word_id} className={`task18-word-card ${wr.word_correct?'ok':'err'}`}><span className="task18-word-card__phrase">«{wr.phrase}»</span><span className="task18-word-card__type">{INTRO_LABELS[wr.intro_type]||''}</span><div className="task18-word-card__rule">{wr.is_intro_in_task?(wr.rule_intro||'Вводное слово — выделяется запятыми.'):(wr.rule_not_intro||'Не вводное — запятыми не выделяется.')}</div></div>))}</div>)}
+        </div>)}
+      </div>
+    </div>);
+  }
+
+  /* ── Task 19 ──────────────────────────────────────────── */
+  function Task19Item({ taskId }) {
+    const [taskData,setTaskData]=useState(null);
+    const [selDigits,setSelDigits]=useState(new Set());
+    const [answerInput,setAnswerInput]=useState('');
+    const [checkResult,setCheckResult]=useState(null);
+    const [correctDigits,setCorrectDigits]=useState(new Set());
+    const [extraDigits,setExtraDigits]=useState(new Set());
+    const [loading,setLoading]=useState(false);
+    const [error,setError]=useState(null);
+    const inputRef=useRef(null);
+
+    useEffect(()=>{
+      (async()=>{
+        try{setLoading(true);setCorrectDigits(new Set());setExtraDigits(new Set());setCheckResult(null);
+          const r=await fetch(`/api/task19/tasks/${taskId}/play`);
+          if(!r.ok)throw new Error('Не удалось загрузить задание');
+          setTaskData(await r.json());setError(null);
+        }catch(e){setError(e.message);}finally{setLoading(false);}
+      })();
+    },[taskId]);
+
+    useEffect(()=>{setAnswerInput(Array.from(selDigits).sort((a,b)=>a-b).join(''));},[selDigits]);
+    const handleDigit=(d)=>{if(checkResult)return;setSelDigits(prev=>{const s=new Set(prev);s.has(d)?s.delete(d):s.add(d);return s;});};
+    const handleInput=(e)=>{const v=e.target.value;setAnswerInput(v);setSelDigits(new Set(v.split('').map(c=>parseInt(c,10)).filter(n=>!isNaN(n)&&n>0)));};
+    const handleCheck=async()=>{
+      if(!taskData||checkResult)return;
+      const digits=Array.from(selDigits).sort((a,b)=>a-b);
+      if(!digits.length){alert('Выберите цифры или введите ответ');inputRef.current?.focus();return;}
+      try{setLoading(true);
+        const r=await fetch(`/api/task19/tasks/${taskId}/check`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selected:digits})});
+        if(!r.ok)throw new Error('Ошибка проверки');
+        const result=await r.json();setCheckResult(result);
+        setCorrectDigits(new Set(result.comma_positions));
+        setExtraDigits(new Set(digits.filter(d=>!result.comma_positions.includes(d))));
+      }catch(e){setError(e.message);}finally{setLoading(false);}
+    };
+
+    if(loading&&!taskData)return <div className="task-card task17-card task-play-card"><div className="task-content"><p>Загрузка…</p></div></div>;
+    if(error)return <div className="task-card task17-card task-play-card"><div className="task-content"><p style={{color:'red'}}>Ошибка: {error}</p></div></div>;
+    if(!taskData)return null;
+    const hasChecked=!!checkResult;
+
+    return(<div className="task-card task17-card task-play-card">
+      <div className="task-meta"><span className="task-meta__number">№ {taskId}</span>{taskData.source&&<span className="task-meta__source">{taskData.source}</span>}</div>
+      <div className="task-content">
+        <div className="task-prompt">
+          <div style={{marginBottom:'12px',fontSize:'16px',lineHeight:'1.6',fontWeight:'500'}}>Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).</div>
+          <div className="task17-text-editable task19-text-editable"
+            contentEditable={true} suppressContentEditableWarning={true}
+            style={{fontSize:'18px',lineHeight:'2.0',padding:'16px',border:'1px solid var(--glass-border)',borderRadius:'8px',background:'var(--bg-secondary)'}}>
+            {parseDigits(taskData.source_text).map((part,idx)=>{
+              if(part.digit!==null){
+                const isSel=selDigits.has(part.digit),isCorr=correctDigits.has(part.digit),isExtra=extraDigits.has(part.digit);
+                let cls='task17-digit';
+                if(hasChecked){if(isExtra&&isSel)cls+=' extra-selected';else if(isCorr&&isSel)cls+=' correct-selected';else if(isCorr)cls+=' correct';}
+                else if(isSel)cls+=' selected';
+                return <span key={`d19-${taskId}-${idx}`} className={cls} contentEditable={false} onClick={(e)=>{e.preventDefault();e.stopPropagation();handleDigit(part.digit);}} style={{userSelect:'none',cursor:hasChecked?'default':'pointer'}}>{part.text}</span>;
+              }
+              return <span key={`t19-${taskId}-${idx}`}>{part.text}</span>;
+            })}
+          </div>
+        </div>
+        <div className="task-controls">
+          <input ref={inputRef} className="task-input" type="text" value={answerInput} onChange={handleInput} placeholder="Введите ответ" inputMode="numeric" disabled={hasChecked} onKeyPress={e=>{if(e.key==='Enter')handleCheck();}}/>
+          <button className="task-send" onClick={handleCheck} disabled={loading||hasChecked}><span>{loading?'Проверка…':'Отправить'}</span></button>
+        </div>
+        {hasChecked&&(<div className="task-solution-block" style={{marginTop:'24px'}}>
+          {checkResult.is_correct?(<div style={{display:'flex',alignItems:'center',gap:'12px',padding:'16px',background:'rgba(164,226,208,0.07)',border:'1px solid rgba(164,226,208,0.4)',borderRadius:'8px'}}><div style={{fontSize:'32px',color:'#A4E2D0'}}>✓</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>Верно!</div></div>):(<div><div style={{fontWeight:'bold',color:'#f6b462',marginBottom:'8px'}}>Неверно</div><div style={{padding:'12px',background:'rgba(214,146,149,.1)',border:'1px solid rgba(214,146,149,.3)',borderRadius:'8px'}}><div style={{color:'var(--text-secondary)',fontSize:'14px'}}>Правильный ответ:</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>{checkResult.comma_positions.join(', ')||'(нет запятых)'}</div></div></div>)}
+          {taskData.explanation_md&&<div style={{marginTop:'12px',padding:'12px',background:'var(--bg-secondary)',border:'1px solid var(--glass-border)',borderRadius:'8px'}} dangerouslySetInnerHTML={{__html:taskData.explanation_md.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}}/>}
+        </div>)}
+      </div>
+    </div>);
+  }
+
+  // Expose React loaders
+  window._VL.task17 = (slot, taskId) => ReactDOM.createRoot(slot).render(<Task17Item taskId={taskId} />);
+  window._VL.task18 = (slot, taskId) => ReactDOM.createRoot(slot).render(<Task18Item taskId={taskId} />);
+  window._VL.task19 = (slot, taskId) => ReactDOM.createRoot(slot).render(<Task19Item taskId={taskId} />);
+  window._VL_REACT_READY = true;
+})();
+</script>
+
+<!-- ── Main variant initializer ──────────────────────────── -->
+<script>
+(async () => {
+  const variantId   = document.getElementById('variantPlayPage').dataset.id;
+  const listEl      = document.getElementById('variantList');
+  const fillEl      = document.getElementById('vProgressFill');
+  const textEl      = document.getElementById('vProgressText');
+  const storageKey  = 'variant_done_' + variantId;
+
+  let tasks  = [];
+  let doneSet = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));
+
+  // ── Wait for React/Babel to initialise ──────────────────
+  await new Promise(resolve => {
+    if (window._VL_REACT_READY) { resolve(); return; }
+    const iv = setInterval(() => { if (window._VL_REACT_READY) { clearInterval(iv); resolve(); } }, 30);
+    setTimeout(() => { clearInterval(iv); resolve(); }, 4000);
+  });
+
+  // ── Fetch variant data ───────────────────────────────────
+  let data;
+  try {
+    data = await fetch('/api/variant/' + variantId).then(r => r.json());
+    if (data.error) throw new Error(data.error);
+    tasks = data.tasks;
+  } catch(e) {
+    listEl.innerHTML = `<p class="vplay-loading" style="color:#D69295">Ошибка: ${e.message}</p>`;
+    return;
+  }
+
+  // ── Progress ─────────────────────────────────────────────
+  function updateProgress() {
+    const done  = tasks.filter(t => doneSet.has(t.index)).length;
+    const total = tasks.length;
+    fillEl.style.width = total ? Math.round(done/total*100)+'%' : '0%';
+    textEl.textContent = done + ' / ' + total;
+  }
+  function saveDone() {
+    localStorage.setItem(storageKey, JSON.stringify([...doneSet]));
+    updateProgress();
+  }
+
+  // ── Render task sections ─────────────────────────────────
+  listEl.innerHTML = '';
+
+  for (const task of tasks) {
+    const isDone = doneSet.has(task.index);
+
+    // Section wrapper
+    const section = document.createElement('div');
+    section.className = 'vplay-section';
+    section.dataset.index = task.index;
+
+    // Divider (not before first)
+    if (task.index > 1) {
+      const hr = document.createElement('hr');
+      hr.className = 'vplay-divider';
+      section.appendChild(hr);
+    }
+
+    // Label row
+    const label = document.createElement('div');
+    label.className = 'vplay-label' + (isDone ? ' vplay-label--done' : '');
+    label.innerHTML =
+      `<span class="vplay-label__index">${task.index}</span>` +
+      `<span class="vplay-label__text">Задание ${task.num} — ${task.label}</span>` +
+      (isDone ? '<span class="vplay-label__done-mark">✓ выполнено</span>' : '');
+
+    // "Done" toggle on label click
+    label.style.cursor = 'pointer';
+    label.title = 'Отметить как выполненное';
+    function refreshLabel(t) {
+      const done = doneSet.has(t.index);
+      label.className = 'vplay-label' + (done ? ' vplay-label--done' : '');
+      label.innerHTML =
+        `<span class="vplay-label__index">${t.index}</span>` +
+        `<span class="vplay-label__text">Задание ${t.num} — ${t.label}</span>` +
+        (done ? '<span class="vplay-label__done-mark">✓ выполнено</span>' : '');
+    }
+    label.addEventListener('click', () => {
+      if (doneSet.has(task.index)) doneSet.delete(task.index);
+      else                          doneSet.add(task.index);
+      saveDone();
+      refreshLabel(task);
+    });
+
+    // Task slot
+    const slot = document.createElement('div');
+    slot.className = 'vplay-slot';
+
+    section.appendChild(label);
+    section.appendChild(slot);
+    listEl.appendChild(section);
+
+    // Load the task
+    const loader = window._VL[task.type];
+    if (loader) {
+      await loader(slot, task.taskId);
+    } else {
+      slot.innerHTML = `<a href="${task.url}" class="btn" target="_blank" style="margin-top:4px;">Открыть задание →</a>`;
+    }
+  }
+
+  updateProgress();
+
+  // ── Reset ────────────────────────────────────────────────
+  document.getElementById('vResetBtn').addEventListener('click', () => {
+    if (!confirm('Сбросить отметки о выполнении?')) return;
+    doneSet.clear(); saveDone();
+    // Update all labels
+    listEl.querySelectorAll('.vplay-label').forEach(label => {
+      const idx = +label.closest('.vplay-section').dataset.index;
+      const t = tasks.find(t => t.index === idx);
+      if (!t) return;
+      label.className = 'vplay-label';
+      label.innerHTML =
+        `<span class="vplay-label__index">${t.index}</span>` +
+        `<span class="vplay-label__text">Задание ${t.num} — ${t.label}</span>`;
+    });
+  });
+})();
+</script>
+
+<!-- ── Text-analysis toolbar for tasks 17, 18, 19 ────────── -->
+<script>
+(function() {
+  if (typeof TextSelectionToolbar === 'undefined') return;
+
+  /* ── Undo (Ctrl+Z) ──────────────────────────────────────── */
+  const _undoStack = [];
+  function _saveUndo(editor) {
+    _undoStack.push({ editor, html: editor.innerHTML });
+    if (_undoStack.length > 50) _undoStack.shift();
+  }
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      const inEditor = document.activeElement && document.activeElement.closest('.task17-text-editable');
+      if (inEditor && _undoStack.length) { e.preventDefault(); const { editor, html } = _undoStack.pop(); editor.innerHTML = html; }
+    }
+  });
+
+  /* ── Расширение до границ слов ──────────────────────────── */
+  function _expandToWords(range) {
+    const r = range.cloneRange();
+    if (r.startContainer.nodeType === Node.TEXT_NODE) {
+      const txt = r.startContainer.textContent; let o = r.startOffset;
+      while (o > 0 && txt[o - 1] !== ' ') o--;
+      r.setStart(r.startContainer, o);
+    }
+    if (r.endContainer.nodeType === Node.TEXT_NODE) {
+      const txt = r.endContainer.textContent; let o = r.endOffset;
+      while (o < txt.length && txt[o] !== ' ') o++;
+      r.setEnd(r.endContainer, o);
+    }
+    while (true) {
+      if (r.startContainer.nodeType === Node.TEXT_NODE && r.startOffset === 0) {
+        const prev = r.startContainer.previousSibling;
+        if (prev && prev.nodeType === Node.TEXT_NODE) { const t = prev.textContent; const sp = t.lastIndexOf(' '); r.setStart(prev, sp >= 0 ? sp + 1 : 0); continue; }
+      }
+      break;
+    }
+    while (true) {
+      if (r.endContainer.nodeType === Node.TEXT_NODE && r.endOffset >= r.endContainer.textContent.length) {
+        const next = r.endContainer.nextSibling;
+        if (next && next.nodeType === Node.TEXT_NODE) { const t = next.textContent; const sp = t.indexOf(' '); r.setEnd(next, sp >= 0 ? sp : t.length); continue; }
+      }
+      break;
+    }
+    return r;
+  }
+
+  function _findEditor(el) {
+    while (el && !el.classList.contains('task17-text-editable')) el = el.parentElement;
+    return el || null;
+  }
+
+  /* ── Bracket handles (task 19) ──────────────────────────── */
+  let _bhCounter = 0;
+  function _createHandle(char, pairId, type, bhClass) {
+    const span = document.createElement('span');
+    span.className = 'bracket-handle ' + bhClass;
+    span.dataset.pairId = pairId;
+    span.dataset.type   = type;
+    span.contentEditable = 'false';
+    span.draggable = true;
+    span.textContent = char;
+    span.title = 'Перетащите чтобы переместить • Клик — удалить пару';
+    return span;
+  }
+
+  /* ── Применение разметки ────────────────────────────────── */
+  window.applySpanClass = function(className) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.toString().trim()) return;
+    let range = sel.getRangeAt(0);
+    const anchor = range.commonAncestorContainer.nodeType === 3
+      ? range.commonAncestorContainer.parentElement
+      : range.commonAncestorContainer;
+    const editor = _findEditor(anchor);
+    if (!editor) return;
+    _saveUndo(editor);
+    range = _expandToWords(range);
+
+    if (className === 'bracket-main' || className === 'bracket-sub') {
+      const pairId  = 'bh' + (++_bhCounter);
+      const bhClass = className === 'bracket-main' ? 'bh-main' : 'bh-sub';
+      const chars   = className === 'bracket-main' ? ['[', ']'] : ['(', ')'];
+      const open  = _createHandle(chars[0], pairId, 'open',  bhClass);
+      const close = _createHandle(chars[1], pairId, 'close', bhClass);
+      const startNode = range.startContainer, startOffset = range.startOffset;
+      const endRange = range.cloneRange(); endRange.collapse(false); endRange.insertNode(close);
+      const openRange = document.createRange(); openRange.setStart(startNode, startOffset); openRange.collapse(true); openRange.insertNode(open);
+    } else {
+      const span = document.createElement('span');
+      span.className = className;
+      try { range.surroundContents(span); }
+      catch (_) { const c = range.extractContents(); span.appendChild(c); range.insertNode(span); }
+    }
+    sel.removeAllRanges();
+    if (editor.contentEditable === 'true') editor.focus();
+  };
+
+  /* ── Удаление разметки ──────────────────────────────────── */
+  const _SPAN_CLASSES = ['span-subject','span-predicate','span-participle','span-gerund','span-main-word'];
+  window.removeMark = function() {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    let el = sel.getRangeAt(0).commonAncestorContainer;
+    if (el.nodeType === 3) el = el.parentElement;
+    const handle = el.closest && el.closest('.bracket-handle');
+    if (handle) {
+      const editor = _findEditor(handle);
+      if (editor) { _saveUndo(editor); editor.querySelectorAll(`.bracket-handle[data-pair-id="${handle.dataset.pairId}"]`).forEach(h => h.remove()); }
+      sel.removeAllRanges();
+      return;
+    }
+    while (el) {
+      if (el.classList && _SPAN_CLASSES.some(c => el.classList.contains(c))) {
+        const editor = _findEditor(el);
+        if (editor) _saveUndo(editor);
+        const p = el.parentNode;
+        while (el.firstChild) p.insertBefore(el.firstChild, el);
+        p.removeChild(el);
+        sel.removeAllRanges();
+        return;
+      }
+      if (el.classList && el.classList.contains('task17-text-editable')) break;
+      el = el.parentElement;
+    }
+  };
+
+  /* ── Drag-and-drop скобок (task 19) ─────────────────────── */
+  function _initDragDrop(editor) {
+    let dragging = null, dropMarker = null;
+    function getMarker() {
+      if (!dropMarker) {
+        dropMarker = document.createElement('span');
+        dropMarker.className = 'bh-drop-marker';
+        dropMarker.style.cssText = 'display:inline-block;width:2px;height:1.2em;background:var(--brand);vertical-align:middle;border-radius:1px;margin:0 1px;animation:bhBlink 0.6s infinite;';
+      }
+      return dropMarker;
+    }
+    function getRangeAt(x, y) {
+      const ex = editor.querySelector('.bh-drop-marker'); if (ex) ex.remove();
+      if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y);
+      if (document.caretPositionFromPoint) { const p = document.caretPositionFromPoint(x, y); if (p) { const r = document.createRange(); r.setStart(p.offsetNode, p.offset); r.collapse(true); return r; } }
+      return null;
+    }
+    editor.addEventListener('dragstart', function(e) {
+      if (!e.target.classList.contains('bracket-handle')) return;
+      dragging = e.target; dragging.dataset.dragging = 'true';
+      e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'bh');
+    });
+    editor.addEventListener('dragend', function() {
+      if (dragging) { dragging.dataset.dragging = 'false'; dragging = null; }
+      getMarker().remove(); editor.classList.remove('bh-drag-over');
+    });
+    editor.addEventListener('dragover', function(e) {
+      if (!dragging) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      editor.classList.add('bh-drag-over');
+      const r = getRangeAt(e.clientX, e.clientY); if (r) r.insertNode(getMarker());
+    });
+    editor.addEventListener('dragleave', function(e) {
+      if (!editor.contains(e.relatedTarget)) { editor.classList.remove('bh-drag-over'); getMarker().remove(); }
+    });
+    editor.addEventListener('drop', function(e) {
+      if (!dragging) return; e.preventDefault(); editor.classList.remove('bh-drag-over');
+      const m = getMarker();
+      if (m.parentNode) { m.parentNode.insertBefore(dragging, m); m.remove(); }
+      dragging.dataset.dragging = 'false'; dragging = null;
+      window.getSelection().removeAllRanges();
+    });
+    editor.addEventListener('click', function(e) {
+      const handle = e.target.closest && e.target.closest('.bracket-handle');
+      if (!handle) return;
+      _saveUndo(editor);
+      editor.querySelectorAll(`.bracket-handle[data-pair-id="${handle.dataset.pairId}"]`).forEach(h => h.remove());
+    });
+  }
+
+  /* ── Инициализация тулбаров ─────────────────────────────── */
+  const onBtn = function(btn) { if (btn.class) window.applySpanClass(btn.class); };
+  const onRm  = function()    { window.removeMark(); };
+
+  // Toolbar task 17/18 — причастный / деепричастный оборот
+  const t17 = new TextSelectionToolbar({
+    containerId: 'variant-toolbar-17',
+    editorSelector: '.task17-text-editable:not(.task19-text-editable)',
+    ignoreSelectors: ['.task17-digit'],
+    defaultButtons: true,
+    onButtonClick: onBtn,
+    onRemoveClick: onRm
+  });
+  t17.setupAutoShow();
+
+  // Toolbar task 19 — скобки + подлежащее/сказуемое
+  const t19 = new TextSelectionToolbar({
+    containerId: 'variant-toolbar-19',
+    editorSelector: '.task19-text-editable',
+    ignoreSelectors: ['.task17-digit', '.bracket-handle'],
+    defaultButtons: false,
+    customButtons: [
+      { class:'bracket-main',  icon:'<svg width="28" height="20" viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><text x="2" y="15" font-size="15" font-weight="bold" fill="#4a9eff" font-family="monospace">[ ]</text></svg>', title:'Главное предложение' },
+      { class:'bracket-sub',   icon:'<svg width="28" height="20" viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><text x="2" y="15" font-size="15" font-weight="bold" fill="#ff8c42" font-family="monospace">( )</text></svg>', title:'Придаточное предложение' },
+      { class:'span-subject',  icon:'<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="6" x2="22" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>', title:'Подлежащее' },
+      { class:'span-predicate',icon:'<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="4" x2="22" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="7" x2="22" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>', title:'Сказуемое' }
+    ],
+    onButtonClick: onBtn,
+    onRemoveClick: onRm
+  });
+  t19.setupAutoShow();
+
+  // Подключаем drag-drop к task19-текстам по мере их появления
+  const _t19Init = setInterval(function() {
+    document.querySelectorAll('.task19-text-editable:not([data-dnd-init])').forEach(function(editor) {
+      editor.dataset.dndInit = '1';
+      _initDragDrop(editor);
+    });
+  }, 300);
+  setTimeout(function() { clearInterval(_t19Init); }, 15000);
+})();
+</script>

@@ -1,0 +1,90 @@
+<div class="task5-page">
+  <div class="task-page-header">
+    <div class="t5-header-row">
+      <h2 class="task-page-title">Задание №5 — Паронимы</h2>
+      <a href="/task5/theory" class="t5-theory-btn">Теория →</a>
+    </div>
+    <p class="task-page-desc">
+      В одном из пяти предложений НЕВЕРНО употреблено выделенное слово.
+      Найдите лексическую ошибку и запишите правильный пароним.
+    </p>
+  </div>
+
+  <div id="task5-list" class="task-cards-grid">
+    <div class="loading-stub">Загрузка заданий…</div>
+  </div>
+</div>
+
+<style>
+.task5-page { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+.task-page-header { margin-bottom: 28px; }
+.t5-header-row { display: flex; align-items: baseline; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+.task-page-title { font-size: 22px; font-weight: 700; margin: 0; }
+.t5-theory-btn {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--brand);
+  text-decoration: none;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 4px 14px;
+  transition: background .18s, border-color .18s;
+  white-space: nowrap;
+}
+.t5-theory-btn:hover { background: var(--brand-muted); border-color: var(--brand); }
+.task-page-desc  { color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+.task-cards-grid { display: flex; flex-direction: column; gap: 16px; }
+.t5-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.t5-card:hover { border-color: var(--brand); }
+.t5-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.t5-card-id { font-size: 13px; color: var(--text-secondary); }
+.t5-card-error { font-size: 13px; color: #f59e0b; }
+.t5-sentences { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.t5-sentences li { font-size: 13px; color: var(--text-secondary); line-height: 1.45;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t5-sentences li .hl { color: var(--text-primary, #e2e8f0); font-weight: 600; }
+.loading-stub { color: var(--text-secondary); padding: 32px 0; text-align: center; }
+</style>
+
+<script>
+(async () => {
+  const list = document.getElementById('task5-list');
+  try {
+    const tasks = await fetch('/api/task5/tasks').then(r => r.json());
+    if (!tasks.length) { list.innerHTML = '<div class="loading-stub">Заданий пока нет.</div>'; return; }
+    list.innerHTML = '';
+    for (const t of tasks) {
+      const task = await fetch(`/api/task5/tasks/${t.id}/play`).then(r => r.json());
+      const card = document.createElement('a');
+      card.href = `/task5/${t.id}`;
+      card.className = 't5-card';
+      const preview = task.items.slice(0, 3).map((it, i) => {
+        const safe = it.sentence.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const hl = it.highlighted_word.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const rendered = safe.replace(
+          new RegExp('\\{\\{' + it.highlighted_word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\}\\}', 'i'),
+          `<span class="hl">${hl}</span>`
+        );
+        return `<li>${i+1}) ${rendered}</li>`;
+      }).join('');
+      card.innerHTML = `
+        <div class="t5-card-header">
+          <span class="t5-card-id">Задание #${t.id}</span>
+          ${t.error_word ? `<span class="t5-card-error">Ошибка: ${t.error_word}</span>` : ''}
+        </div>
+        <ul class="t5-sentences">${preview}</ul>`;
+      list.appendChild(card);
+    }
+  } catch(e) {
+    list.innerHTML = '<div class="loading-stub">Ошибка загрузки заданий.</div>';
+    console.error(e);
+  }
+})();
+</script>

@@ -1,0 +1,2062 @@
+<div class="profile-page">
+  <div class="profile-header">
+    <div class="profile-avatar">
+      <img id="profile-avatar-img" alt="Аватар" style="display:none;width:48px;height:48px;border-radius:50%;object-fit:cover;" />
+      <span id="profile-avatar-fallback" style="width:48px;height:48px;border-radius:50%;background:var(--color-accent-soft);display:flex;align-items:center;justify-content:center;color:var(--color-accent);font-size:24px;font-weight:700;">?</span>
+    </div>
+    <div class="profile-info">
+      <h1 id="profile-name">Загрузка...</h1>
+      <div id="profile-role-badge" class="profile-role-badge"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="logout-btn" style="margin-left:auto">Выйти</button>
+  </div>
+
+  <section class="profile-section">
+    <h2>Аватар профиля</h2>
+    <div class="join-teacher-form" style="align-items:flex-start;gap:10px;flex-wrap:wrap;">
+      <label class="btn btn-outline" for="avatar-upload-input">Загрузить изображение</label>
+      <input type="file" id="avatar-upload-input" accept="image/png,image/jpeg,image/webp" style="display:none">
+      <button class="btn btn-ghost" id="avatar-reset-btn" type="button">Сбросить</button>
+    </div>
+    <div id="avatar-presets" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="🎓">🎓</button>
+      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="📚">📚</button>
+      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="🧠">🧠</button>
+      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="✍️">✍️</button>
+      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="🚀">🚀</button>
+      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="✨">✨</button>
+    </div>
+    <div id="avatar-msg" class="join-msg" style="margin-top:8px;"></div>
+  </section>
+
+  <!-- ══════════════ УЧЕНИК ══════════════ -->
+  <div id="student-section" style="display:none">
+    <!-- Режимы практики -->
+    <section class="profile-section">
+      <h2>Практика</h2>
+      <div class="practice-modes">
+        <a href="/tasks" class="practice-card">
+          <div class="practice-card-icon">📝</div>
+          <div class="practice-card-body">
+            <strong>Все задания</strong>
+            <small>Выбери любой тип задания</small>
+          </div>
+        </a>
+        <button class="practice-card" id="weak-practice-btn" disabled title="Решите ещё заданий, чтобы разблокировать">
+          <div class="practice-card-icon">🎯</div>
+          <div class="practice-card-body">
+            <strong>Тренировка слабых мест</strong>
+            <small id="weak-practice-hint">Загрузка...</small>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Прогресс -->
+    <section class="profile-section">
+      <h2>Задания для проработки</h2>
+      <p class="section-hint">Карточки отсортированы по количеству проблемных слов — начните с тех, где больше ошибок.</p>
+      <div id="summary-grid" class="task-review-grid">
+        <div class="skeleton-loader">Загрузка статистики...</div>
+      </div>
+    </section>
+
+    <!-- Домашние задания -->
+    <section class="profile-section">
+      <h2>Домашние задания</h2>
+      <div id="homework-list"><div class="skeleton-loader">Загрузка...</div></div>
+    </section>
+
+    <!-- Запросы на подключение от учителей -->
+    <section class="profile-section" id="connection-requests-section" style="display:none">
+      <h2>Запросы от учителей</h2>
+      <div id="connection-requests-list"></div>
+    </section>
+
+    <!-- Код учителя -->
+    <section class="profile-section" id="join-teacher-section">
+      <h2>Присоединиться к учителю</h2>
+      <p class="section-hint">Если у учителя есть код приглашения — введите его здесь.</p>
+      <div class="join-teacher-form">
+        <input type="text" id="join-teacher-code" placeholder="Код учителя (например: A3F2)" class="form-input" style="max-width:200px;text-transform:uppercase">
+        <button class="btn btn-outline" id="join-teacher-btn">Присоединиться</button>
+        <span id="join-teacher-msg" class="join-msg"></span>
+      </div>
+    </section>
+
+    <section class="profile-section" id="my-teacher-section" style="display:none">
+      <h2>Ваш учитель</h2>
+      <p class="section-hint">Вы прикреплены к учителю. При необходимости можно открепиться.</p>
+      <div class="hw-card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <strong id="my-teacher-name">—</strong>
+          <div class="text-muted" id="my-teacher-login" style="margin-top:4px;"></div>
+        </div>
+        <button class="btn btn-outline" id="detach-teacher-btn">Открепиться от учителя</button>
+      </div>
+      <div id="detach-teacher-msg" class="join-msg" style="margin-top:8px;"></div>
+    </section>
+
+  </div><!-- /student-section -->
+
+<!-- Модальное окно: слова по заданию -->
+<div id="words-modal-overlay" class="words-modal-overlay" style="display:none" onclick="closeWordsModal(event)">
+  <div class="words-modal">
+    <div class="words-modal-header">
+      <h3 id="words-modal-title">Слова для повторения</h3>
+      <button class="icon-btn" onclick="closeWordsModal()">✕</button>
+    </div>
+    <div id="words-modal-body" class="words-modal-body"></div>
+  </div>
+</div>
+
+  <!-- ══════════════ УЧИТЕЛЬ ══════════════ -->
+  <div id="teacher-section" style="display:none">
+    <!-- Код приглашения учителя -->
+    <section class="profile-section invite-code-section">
+      <h2>Код приглашения</h2>
+      <p class="section-hint">Поделитесь кодом с учеником — он введёт его при регистрации или в настройках.</p>
+      <div class="invite-code-display">
+        <span class="invite-code-value" id="invite-code-value">—</span>
+        <button class="btn btn-ghost btn-sm" id="copy-code-btn" title="Скопировать">Копировать</button>
+        <button class="btn btn-ghost btn-sm" id="refresh-code-btn" title="Обновить код">Обновить</button>
+      </div>
+      <small class="hint-text" id="invite-code-meta"></small>
+    </section>
+
+    <!-- Поиск ученика по email -->
+    <section class="profile-section">
+      <h2>Найти ученика по email</h2>
+      <div class="add-student-form">
+        <input type="email" id="find-by-email-input" placeholder="email ученика" class="form-input" style="max-width:280px">
+        <button class="btn btn-outline" id="find-by-email-btn">Отправить запрос</button>
+        <span id="find-by-email-msg" class="add-student-error"></span>
+      </div>
+    </section>
+
+    <!-- Шапка с вкладками учителя -->
+    <div class="teacher-tabs-bar">
+      <button class="teacher-tab active" data-tab="students">Мои ученики</button>
+      <button class="teacher-tab" data-tab="homework">Домашние задания</button>
+      <button class="teacher-tab" data-tab="generate">Создать задание</button>
+      <button class="teacher-tab" data-tab="builder">Конструктор ДЗ</button>
+    </div>
+
+    <!-- Вкладка: Мои ученики -->
+    <div class="teacher-tab-panel active" id="teacher-tab-students">
+      <div class="add-student-form">
+        <input type="text" id="add-student-input" placeholder="Логин ученика" class="form-input" style="max-width:260px">
+        <button class="btn btn-primary" id="add-student-btn">Добавить по логину</button>
+        <span id="add-student-error" class="add-student-error"></span>
+      </div>
+      <div id="students-list"><div class="skeleton-loader">Загрузка...</div></div>
+    </div>
+
+    <!-- Вкладка: Домашние задания -->
+    <div class="teacher-tab-panel" id="teacher-tab-homework">
+      <div id="homework-teacher-list"><div class="skeleton-loader">Загрузка...</div></div>
+    </div>
+
+    <!-- Вкладка: Создать задание -->
+    <div class="teacher-tab-panel" id="teacher-tab-generate">
+      <div class="generate-form">
+        <div class="form-group">
+          <label for="gen-student-select">Ученик</label>
+          <select id="gen-student-select" class="form-input">
+            <option value="">— выберите ученика —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="gen-task-select">Тип задания</label>
+          <select id="gen-task-select" class="form-input">
+            <option value="task9">Задание 9 — Гласные в корне</option>
+            <option value="task10">Задание 10 — Приставки</option>
+            <option value="task11">Задание 11 — Суффиксы</option>
+            <option value="task12">Задание 12 — Окончания и суффиксы</option>
+            <option value="task4">Задание 4 — Ударения</option>
+            <option value="task17">Задание 17 — Пунктуация</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="gen-count-input">Количество вариантов</label>
+          <input type="number" id="gen-count-input" value="1" min="1" max="10" class="form-input" style="max-width:100px">
+        </div>
+        <div id="gen-weak-hint" class="gen-weak-hint" style="display:none"></div>
+
+        <!-- ДЗ -->
+        <details class="hw-details" open>
+          <summary>Параметры ДЗ</summary>
+          <div class="form-group" style="margin-top:12px">
+            <label for="hw-title-input">Название ДЗ</label>
+            <input type="text" id="hw-title-input" class="form-input" placeholder="Например: Задание 9, вариант 1">
+          </div>
+          <div class="form-group">
+            <label for="hw-due-input">Срок сдачи</label>
+            <input type="datetime-local" id="hw-due-input" class="form-input" style="max-width:260px">
+          </div>
+        </details>
+
+        <button class="btn btn-primary" id="gen-btn">Сгенерировать</button>
+      </div>
+      <div id="gen-result" style="display:none" class="gen-result"></div>
+    </div>
+
+    <!-- Вкладка: Конструктор ДЗ -->
+    <div class="teacher-tab-panel" id="teacher-tab-builder">
+      <div class="builder-form">
+        <div class="form-group">
+          <label for="builder-student-select">Ученик</label>
+          <select id="builder-student-select" class="form-input">
+            <option value="">— выберите ученика —</option>
+          </select>
+        </div>
+
+        <div class="builder-hw-inline">
+          <div class="form-group">
+            <label for="builder-hw-title-input">Название ДЗ</label>
+            <input type="text" id="builder-hw-title-input" class="form-input" placeholder="Например: Микс для повторения">
+          </div>
+          <div class="form-group">
+            <label for="builder-hw-due-input">Дедлайн (календарь)</label>
+            <input type="datetime-local" id="builder-hw-due-input" class="form-input" style="max-width:260px">
+          </div>
+        </div>
+
+        <p class="section-hint" style="margin:0 0 12px">Выберите количество заданий каждого типа. Нажмите <strong>Создать ДЗ</strong> — вариант автоматически назначится ученику. Для точной настройки типов слов откройте <strong>⚙ Настройки</strong>.</p>
+
+        <div class="builder-selection">
+          <div class="builder-selection__list" id="builderTaskGrid">
+            <div class="variant-config__loading">Загрузка…</div>
+          </div>
+
+          <div class="builder-selection__footer">
+            <div class="builder-selection__total">
+              Итого заданий: <span id="builderTotalCount">0</span>
+            </div>
+            <div class="builder-selection__actions">
+              <button class="btn btn-outline" id="builderRecommendBtn" disabled>Подобрать по ошибкам</button>
+              <button class="btn btn-ghost" id="builderSettingsBtn" disabled>⚙ Настройки</button>
+              <button class="btn btn-primary" id="builderCreateBtn" disabled>Создать ДЗ</button>
+            </div>
+          </div>
+
+          <div class="builder-selection__error" id="builderErrorMsg" hidden></div>
+        </div>
+
+        <div id="builder-result" class="gen-result" style="display:none"></div>
+
+        <style>
+          /* Builder selection cards — based on variant-config */
+          #builderTaskGrid { display:flex; flex-direction:column; gap:8px; }
+          .builder-task-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+          .builder-task-card--empty { opacity: 0.45; pointer-events: none; }
+                          .builder-task-card--recommended {
+                            border-color: var(--brand);
+                            box-shadow: 0 0 0 1px var(--brand-muted);
+                            background: linear-gradient(90deg, rgba(129, 140, 248, 0.08), transparent);
+                          }
+          .builder-task-card__num { font-size: 13px; font-weight: 700; color: var(--brand); min-width: 72px; flex-shrink: 0; }
+          .builder-task-card__label { font-size: 15px; color: var(--text-primary); font-weight: 500; flex: 1; min-width: 0; }
+          .builder-task-card__available { font-size: 12px; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; }
+          .builder-task-card__counter { display:flex; align-items:center; gap:10px; flex-shrink: 0; margin-left:auto; }
+          .builder-counter-btn {
+            width: 32px; height: 32px; border-radius: 50%;
+            border: 1px solid var(--glass-border);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 18px;
+            cursor: pointer;
+            display:flex; align-items:center; justify-content:center;
+            transition: background 0.15s, border-color 0.15s;
+          }
+          .builder-counter-btn:hover:not(:disabled) { background: var(--brand-muted); border-color: var(--brand); }
+          .builder-counter-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+          .builder-counter-value { font-size: 20px; font-weight: 700; color: var(--text-primary); min-width: 24px; text-align:center; }
+          .builder-hw-inline {
+            display: grid;
+            grid-template-columns: minmax(260px, 1fr) minmax(220px, auto);
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 12px;
+          }
+
+          .builder-selection__footer {
+            display:flex; align-items:center; justify-content:space-between; gap: 16px;
+            padding: 20px 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            margin-top: 14px;
+          }
+          .builder-selection__total { font-size: 16px; color: var(--text-secondary); }
+          .builder-selection__total span { font-weight: 700; color: var(--text-primary); font-size: 20px; }
+          .builder-selection__actions { display:flex; gap: 12px; flex-wrap:wrap; }
+          .builder-selection__error { padding: 12px 16px; background: rgba(255, 80, 80, 0.1); border: 1px solid rgba(255, 80, 80, 0.3); border-radius: 8px; color: #ff6b6b; font-size: 14px; text-align:center; margin-top: 12px; }
+          .checkbox-row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+          }
+          .checkbox-row label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            user-select: none;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            background: var(--bg-tertiary);
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+            line-height: 1.3;
+          }
+          .checkbox-row label:hover {
+            border-color: var(--brand);
+            color: var(--text-primary);
+          }
+          .checkbox-row label:has(input:checked) {
+            border-color: var(--brand);
+            color: var(--text-primary);
+            background: var(--brand-muted);
+          }
+          /* Прячем нативный чекбокс — достаточно состояния :checked */
+          .checkbox-row input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+          }
+          .checkbox-row--wrap { flex-wrap: wrap; }
+        </style>
+
+        <div class="builder-types" id="builder-advanced-config" style="display:none">
+          <div class="builder-type">
+            <label class="builder-type-row">
+              <input type="checkbox" id="builder-use-task9" checked>
+              <span>Задание 9 — гласные в корне</span>
+            </label>
+            <div class="builder-type-controls" style="margin-top:10px">
+              <div class="form-group" style="margin-top:0">
+                <label for="builder-task9-count">Сколько вариантов</label>
+                <input type="number" id="builder-task9-count" value="1" min="1" max="20" class="form-input" style="max-width:120px">
+              </div>
+              <div class="form-group">
+                <label>Категории</label>
+                <div class="checkbox-row">
+                  <label><input type="checkbox" class="builder-task9-category" value="alternating" checked> Чередующиеся корни</label>
+                  <label><input type="checkbox" class="builder-task9-category" value="verifiable" checked> Проверяемые ударением</label>
+                  <label><input type="checkbox" class="builder-task9-category" value="unverifiable" checked> Непроверяемые (словарные)</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Чередование (типы)</label>
+                <div class="checkbox-row">
+                  <label><input type="checkbox" class="builder-task9-alt-type" value="stress" checked> По ударению (гар/гор, зар/зор, клан/клон)</label>
+                  <label><input type="checkbox" class="builder-task9-alt-type" value="suffix" checked> По суффиксу -а- (бер/бир, кас/кос, тер/тир)</label>
+                  <label><input type="checkbox" class="builder-task9-alt-type" value="consonant" checked> По согласной (раст/рос, скак/скоч)</label>
+                  <label><input type="checkbox" class="builder-task9-alt-type" value="meaning" checked> По значению (равн/ровн, мак/мок)</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="builder-task9-vowel-pairs">Пары гласных (необязательно)</label>
+                <input type="text" id="builder-task9-vowel-pairs" class="form-input" placeholder="через запятую, например: о/а, у/а">
+              </div>
+              <div class="form-group">
+                <label for="builder-task9-correct-count">Правильных строк</label>
+                <select id="builder-task9-correct-count" class="form-input" style="max-width:160px">
+                  <option value="2">2</option>
+                  <option value="3" selected>3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="builder-type">
+            <label class="builder-type-row">
+              <input type="checkbox" id="builder-use-task10" checked>
+              <span>Задание 10 — приставки</span>
+            </label>
+            <div class="builder-type-controls" style="margin-top:10px">
+              <div class="form-group" style="margin-top:0">
+                <label for="builder-task10-count">Сколько вариантов</label>
+                <input type="number" id="builder-task10-count" value="1" min="1" max="20" class="form-input" style="max-width:120px">
+              </div>
+              <div class="form-group">
+                <label>Правила приставок</label>
+                <div class="checkbox-row checkbox-row--wrap">
+                  <label><input type="checkbox" class="builder-task10-rule" value="з/с" checked> з/с (раз-/рас-, без-/бес-…)</label>
+                  <label><input type="checkbox" class="builder-task10-rule" value="ъ/ь" checked> ъ/ь знаки</label>
+                  <label><input type="checkbox" class="builder-task10-rule" value="пре/при" checked> пре-/при-</label>
+                  <label><input type="checkbox" class="builder-task10-rule" value="пра/про" checked> пра-/про-</label>
+                  <label><input type="checkbox" class="builder-task10-rule" value="ы/и" checked> ы/и после приставок</label>
+                  <label><input type="checkbox" class="builder-task10-rule" value="неизменяемые гласные" checked> Неизм. гласные</label>
+                  <label><input type="checkbox" class="builder-task10-rule" value="неизменяемые согласные" checked> Неизм. согласные</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="builder-task10-correct-count">Правильных строк</label>
+                <select id="builder-task10-correct-count" class="form-input" style="max-width:160px">
+                  <option value="2">2</option>
+                  <option value="3" selected>3</option>
+                  <option value="4">4</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="builder-type">
+            <label class="builder-type-row">
+              <input type="checkbox" id="builder-use-task11" checked>
+              <span>Задание 11 — суффиксы</span>
+            </label>
+            <div class="builder-type-controls" style="margin-top:10px">
+              <div class="form-group" style="margin-top:0">
+                <label for="builder-task11-count">Сколько вариантов</label>
+                <input type="number" id="builder-task11-count" value="1" min="1" max="20" class="form-input" style="max-width:120px">
+              </div>
+              <div class="form-group">
+                <label>Типы суффиксов</label>
+                <div class="checkbox-row checkbox-row--wrap">
+                  <label><input type="checkbox" class="builder-task11-suffix" value="ова/ыва" checked> -ова-/-ыва-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="лив/чив" checked> -лив-/-чив-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="ев/ив" checked> -ев-/-ив-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="еньк/оньк" checked> -еньк-/-оньк-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="еват/оват" checked> -еват-/-оват-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="инк/енк" checked> -инк-/-енк-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="ик/ек" checked> -ик/-ек</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="ец/иц" checked> -ец/-иц</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="ист" checked> -ист-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="к/ск" checked> -к-/-ск-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="перед_вш" checked> Гласная перед -вш-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="обес/обез" checked> обес-/обез-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="изн/от/ин" checked> -изн-/-от-/-ин-</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="о/ё_шип" checked> О/ё после шипящих</label>
+                  <label><input type="checkbox" class="builder-task11-suffix" value="о/а_нар" checked> О/а в наречиях</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="builder-task11-correct-count">Правильных строк</label>
+                <select id="builder-task11-correct-count" class="form-input" style="max-width:160px">
+                  <option value="2">2</option>
+                  <option value="3" selected>3</option>
+                  <option value="4">4</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="builder-type">
+            <label class="builder-type-row">
+              <input type="checkbox" id="builder-use-task12" checked>
+              <span>Задание 12 — окончания и суффиксы</span>
+            </label>
+            <div class="builder-type-controls" style="margin-top:10px">
+              <div class="form-group" style="margin-top:0">
+                <label for="builder-task12-count">Сколько вариантов</label>
+                <input type="number" id="builder-task12-count" value="1" min="1" max="20" class="form-input" style="max-width:120px">
+              </div>
+              <div class="form-group">
+                <label for="builder-task12-vowel-pairs">Пары гласных (необязательно)</label>
+                <input type="text" id="builder-task12-vowel-pairs" class="form-input" placeholder="через запятую, например: е/и, о/а">
+              </div>
+              <div class="form-group">
+                <label>Типы форм</label>
+                <div class="checkbox-row checkbox-row--wrap">
+                  <label><input type="checkbox" class="builder-task12-form-type" value="verb" checked> Глаголы</label>
+                  <label><input type="checkbox" class="builder-task12-form-type" value="active_part" checked> Действит. причастия</label>
+                  <label><input type="checkbox" class="builder-task12-form-type" value="passive_part" checked> Страдат. причастия</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="builder-task12-correct-count">Правильных строк</label>
+                <select id="builder-task12-correct-count" class="form-input" style="max-width:160px">
+                  <option value="2">2</option>
+                  <option value="3" selected>3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="builder-type">
+            <label class="builder-type-row">
+              <input type="checkbox" id="builder-use-task4" checked>
+              <span>Задание 4 — ударения</span>
+            </label>
+            <div class="builder-type-controls" style="margin-top:10px">
+              <div class="form-group" style="margin-top:0">
+                <label for="builder-task4-count">Сколько вариантов</label>
+                <input type="number" id="builder-task4-count" value="1" min="1" max="20" class="form-input" style="max-width:120px">
+              </div>
+              <div class="form-group">
+                <label for="builder-task4-category">Категория</label>
+                <select id="builder-task4-category" class="form-input" style="max-width:260px"></select>
+              </div>
+              <div class="form-group">
+                <label for="builder-task4-correct-count">Правильных слов</label>
+                <select id="builder-task4-correct-count" class="form-input" style="max-width:160px">
+                  <option value="2">2</option>
+                  <option value="3" selected>3</option>
+                  <option value="4">4</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Панель статистики конкретного ученика -->
+    <div id="student-detail-panel" class="student-detail-panel" style="display:none">
+      <div class="student-detail-header">
+        <h3 id="student-detail-name">Ученик</h3>
+        <button class="icon-btn" id="student-detail-close" title="Закрыть">✕</button>
+      </div>
+      <div id="student-detail-body"><div class="skeleton-loader">Загрузка...</div></div>
+    </div>
+
+  </div><!-- /teacher-section -->
+</div>
+
+<script>
+let currentUser = null;
+let teacherStudents = [];
+
+(async function init() {
+  try {
+    const r = await fetch('/api/auth/me');
+    if (!r.ok) { window.location.href = '/login'; return; }
+    currentUser = (await r.json()).user;
+  } catch { window.location.href = '/login'; return; }
+
+  const name = currentUser.first_name
+    ? currentUser.first_name + (currentUser.last_name ? ' ' + currentUser.last_name : '')
+    : (currentUser.username || currentUser.login || 'Пользователь');
+  document.getElementById('profile-name').textContent = name;
+  renderProfileAvatar(currentUser);
+  bindAvatarControls();
+  initHomeworkDeadlineInputs();
+
+  const isStudent = (currentUser.role || 'student') === 'student';
+  const badge = document.getElementById('profile-role-badge');
+  badge.textContent = isStudent ? '🎓 Ученик' : '📚 Учитель';
+  badge.className = 'profile-role-badge ' + (isStudent ? 'badge-student' : 'badge-teacher');
+
+  if (isStudent) {
+    document.getElementById('student-section').style.display = '';
+    await refreshStudentTeacherSection();
+    loadStudentData();
+    loadHomeworkStudent();
+    loadConnectionRequests();
+  } else {
+    document.getElementById('teacher-section').style.display = '';
+    initTeacherTabs();
+    loadStudentsList();
+    initTeacherBuilderGrid();
+    loadInviteCode();
+    loadHomeworkTeacher();
+  }
+})();
+
+function renderProfileAvatar(user) {
+  const name = user?.first_name || user?.username || user?.login || 'П';
+  const avatar = user?.avatar || null;
+  const imgEl = document.getElementById('profile-avatar-img');
+  const fbEl = document.getElementById('profile-avatar-fallback');
+
+  if (avatar && (avatar.startsWith('data:image/') || avatar.startsWith('/images/'))) {
+    imgEl.src = avatar;
+    imgEl.style.display = 'block';
+    fbEl.style.display = 'none';
+    fbEl.textContent = '';
+  } else {
+    imgEl.removeAttribute('src');
+    imgEl.style.display = 'none';
+    fbEl.style.display = 'flex';
+    fbEl.textContent = avatar?.startsWith('emoji:') ? avatar.slice(6) : name.charAt(0).toUpperCase();
+  }
+}
+
+function renderHeaderAvatar(user) {
+  const name = user?.first_name || user?.username || user?.login || 'П';
+  const avatar = user?.avatar || null;
+  const avatarSpan = document.getElementById('user-avatar');
+  const avatarImg = document.getElementById('user-avatar-img');
+  if (!avatarSpan || !avatarImg) return;
+
+  if (avatar && (avatar.startsWith('data:image/') || avatar.startsWith('/images/'))) {
+    avatarImg.src = avatar;
+    avatarImg.style.display = 'block';
+    avatarSpan.style.display = 'none';
+  } else {
+    avatarImg.removeAttribute('src');
+    avatarImg.style.display = 'none';
+    avatarSpan.style.display = 'flex';
+    avatarSpan.textContent = avatar?.startsWith('emoji:') ? avatar.slice(6) : name.charAt(0).toUpperCase();
+  }
+}
+
+async function saveAvatarValue(avatarValue) {
+  const msg = document.getElementById('avatar-msg');
+  msg.textContent = '';
+  msg.className = 'join-msg';
+
+  const r = await fetch('/api/auth/avatar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ avatar: avatarValue || null }),
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'Не удалось сохранить аватар');
+
+  currentUser.avatar = data.avatar || null;
+  renderProfileAvatar(currentUser);
+  renderHeaderAvatar(currentUser);
+  msg.textContent = 'Аватар обновлён';
+  msg.className = 'join-msg join-msg-success';
+}
+
+function bindAvatarControls() {
+  if (window._avatarControlsBound) return;
+  window._avatarControlsBound = true;
+
+  document.querySelectorAll('.avatar-preset-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try {
+        await saveAvatarValue(`emoji:${btn.dataset.emoji || ''}`);
+      } catch (e) {
+        const msg = document.getElementById('avatar-msg');
+        msg.textContent = e.message || 'Ошибка';
+        msg.className = 'join-msg join-msg-error';
+      }
+    });
+  });
+
+  document.getElementById('avatar-reset-btn')?.addEventListener('click', async () => {
+    try {
+      await saveAvatarValue(null);
+    } catch (e) {
+      const msg = document.getElementById('avatar-msg');
+      msg.textContent = e.message || 'Ошибка';
+      msg.className = 'join-msg join-msg-error';
+    }
+  });
+
+  document.getElementById('avatar-upload-input')?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 900000) {
+      const msg = document.getElementById('avatar-msg');
+      msg.textContent = 'Файл слишком большой (до 900 КБ)';
+      msg.className = 'join-msg join-msg-error';
+      e.target.value = '';
+      return;
+    }
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      await saveAvatarValue(dataUrl);
+    } catch (err) {
+      const msg = document.getElementById('avatar-msg');
+      msg.textContent = err.message || 'Ошибка загрузки аватара';
+      msg.className = 'join-msg join-msg-error';
+    } finally {
+      e.target.value = '';
+    }
+  });
+}
+
+function initHomeworkDeadlineInputs() {
+  // Блокируем выбор прошедших даты/времени в календаре дедлайна.
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const localIsoMinute = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const inputs = ['hw-due-input', 'builder-hw-due-input'];
+  inputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.min = localIsoMinute;
+  });
+}
+
+async function refreshStudentTeacherSection() {
+  const joinSection = document.getElementById('join-teacher-section');
+  const myTeacherSection = document.getElementById('my-teacher-section');
+  const teacherNameEl = document.getElementById('my-teacher-name');
+  const teacherLoginEl = document.getElementById('my-teacher-login');
+
+  const r = await fetch('/api/student/teacher');
+  const data = await r.json();
+  const teacher = data?.teacher || null;
+
+  if (!teacher) {
+    if (joinSection) joinSection.style.display = '';
+    if (myTeacherSection) myTeacherSection.style.display = 'none';
+    return;
+  }
+
+  if (joinSection) joinSection.style.display = 'none';
+  if (myTeacherSection) myTeacherSection.style.display = '';
+  if (teacherNameEl) teacherNameEl.textContent = teacher.name || teacher.login || 'Учитель';
+  if (teacherLoginEl) teacherLoginEl.textContent = teacher.login ? `@${teacher.login}` : '';
+}
+
+/* ─── Выход ────────────────────────────────────────────────── */
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/login';
+});
+
+/* ─── УЧЕНИК: данные ───────────────────────────────────────── */
+async function loadStudentData() {
+  const [sr, wr] = await Promise.all([
+    fetch('/api/progress/summary'),
+    fetch('/api/progress/weak-words'),
+  ]);
+  const { summary } = await sr.json();
+  const { weak_words } = await wr.json();
+  renderSummary(summary);
+  updateWeakPracticeBtn(weak_words);
+}
+
+function updateWeakPracticeBtn(weakWords) {
+  const btn = document.getElementById('weak-practice-btn');
+  const hint = document.getElementById('weak-practice-hint');
+  const hasWeak = (weakWords || []).some(g => g.words.length > 0);
+  if (hasWeak) {
+    btn.disabled = false;
+    btn.title = '';
+    hint.textContent = 'Задания по вашим ошибкам';
+    btn.addEventListener('click', () => {
+      // Переходим к первому заданию со слабыми словами
+      const firstTable = weakWords.find(g => g.words.length > 0)?.word_table;
+      if (firstTable) {
+        const taskType = firstTable.replace('_words', '').replace('task', 'task');
+        window.location.href = `/${taskType}`;
+      }
+    });
+  } else {
+    btn.disabled = true;
+    btn.title = 'Решите ещё заданий, чтобы разблокировать';
+    hint.textContent = 'Решите ещё заданий, чтобы разблокировать';
+  }
+}
+
+function renderSummary(summary) {
+  const grid = document.getElementById('summary-grid');
+  if (!summary?.length) {
+    grid.innerHTML = '<p class="empty-state">Вы ещё не выполняли заданий. Начните практику!</p>';
+    return;
+  }
+
+  const sorted = [...summary].sort((a, b) => {
+    if (b.weak_count !== a.weak_count) return b.weak_count - a.weak_count;
+    return a.accuracy - b.accuracy;
+  });
+
+  grid.innerHTML = sorted.map(s => {
+    const taskKey = s.word_table.replace('_words', '');
+    const taskNum = taskKey.replace('task', '');
+    const taskShortName = s.label.replace(/^Задание \d+ — /, '');
+    const hasWeak = s.weak_count > 0;
+    const urgency = hasWeak ? (s.accuracy < 60 ? 'urgent' : 'needs-work') : 'ok';
+    const lastDate = s.last_attempted_at ? formatRelDate(s.last_attempted_at) : null;
+
+    const supportsPractice = ['task9','task10','task11','task12'].includes(taskKey);
+
+    return `
+      <div class="task-review-card task-review-${urgency}">
+        <div class="task-review-head">
+          <span class="task-review-num">№${taskNum}</span>
+          <span class="task-review-name">${taskShortName}</span>
+        </div>
+        <div class="task-review-badge-row">
+          ${hasWeak
+            ? `<span class="task-review-badge task-review-badge-warn">${s.weak_count} ${pluralWords(s.weak_count)} к повторению</span>`
+            : `<span class="task-review-badge task-review-badge-ok">Всё освоено</span>`
+          }
+          ${lastDate ? `<span class="task-review-date">${lastDate}</span>` : ''}
+        </div>
+        <div class="task-review-stats">
+          <div class="task-review-stat">
+            <span class="task-review-stat-val" style="color:${s.accuracy >= 70 ? 'var(--color-success)' : s.accuracy >= 50 ? 'var(--color-warning)' : 'var(--color-error)'}">${s.accuracy}%</span>
+            <span class="task-review-stat-lbl">точность</span>
+          </div>
+          <div class="task-review-stat">
+            <span class="task-review-stat-val">${s.mastered_count}</span>
+            <span class="task-review-stat-lbl">освоено</span>
+          </div>
+          <div class="task-review-stat">
+            <span class="task-review-stat-val">${s.completed_tasks}</span>
+            <span class="task-review-stat-lbl">решённых заданий</span>
+          </div>
+        </div>
+        <div class="accuracy-bar task-review-bar">
+          <div class="accuracy-fill" style="width:${s.accuracy}%"></div>
+        </div>
+        <div class="task-review-actions">
+          <button class="btn btn-sm btn-outline" onclick="openWordsModal('${taskKey}', '${s.label.replace(/'/g, "\\'")}')">Подробнее</button>
+          ${supportsPractice ? `<a href="/practice?task=${taskKey}" class="btn btn-sm btn-primary">Тренировать →</a>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function formatRelDate(dateStr) {
+  const d = new Date(dateStr);
+  const diff = Math.floor((Date.now() - d) / 86400000);
+  if (diff === 0) return 'сегодня';
+  if (diff === 1) return 'вчера';
+  if (diff < 7) return `${diff} ${pluralDays(diff)} назад`;
+  return d.toLocaleDateString('ru-RU');
+}
+
+function pluralDays(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'день';
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return 'дня';
+  return 'дней';
+}
+
+function pluralWords(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'слово';
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return 'слова';
+  return 'слов';
+}
+
+function renderWeakWordsTabs(weakWords, masteryThreshold, containerId = 'weak-words-container', barId = 'weak-words-tabs-bar') {
+  const bar = document.getElementById(barId);
+  const container = document.getElementById(containerId);
+  const groups = (weakWords || []).filter(g => g.words.length > 0);
+
+  if (!groups.length) {
+    if (bar) bar.style.display = 'none';
+    container.innerHTML = '<p class="empty-state">Слов для повторения нет — отличная работа!</p>';
+    return;
+  }
+
+  if (bar) {
+    bar.style.display = '';
+    bar.innerHTML = groups.map((g, i) => `
+      <button class="weak-tab${i === 0 ? ' active' : ''}" data-tab="${g.word_table}">
+        ${g.label.replace(/^Задание \d+ — /, '')}
+        <span class="weak-tab-count">${g.words.length}</span>
+      </button>
+    `).join('');
+    bar.addEventListener('click', e => {
+      const btn = e.target.closest('.weak-tab');
+      if (!btn) return;
+      bar.querySelectorAll('.weak-tab').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.weak-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      container.querySelector(`[data-panel="${btn.dataset.tab}"]`)?.classList.add('active');
+    });
+  }
+
+  container.innerHTML = groups.map((g, i) => `
+    <div class="weak-tab-panel${i === 0 ? ' active' : ''}" data-panel="${g.word_table}">
+      <div class="weak-words-list">
+        ${g.words.map(w => wordCard(w, masteryThreshold)).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function wordCard(w, masteryThreshold) {
+  return `
+    <div class="weak-word-item">
+      <div class="weak-word-top">
+        <span class="weak-word-text">${w.word}</span>
+        <span class="weak-word-errors">${w.errors} ${pluralErrors(w.errors)}</span>
+      </div>
+      <div class="weak-word-rule">${w.rule}</div>
+      <div class="mastery-bar-wrap">
+        <div class="mastery-bar"><div class="mastery-fill" style="width:${w.mastery}%"></div></div>
+        <span class="mastery-label">${w.streak}/${masteryThreshold} подряд</span>
+      </div>
+    </div>`;
+}
+
+function pluralErrors(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'ошибка';
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return 'ошибки';
+  return 'ошибок';
+}
+
+/* ─── УЧЕНИК: Паронимы для повторения ───────────────────────── */
+async function loadParonymFavorites() {
+  try {
+    const data = await fetch('/api/task5/paronym-favorites').then(r => r.json());
+    const ids = data.favorites || [];
+    const section = document.getElementById('paronym-favs-section');
+    const list = document.getElementById('paronym-favs-list');
+    if (!ids.length) return; // секцию не показываем если пусто
+    section.style.display = '';
+    list.innerHTML = ids.map(id => {
+      // Красивое отображение id → «Слово1 / Слово2»
+      const label = id.replace(/-/g, ' / ').replace(/\b\w/g, c => c.toUpperCase());
+      return `<a href="/task5/theory#${id}" class="pf-chip" onclick="window.location='/task5/theory'">${label}</a>`;
+    }).join('');
+  } catch (_) {}
+}
+
+/* ─── УЧЕНИК: ДЗ ───────────────────────────────────────────── */
+async function loadHomeworkStudent() {
+  const r = await fetch('/api/student/homework');
+  const { homework } = await r.json();
+  const el = document.getElementById('homework-list');
+
+  if (!homework?.length) {
+    el.innerHTML = '<p class="empty-state">Домашних заданий нет.</p>';
+    return;
+  }
+
+  el.innerHTML = homework.map(hw => {
+    const teacherName = hw.teacher_first
+      ? hw.teacher_first + (hw.teacher_last ? ' ' + hw.teacher_last : '')
+      : hw.teacher_login;
+    const statusLabel = { pending: '⏳ Ожидает', submitted: '✅ Сдано', reviewed: '📋 Проверено' }[hw.status] || hw.status;
+    const due = hw.due_date ? new Date(hw.due_date).toLocaleDateString('ru-RU') : 'Без срока';
+    const taskIds = JSON.parse(hw.task_ids || '[]');
+    return `
+      <div class="hw-card hw-status-${hw.status}">
+        <div class="hw-card-header">
+          <strong>${hw.title}</strong>
+          <span class="hw-status-badge">${statusLabel}</span>
+        </div>
+        <div class="hw-card-meta">
+          <span>От: ${teacherName}</span>
+          <span>Срок: ${due}</span>
+          <span>Тип: ${hw.task_type}</span>
+        </div>
+        ${hw.teacher_comment ? `<div class="hw-comment">Комментарий учителя: ${hw.teacher_comment}</div>` : ''}
+        ${hw.submitted_at && hw.total_score != null ? `<div class="hw-score">Результат: ${hw.total_score}/${hw.max_score}</div>` : ''}
+        <div class="hw-links">
+          ${taskIds.map((id, i) => {
+            const isVariant = hw.task_type === 'variant';
+            const href = isVariant ? `/variant/${id}` : `/${hw.task_type}/${id}`;
+            const label = taskIds.length > 1 ? `Решать ${i + 1}` : 'Решать';
+            return `<a href="${href}" target="_blank" class="btn btn-sm btn-outline">${label}</a>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ─── УЧЕНИК: запросы от учителей ─────────────────────────── */
+async function loadConnectionRequests() {
+  const r = await fetch('/api/student/connection-requests');
+  const { requests } = await r.json();
+  if (!requests?.length) return;
+
+  document.getElementById('connection-requests-section').style.display = '';
+  const el = document.getElementById('connection-requests-list');
+  el.innerHTML = requests.map(req => {
+    const name = req.first_name
+      ? req.first_name + (req.last_name ? ' ' + req.last_name : '')
+      : req.login;
+    return `
+      <div class="connection-request-item" id="req-${req.id}">
+        <span>Учитель <strong>${name}</strong> хочет добавить вас</span>
+        <button class="btn btn-sm btn-primary" onclick="acceptRequest(${req.id})">Принять</button>
+        <button class="btn btn-sm btn-ghost" onclick="declineRequest(${req.id})">Отклонить</button>
+      </div>`;
+  }).join('');
+}
+
+async function acceptRequest(id) {
+  const r = await fetch(`/api/student/connection-requests/${id}/accept`, { method: 'POST' });
+  if (r.ok) {
+    document.getElementById(`req-${id}`)?.remove();
+    checkConnectionRequestsEmpty();
+  }
+}
+
+async function declineRequest(id) {
+  const r = await fetch(`/api/student/connection-requests/${id}/decline`, { method: 'POST' });
+  if (r.ok) {
+    document.getElementById(`req-${id}`)?.remove();
+    checkConnectionRequestsEmpty();
+  }
+}
+
+function checkConnectionRequestsEmpty() {
+  const el = document.getElementById('connection-requests-list');
+  if (!el.children.length) document.getElementById('connection-requests-section').style.display = 'none';
+}
+
+/* ─── УЧЕНИК: присоединиться к учителю ────────────────────── */
+document.getElementById('join-teacher-btn')?.addEventListener('click', async () => {
+  const code = document.getElementById('join-teacher-code').value.trim().toUpperCase();
+  const msg = document.getElementById('join-teacher-msg');
+  msg.textContent = '';
+  msg.className = 'join-msg';
+  if (!code) { msg.textContent = 'Введите код'; return; }
+
+  const r = await fetch('/api/student/join-teacher', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+  const data = await r.json();
+  if (r.ok) {
+    msg.textContent = `Вы присоединились к учителю ${data.teacher_name}!`;
+    msg.className = 'join-msg join-msg-success';
+    document.getElementById('join-teacher-code').value = '';
+    await refreshStudentTeacherSection();
+  } else {
+    msg.textContent = data.error;
+    msg.className = 'join-msg join-msg-error';
+  }
+});
+
+document.getElementById('detach-teacher-btn')?.addEventListener('click', async () => {
+  if (!confirm('Открепиться от учителя?')) return;
+  const msg = document.getElementById('detach-teacher-msg');
+  msg.textContent = '';
+  msg.className = 'join-msg';
+
+  const r = await fetch('/api/student/teacher/detach', { method: 'POST' });
+  const data = await r.json();
+  if (r.ok) {
+    msg.textContent = 'Вы открепились от учителя.';
+    msg.className = 'join-msg join-msg-success';
+    await refreshStudentTeacherSection();
+  } else {
+    msg.textContent = data.error || 'Ошибка';
+    msg.className = 'join-msg join-msg-error';
+  }
+});
+
+/* ─── УЧИТЕЛЬ: код приглашения ─────────────────────────────── */
+async function loadInviteCode() {
+  const r = await fetch('/api/teacher/invite');
+  const data = await r.json();
+  document.getElementById('invite-code-value').textContent = data.code;
+  document.getElementById('invite-code-meta').textContent = `Использован: ${data.used_count} раз(а)`;
+}
+
+document.getElementById('copy-code-btn')?.addEventListener('click', () => {
+  const code = document.getElementById('invite-code-value').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('copy-code-btn');
+    btn.textContent = 'Скопировано!';
+    setTimeout(() => btn.textContent = 'Копировать', 2000);
+  });
+});
+
+document.getElementById('refresh-code-btn')?.addEventListener('click', async () => {
+  if (!confirm('Сгенерировать новый код? Старый перестанет работать.')) return;
+  const r = await fetch('/api/teacher/invite/refresh', { method: 'POST' });
+  const data = await r.json();
+  document.getElementById('invite-code-value').textContent = data.code;
+  document.getElementById('invite-code-meta').textContent = 'Использован: 0 раз(а)';
+});
+
+/* ─── УЧИТЕЛЬ: поиск по email ──────────────────────────────── */
+document.getElementById('find-by-email-btn')?.addEventListener('click', async () => {
+  const email = document.getElementById('find-by-email-input').value.trim();
+  const msg = document.getElementById('find-by-email-msg');
+  msg.textContent = '';
+  if (!email) { msg.textContent = 'Введите email'; return; }
+
+  const r = await fetch('/api/teacher/connect-request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  const data = await r.json();
+  msg.textContent = r.ok ? `Запрос отправлен ученику ${data.student?.first_name || data.student?.login}` : (data.error || 'Ошибка');
+  msg.style.color = r.ok ? 'var(--color-success)' : 'var(--color-error)';
+});
+
+/* ─── УЧИТЕЛЬ: вкладки ─────────────────────────────────────── */
+function initTeacherTabs() {
+  document.querySelectorAll('.teacher-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.teacher-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.teacher-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('teacher-tab-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'generate' || btn.dataset.tab === 'builder') {
+        refreshGenerateStudentSelect();
+      }
+    });
+  });
+}
+
+/* ─── УЧИТЕЛЬ: список учеников ─────────────────────────────── */
+async function loadStudentsList() {
+  const res = await fetch('/api/teacher/students');
+  const { students } = await res.json();
+  teacherStudents = students || [];
+  renderStudentsList(teacherStudents);
+}
+
+function renderStudentsList(students) {
+  const el = document.getElementById('students-list');
+  if (!students.length) {
+    el.innerHTML = '<p class="empty-state">Учеников пока нет. Добавьте первого по логину или через код приглашения.</p>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="students-table">
+      <div class="students-table-head">
+        <span>Ученик</span>
+        <span>Попыток</span>
+        <span>Точность</span>
+        <span>Освоено</span>
+        <span>Повторить</span>
+        <span></span>
+      </div>
+      ${students.map(s => {
+        const displayName = s.first_name
+          ? s.first_name + (s.last_name ? ' ' + s.last_name : '')
+          : (s.username || s.login);
+        return `
+          <div class="students-table-row" data-id="${s.id}">
+            <span class="student-name-cell">
+              <strong>${displayName}</strong>
+              <small class="text-muted">@${s.login}</small>
+            </span>
+            <span>${s.total_attempts}</span>
+            <span>${s.accuracy}%</span>
+            <span class="text-success">${s.mastered_count}</span>
+            <span class="text-warning">${s.weak_count}</span>
+            <span class="student-actions">
+              <button class="btn-small btn-outline" onclick="openStudentDetail(${s.id}, '${displayName.replace(/'/g,"\\'")}')">Детали</button>
+              <button class="btn-small btn-generate" onclick="quickGenerate(${s.id}, '${displayName.replace(/'/g,"\\'")}')">Создать ДЗ</button>
+              <button class="btn-small btn-danger" onclick="removeStudent(${s.id})">✕</button>
+            </span>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+document.getElementById('add-student-btn')?.addEventListener('click', async () => {
+  const login = document.getElementById('add-student-input').value.trim();
+  const errEl = document.getElementById('add-student-error');
+  errEl.textContent = '';
+  if (!login) { errEl.textContent = 'Введите логин'; return; }
+
+  const res = await fetch('/api/teacher/students', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login }),
+  });
+  const data = await res.json();
+  if (!res.ok) { errEl.textContent = data.error; return; }
+
+  document.getElementById('add-student-input').value = '';
+  teacherStudents.unshift(data.student);
+  renderStudentsList(teacherStudents);
+  refreshGenerateStudentSelect();
+});
+
+async function removeStudent(id) {
+  if (!confirm('Убрать ученика из вашего списка?')) return;
+  const res = await fetch(`/api/teacher/students/${id}`, { method: 'DELETE' });
+  if (!res.ok) return;
+  teacherStudents = teacherStudents.filter(s => s.id !== id);
+  renderStudentsList(teacherStudents);
+  refreshGenerateStudentSelect();
+  if (document.getElementById('student-detail-panel').style.display !== 'none')
+    document.getElementById('student-detail-panel').style.display = 'none';
+}
+
+/* ─── УЧИТЕЛЬ: детали ученика ──────────────────────────────── */
+async function openStudentDetail(id, name) {
+  const panel = document.getElementById('student-detail-panel');
+  const body  = document.getElementById('student-detail-body');
+  document.getElementById('student-detail-name').textContent = name;
+  panel.style.display = '';
+  body.innerHTML = '<div class="skeleton-loader">Загрузка...</div>';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const [sr, wr] = await Promise.all([
+    fetch(`/api/teacher/students/${id}/stats`),
+    fetch(`/api/teacher/students/${id}/weak-words`),
+  ]);
+  const { summary } = await sr.json();
+  const { weak_words, mastery_threshold } = await wr.json();
+
+  const summaryHtml = summary?.length
+    ? `<div class="summary-grid mini-summary">
+        ${summary.map(s => `
+          <div class="summary-card">
+            <div class="summary-card-title">${s.label}</div>
+            <div class="summary-card-stats">
+              <div class="stat-item"><span class="stat-value">${s.completed_tasks ?? 0}</span><span class="stat-label">Решено</span></div>
+              <div class="stat-item"><span class="stat-value">${s.accuracy}%</span><span class="stat-label">Точность</span></div>
+              <div class="stat-item"><span class="stat-value text-success">${s.mastered_count}</span><span class="stat-label">Освоено</span></div>
+              <div class="stat-item"><span class="stat-value text-warning">${s.weak_count}</span><span class="stat-label">Повторить</span></div>
+            </div>
+            <div class="accuracy-bar"><div class="accuracy-fill" style="width:${s.accuracy}%"></div></div>
+          </div>
+        `).join('')}
+      </div>`
+    : '<p class="empty-state">Ученик ещё не решал заданий.</p>';
+
+  body.innerHTML = summaryHtml +
+    `<h4 style="margin:20px 0 8px">Слова для повторения</h4>
+     <div id="detail-weak-bar" class="weak-tabs-bar"></div>
+     <div id="detail-weak-container"></div>`;
+
+  renderWeakWordsTabs(weak_words, mastery_threshold, 'detail-weak-container', 'detail-weak-bar');
+}
+
+document.getElementById('student-detail-close')?.addEventListener('click', () => {
+  document.getElementById('student-detail-panel').style.display = 'none';
+});
+
+/* ─── УЧИТЕЛЬ: ДЗ ──────────────────────────────────────────── */
+async function loadHomeworkTeacher() {
+  const r = await fetch('/api/teacher/homework');
+  const { homework } = await r.json();
+  const el = document.getElementById('homework-teacher-list');
+
+  if (!homework?.length) {
+    el.innerHTML = '<p class="empty-state">Вы ещё не назначали домашних заданий.</p>';
+    return;
+  }
+
+  el.innerHTML = homework.map(hw => {
+    const studentName = hw.first_name
+      ? hw.first_name + (hw.last_name ? ' ' + hw.last_name : '')
+      : hw.login;
+    const statusLabel = { pending: '⏳ Ожидает', submitted: '✅ Сдано', reviewed: '📋 Проверено' }[hw.status] || hw.status;
+    const due = hw.due_date ? new Date(hw.due_date).toLocaleDateString('ru-RU') : 'Без срока';
+    return `
+      <div class="hw-card hw-status-${hw.status}">
+        <div class="hw-card-header">
+          <strong>${hw.title}</strong>
+          <span class="hw-status-badge">${statusLabel}</span>
+        </div>
+        <div class="hw-card-meta">
+          <span>Ученик: <strong>${studentName}</strong></span>
+          <span>Срок: ${due}</span>
+          ${hw.submitted_at ? `<span>Сдано: ${new Date(hw.submitted_at).toLocaleDateString('ru-RU')}</span>` : ''}
+          ${hw.total_score != null ? `<span>Результат: ${hw.total_score}/${hw.max_score}</span>` : ''}
+        </div>
+        ${hw.status === 'submitted' ? `
+          <div class="hw-review-form">
+            <input type="text" placeholder="Комментарий" class="form-input hw-comment-input" id="hw-comment-${hw.id}" style="max-width:300px">
+            <button class="btn btn-sm btn-primary" onclick="reviewHomework(${hw.id})">Отметить проверенным</button>
+          </div>` : ''}
+        ${hw.teacher_comment ? `<div class="hw-comment">Ваш комментарий: ${hw.teacher_comment}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+async function reviewHomework(hwId) {
+  const comment = document.getElementById(`hw-comment-${hwId}`)?.value.trim();
+  const r = await fetch(`/api/teacher/homework/${hwId}/comment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ comment })
+  });
+  if (r.ok) loadHomeworkTeacher();
+}
+
+/* ─── УЧИТЕЛЬ: генерация задания ───────────────────────────── */
+function refreshGenerateStudentSelect() {
+  const sel = document.getElementById('gen-student-select');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— выберите ученика —</option>' +
+    teacherStudents.map(s => {
+      const n = s.first_name ? s.first_name + (s.last_name ? ' ' + s.last_name : '') : s.login;
+      return `<option value="${s.id}">${n} (@${s.login})</option>`;
+    }).join('');
+  if (current) sel.value = current;
+
+  const builderSel = document.getElementById('builder-student-select');
+  if (builderSel) {
+    const currentB = builderSel.value;
+    builderSel.innerHTML = '<option value="">— выберите ученика —</option>' +
+      teacherStudents.map(s => {
+        const n = s.first_name ? s.first_name + (s.last_name ? ' ' + s.last_name : '') : s.login;
+        return `<option value="${s.id}">${n} (@${s.login})</option>`;
+      }).join('');
+    if (currentB) builderSel.value = currentB;
+  }
+}
+
+async function updateWeakHint() {
+  const studentId = document.getElementById('gen-student-select').value;
+  const taskType  = document.getElementById('gen-task-select').value;
+  const hint = document.getElementById('gen-weak-hint');
+  if (!studentId) { hint.style.display = 'none'; return; }
+
+  const wordTable = taskType + '_words';
+  const student = teacherStudents.find(s => s.id === Number(studentId));
+  if (!student) return;
+
+  if (!student._weakWordCache) {
+    const r = await fetch(`/api/teacher/students/${studentId}/weak-words`);
+    const d = await r.json();
+    student._weakWordCache = d.weak_words || [];
+  }
+  const group = student._weakWordCache.find(g => g.word_table === wordTable);
+  if (group?.words.length) {
+    hint.style.display = '';
+    hint.textContent = `Слабые места ученика по этому заданию: ${group.words.length} слов(а). Они будут включены в приоритетном порядке.`;
+    hint.style.color = '';
+  } else {
+    hint.style.display = '';
+    hint.textContent = 'По этому заданию слабых мест нет — задание будет случайным.';
+    hint.style.color = 'var(--text-secondary)';
+  }
+}
+
+document.getElementById('gen-student-select')?.addEventListener('change', updateWeakHint);
+document.getElementById('gen-task-select')?.addEventListener('change', updateWeakHint);
+
+document.getElementById('gen-btn')?.addEventListener('click', async () => {
+  const studentId = document.getElementById('gen-student-select').value;
+  const taskType  = document.getElementById('gen-task-select').value;
+  const count     = Number(document.getElementById('gen-count-input').value) || 1;
+  const hwTitle   = document.getElementById('hw-title-input').value.trim();
+  const hwDue     = document.getElementById('hw-due-input').value;
+  const resultEl  = document.getElementById('gen-result');
+
+  if (!studentId) { alert('Выберите ученика'); return; }
+
+  resultEl.style.display = 'none';
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true; btn.textContent = 'Генерирую...';
+
+  try {
+    const res = await fetch(`/api/${taskType}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tasks_count: count, for_student_id: Number(studentId) }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Ошибка генерации');
+
+    const ids = data.ids || [data.id];
+    const student = teacherStudents.find(s => s.id === Number(studentId));
+    const studentName = student ? (student.first_name || student.login) : 'ученика';
+
+    // Если заполнен заголовок ДЗ — создаём ДЗ
+    if (hwTitle) {
+      await fetch('/api/teacher/homework', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: Number(studentId),
+          title: hwTitle,
+          task_type: taskType,
+          task_ids: ids,
+          due_date: hwDue || null,
+        })
+      });
+      loadHomeworkTeacher();
+    }
+
+    resultEl.style.display = '';
+    resultEl.innerHTML = `
+      <div class="gen-result-header">Готово! ${ids.length} вариант(а) для ${studentName}:${hwTitle ? ' (назначено как ДЗ)' : ''}</div>
+      <div class="gen-links">
+        ${ids.map((id, i) => `<a href="/${taskType}/${id}" target="_blank" class="gen-link">Вариант ${i + 1} →</a>`).join('')}
+      </div>
+      <p class="gen-result-hint">Скопируйте ссылки и отправьте ученику${hwTitle ? ', или они уже в разделе ДЗ.' : '.'}`;
+  } catch(e) {
+    alert(e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Сгенерировать';
+  }
+});
+
+/* ─── УЧИТЕЛЬ: Конструктор ДЗ — список + 2 кнопки ─────────────────── */
+let _builderTask4CategoriesLoaded = false;
+let _builderGridInited = false;
+let builderCounts = {};
+let _builderTaskMetaByKey = {};
+let _builderFlexPrimed = false;
+
+function parseCsvList(str) {
+  if (!str) return [];
+  return String(str)
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+async function loadTask4CategoriesForBuilder() {
+  if (_builderTask4CategoriesLoaded) return;
+  const sel = document.getElementById('builder-task4-category');
+  if (!sel) return;
+  const r = await fetch('/api/task4/categories');
+  const cats = await r.json();
+  sel.innerHTML = '<option value="">— выберите —</option>' + cats.map(c => `<option value="${c.key}">${c.name}</option>`).join('');
+  _builderTask4CategoriesLoaded = true;
+}
+
+const BUILDER_MAX_BY_TASK = {
+  task4: 20,
+  task5: 20,
+  task7: 20,
+  task9: 20,
+  task10: 20,
+  task11: 20,
+  task12: 20,
+  task17: 10,
+  task18: 10,
+  task19: 10,
+};
+
+function getBuilderSelected() {
+  return Object.entries(builderCounts).filter(([, v]) => Number(v) > 0);
+}
+
+function updateBuilderTotalAndButtons() {
+  const totalEl = document.getElementById('builderTotalCount');
+  const createBtn = document.getElementById('builderCreateBtn');
+  const settingsBtn = document.getElementById('builderSettingsBtn');
+  const recommendBtn = document.getElementById('builderRecommendBtn');
+  const studentId = document.getElementById('builder-student-select')?.value;
+
+  const total = Object.values(builderCounts).reduce((s, v) => s + Number(v || 0), 0);
+  totalEl.textContent = total;
+
+  const canRun = total > 0 && !!studentId;
+  if (createBtn) createBtn.disabled = !canRun;
+  if (settingsBtn) settingsBtn.disabled = total === 0;
+  if (recommendBtn) recommendBtn.disabled = !studentId;
+}
+
+function clearBuilderRecommendationsHighlight() {
+  document.querySelectorAll('.builder-task-card--recommended').forEach(el => {
+    el.classList.remove('builder-task-card--recommended');
+  });
+}
+
+function makeBuilderCard(task) {
+  builderCounts[task.key] = 0;
+  const maxSelected = Math.min(task.count || 0, BUILDER_MAX_BY_TASK[task.key] ?? 20);
+  const isEmpty = maxSelected === 0 || (task.count || 0) === 0;
+
+  const card = document.createElement('div');
+  card.className = 'builder-task-card' + (isEmpty ? ' builder-task-card--empty' : '');
+  card.dataset.key = task.key;
+
+  card.innerHTML = `
+    <div class="builder-task-card__num">Задание ${task.num}</div>
+    <div class="builder-task-card__label">${task.label}</div>
+    <div class="builder-task-card__available">${isEmpty ? 'Нет заданий' : `доступно: ${task.count}`}</div>
+    <div class="builder-task-card__counter">
+      <button class="builder-counter-btn" data-action="minus" ${isEmpty ? 'disabled' : ''}>−</button>
+      <span class="builder-counter-value" id="bval-${task.key}">0</span>
+      <button class="builder-counter-btn" data-action="plus" ${isEmpty ? 'disabled' : ''}>+</button>
+    </div>
+  `;
+
+  const valEl = card.querySelector(`#bval-${task.key}`);
+  const minusBtn = card.querySelector('[data-action="minus"]');
+  const plusBtn = card.querySelector('[data-action="plus"]');
+
+  function setCount(n) {
+    // Любое ручное изменение — снимаем подсветку рекомендованных типов.
+    clearBuilderRecommendationsHighlight();
+
+    const v = Math.max(0, Math.min(maxSelected, Number(n || 0)));
+    builderCounts[task.key] = v;
+    valEl.textContent = v;
+    minusBtn.disabled = v === 0;
+    plusBtn.disabled = v >= maxSelected;
+    // Карточка должна быть полностью заблокирована только если в принципе нет доступных заданий этого типа.
+    card.classList.toggle('builder-task-card--empty', maxSelected === 0);
+    // Если пользователь меняет состав варианта — скрываем настройки (они относятся к старому составу).
+    const adv = document.getElementById('builder-advanced-config');
+    if (adv) adv.style.display = 'none';
+    const settingsBtn = document.getElementById('builderSettingsBtn');
+    if (settingsBtn) settingsBtn.textContent = '⚙ Настройки';
+    updateBuilderTotalAndButtons();
+  }
+
+  minusBtn.addEventListener('click', () => setCount(builderCounts[task.key] - 1));
+  plusBtn.addEventListener('click', () => setCount(builderCounts[task.key] + 1));
+
+  return card;
+}
+
+function getBuilderMaxSelectedByKey(taskKey) {
+  const meta = _builderTaskMetaByKey?.[taskKey];
+  if (!meta) return 0;
+  return Math.min(meta.count || 0, BUILDER_MAX_BY_TASK[taskKey] ?? 20);
+}
+
+function setBuilderCountForKey(taskKey, n) {
+  const vMax = getBuilderMaxSelectedByKey(taskKey);
+  const v = Math.max(0, Math.min(vMax, Number(n || 0)));
+  builderCounts[taskKey] = v;
+
+  const valEl = document.getElementById(`bval-${taskKey}`);
+  if (valEl) valEl.textContent = String(v);
+
+  const card = document.querySelector(`.builder-task-card[data-key="${taskKey}"]`);
+  if (card) {
+    // Не блокируем карточку при нуле, если задания этого типа вообще есть.
+    card.classList.toggle('builder-task-card--empty', vMax === 0);
+    const minusBtn = card.querySelector('[data-action="minus"]');
+    const plusBtn = card.querySelector('[data-action="plus"]');
+    if (minusBtn) minusBtn.disabled = v === 0;
+    if (plusBtn) plusBtn.disabled = v >= vMax;
+  }
+
+  // Если состав варианта меняется, скрываем настройки.
+  const adv = document.getElementById('builder-advanced-config');
+  if (adv) adv.style.display = 'none';
+  const settingsBtn2 = document.getElementById('builderSettingsBtn');
+  if (settingsBtn2) settingsBtn2.textContent = '⚙ Настройки';
+}
+
+function computeRecommendationFromWeakWords(weakWordGroups) {
+  // Ожидаем группировку вида: [{ word_table, words: [{...}] }, ...]
+  const groups = Array.isArray(weakWordGroups) ? weakWordGroups : [];
+  const byKey = new Map();
+
+  // Соотносим таблицы слов с ключами заданий в builder.
+  // Остальные типы (где нет weak-words в этом представлении) игнорируем.
+  const tableToTaskKey = {
+    task4_words: 'task4',
+    task9_words: 'task9',
+    task10_words: 'task10',
+    task11_words: 'task11',
+    task12_words: 'task12',
+  };
+
+  for (const g of groups) {
+    const taskKey = tableToTaskKey[g.word_table];
+    if (!taskKey) continue;
+    const cnt = Array.isArray(g.words) ? g.words.length : 0;
+    if (!cnt) continue;
+    byKey.set(taskKey, { taskKey, weight: cnt });
+  }
+
+  const types = [...byKey.values()].sort((a, b) => b.weight - a.weight);
+  if (types.length === 0) return {};
+
+  const totalWeight = types.reduce((s, t) => s + t.weight, 0);
+  // Размер рекомендации ограничиваем разумно, чтобы не превращать builder в "автозалив".
+  const recommendedTotal = Math.max(3, Math.min(12, Math.round(totalWeight / 10)));
+
+  // Минимум 1 тип, максимум 4 типа.
+  const chosen = types.slice(0, Math.min(4, types.length));
+  const chosenCount = chosen.length;
+
+  // Сначала по 1 на каждый тип, остаток распределяем по весу.
+  const counts = {};
+  for (const t of chosen) counts[t.taskKey] = 1;
+
+  let remaining = recommendedTotal - chosenCount;
+  let idx = 0;
+  while (remaining > 0 && chosen.length > 0) {
+    const t = chosen[idx % chosen.length];
+    counts[t.taskKey] = (counts[t.taskKey] || 0) + 1;
+    remaining--;
+    idx++;
+  }
+
+  return counts;
+}
+
+async function initTeacherBuilderGrid() {
+  if (_builderGridInited) return;
+  _builderGridInited = true;
+
+  const grid = document.getElementById('builderTaskGrid');
+  const errorEl = document.getElementById('builderErrorMsg');
+  const studentSel = document.getElementById('builder-student-select');
+
+  const loading = 'Загрузка…';
+  grid.innerHTML = `<div style="color:var(--text-secondary);text-align:center;padding:24px 0;">${loading}</div>`;
+
+  try {
+    const cfg = await fetch('/api/variant/config').then(r => r.json());
+    grid.innerHTML = '';
+    builderCounts = {};
+    _builderTaskMetaByKey = {};
+
+    cfg.forEach(t => {
+      _builderTaskMetaByKey[t.key] = t;
+      grid.appendChild(makeBuilderCard(t));
+    });
+
+    updateBuilderTotalAndButtons();
+  } catch (e) {
+    grid.innerHTML = '<div style="color:#ff6b6b;text-align:center;">Ошибка загрузки</div>';
+  }
+
+  studentSel?.addEventListener('change', () => {
+    // При смене ученика сбрасываем выбранные типы и скрываем настройки.
+    for (const k of Object.keys(builderCounts)) setBuilderCountForKey(k, 0);
+    const adv = document.getElementById('builder-advanced-config');
+    if (adv) adv.style.display = 'none';
+    const settingsBtn = document.getElementById('builderSettingsBtn');
+    if (settingsBtn) settingsBtn.textContent = '⚙ Настройки';
+    updateBuilderTotalAndButtons();
+
+    const recommendBtn = document.getElementById('builderRecommendBtn');
+    if (recommendBtn && !recommendBtn.disabled) recommendBtn.click();
+  });
+}
+
+function primeBuilderAdvancedFilters() {
+  const adv = document.getElementById('builder-advanced-config');
+  if (!adv) return;
+
+  const selected = new Set(getBuilderSelected().map(([k]) => k));
+  const map = [
+    { key: 'task4', checkboxId: 'builder-use-task4' },
+    { key: 'task9', checkboxId: 'builder-use-task9' },
+    { key: 'task10', checkboxId: 'builder-use-task10' },
+    { key: 'task11', checkboxId: 'builder-use-task11' },
+    { key: 'task12', checkboxId: 'builder-use-task12' },
+  ];
+
+  map.forEach(({ key, checkboxId }) => {
+    const cb = document.getElementById(checkboxId);
+    if (!cb) return;
+    const block = cb.closest('.builder-type');
+    const on = selected.has(key);
+    cb.checked = on;
+    if (block) block.style.display = on ? '' : 'none';
+
+    const countInputId = {
+      task4: 'builder-task4-count',
+      task9: 'builder-task9-count',
+      task10: 'builder-task10-count',
+      task11: 'builder-task11-count',
+      task12: 'builder-task12-count',
+    }[key];
+    if (countInputId) {
+      const inEl = document.getElementById(countInputId);
+      if (inEl) {
+        inEl.value = String(builderCounts[key] || 0);
+        inEl.disabled = true;
+      }
+    }
+  });
+
+  // Task 4 category select needed only if task4 is selected
+  if (selected.has('task4')) {
+    loadTask4CategoriesForBuilder();
+  }
+
+  adv.style.display = '';
+}
+
+async function generateBuilderTasksAndMaybeHomework({ mode }) {
+  const studentId = document.getElementById('builder-student-select').value;
+  const hwTitle = document.getElementById('builder-hw-title-input').value.trim();
+  const hwDue = document.getElementById('builder-hw-due-input').value;
+  const resultEl = document.getElementById('builder-result');
+
+  const flexAdv = document.getElementById('builder-advanced-config');
+
+  const selectedEntries = getBuilderSelected();
+  if (!selectedEntries.length) {
+    alert('Выберите хотя бы один тип задания');
+    return;
+  }
+
+  const student = teacherStudents.find(s => s.id === Number(studentId));
+  const studentName = student ? (student.first_name || student.login) : 'ученика';
+  const effectiveHwTitle = hwTitle || `Вариант для ${studentName}`;
+
+  const taskIdsByType = {};
+  const variantKeys = new Set(['task17', 'task18', 'task19']);
+  const endpointKeys = new Set(['task4', 'task5', 'task7', 'task9', 'task10', 'task11', 'task12']);
+
+  // 1) Генерируем задания через endpoints (4/5/7/9/10/11/12)
+  for (const [taskType, countRaw] of selectedEntries) {
+    const count = Math.min(Number(countRaw), BUILDER_MAX_BY_TASK[taskType] ?? 20);
+    if (!count) continue;
+
+    if (variantKeys.has(taskType)) continue;
+    if (!endpointKeys.has(taskType)) continue;
+
+    let payload = {};
+    if (taskType === 'task5') {
+      payload = { count };
+    } else if (taskType === 'task7') {
+      payload = { count };
+    } else if (taskType === 'task4') {
+      payload = {
+        tasks_count: count,
+        correct_count: 3,
+        for_student_id: Number(studentId),
+      };
+      if (mode === 'flex') {
+        payload.correct_count = Number(document.getElementById('builder-task4-correct-count')?.value) || 3;
+        const cat = document.getElementById('builder-task4-category')?.value;
+        if (cat) payload.category = cat;
+      }
+    } else if (taskType === 'task9') {
+      payload = {
+        tasks_count: count,
+        correct_count: Number(document.getElementById('builder-task9-correct-count')?.value) || 3,
+        for_student_id: Number(studentId),
+      };
+      if (mode !== 'flex') {
+        payload.correct_count = 3;
+      } else {
+        const categories = Array.from(document.querySelectorAll('.builder-task9-category'))
+          .filter(cb => cb.checked).map(cb => cb.value);
+        const alternationTypes = Array.from(document.querySelectorAll('.builder-task9-alt-type'))
+          .filter(cb => cb.checked).map(cb => cb.value);
+        const vowelPairs = parseCsvList(document.getElementById('builder-task9-vowel-pairs')?.value).slice(0, 50);
+        payload.categories = categories;
+        payload.alternation_types = alternationTypes;
+        if (vowelPairs.length) payload.vowel_pairs = vowelPairs;
+      }
+    } else if (taskType === 'task10') {
+      payload = {
+        tasks_count: count,
+        correct_count: 3,
+        for_student_id: Number(studentId),
+      };
+      if (mode === 'flex') {
+        payload.correct_count = Number(document.getElementById('builder-task10-correct-count')?.value) || 3;
+        const allTask10Rules = ['з/с','ъ/ь','пре/при','пра/про','ы/и','неизменяемые гласные','неизменяемые согласные'];
+        const rules = Array.from(document.querySelectorAll('.builder-task10-rule'))
+          .filter(cb => cb.checked).map(cb => cb.value);
+        if (rules.length > 0 && rules.length < allTask10Rules.length) payload.rules = rules;
+      }
+    } else if (taskType === 'task11') {
+      payload = {
+        tasks_count: count,
+        correct_count: 3,
+        for_student_id: Number(studentId),
+      };
+      if (mode === 'flex') {
+        payload.correct_count = Number(document.getElementById('builder-task11-correct-count')?.value) || 3;
+        const allTask11Suffixes = ['ова/ыва','перед_вш','обес/обез','лив/чив','еньк/оньк','еват/оват','ист','ев/ив','к/ск','инк/енк','ик/ек','ец/иц','изн/от/ин','о/ё_шип','о/а_нар'];
+        const suffixes = Array.from(document.querySelectorAll('.builder-task11-suffix'))
+          .filter(cb => cb.checked).map(cb => cb.value);
+        if (suffixes.length > 0 && suffixes.length < allTask11Suffixes.length) payload.rules = suffixes;
+      }
+    } else if (taskType === 'task12') {
+      payload = {
+        tasks_count: count,
+        correct_count: 3,
+        for_student_id: Number(studentId),
+      };
+      if (mode === 'flex') {
+        payload.correct_count = Number(document.getElementById('builder-task12-correct-count')?.value) || 3;
+        const vowelPairs = parseCsvList(document.getElementById('builder-task12-vowel-pairs')?.value).slice(0, 80);
+        const allTask12FormTypes = ['verb','active_part','passive_part'];
+        const formTypes = Array.from(document.querySelectorAll('.builder-task12-form-type'))
+          .filter(cb => cb.checked).map(cb => cb.value);
+        if (vowelPairs.length) payload.vowel_pairs = vowelPairs;
+        if (formTypes.length > 0 && formTypes.length < allTask12FormTypes.length) payload.form_types = formTypes;
+      }
+    }
+
+    const res = await fetch(`/api/${taskType}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Ошибка генерации ${taskType}`);
+
+    const ids = data.ids || [data.id];
+    taskIdsByType[taskType] = ids;
+  }
+
+  // 2) Генерируем task17/18/19 через /api/variant/generate
+  const variantPick = {};
+  for (const [taskType, countRaw] of selectedEntries) {
+    if (!variantKeys.has(taskType)) continue;
+    variantPick[taskType] = Math.min(Number(countRaw), BUILDER_MAX_BY_TASK[taskType] ?? 10);
+  }
+
+  let variantTasks = [];
+  if (Object.keys(variantPick).length) {
+    const vr = await fetch('/api/variant/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(variantPick),
+    });
+    const vrData = await vr.json();
+    if (!vr.ok) throw new Error(vrData.error || 'Ошибка генерации варианта для 17/18/19');
+
+    const tasksResp = await fetch(`/api/variant/${vrData.id}`).then(r => r.json());
+    variantTasks = tasksResp.tasks || [];
+  }
+
+  for (const t of variantTasks) {
+    const type = t.type;
+    if (!taskIdsByType[type]) taskIdsByType[type] = [];
+    taskIdsByType[type].push(t.taskId);
+  }
+
+  // 3) Собираем единый вариант из уже сгенерированных taskIdsByType
+  const flatTasks = [];
+  for (const [taskType, ids] of Object.entries(taskIdsByType)) {
+    if (!ids?.length) continue;
+    for (const id of ids) {
+      flatTasks.push({ type: taskType, taskId: id });
+    }
+  }
+
+  if (!flatTasks.length) {
+    throw new Error('Не удалось собрать задания для варианта');
+  }
+
+  const vr2 = await fetch('/api/variant/from-tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tasks: flatTasks }),
+  });
+  const vr2Data = await vr2.json();
+  if (!vr2.ok) throw new Error(vr2Data.error || 'Ошибка создания варианта');
+
+  const variantId = vr2Data.id;
+
+  // 4) Создаём ОДНО ДЗ на этот вариант (с дефолтным title, если поле пустое)
+  if (variantId) {
+    await fetch('/api/teacher/homework', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_id: Number(studentId),
+        title: effectiveHwTitle,
+        task_type: 'variant',
+        task_ids: [variantId],
+        due_date: hwDue || null,
+      }),
+    });
+  }
+
+  // 5) Показываем результат с единой ссылкой на вариант
+  resultEl.style.display = '';
+  const assignedText = ' (назначено как ДЗ)';
+  const total = flatTasks.length;
+  resultEl.innerHTML = `
+    <div class="gen-result-header">Готово! Сформирован вариант из ${total} заданий для ${studentName}${assignedText}</div>
+    <div class="gen-links">
+      <a href="/variant/${variantId}" target="_blank" class="gen-link">
+        Открыть вариант #${variantId} →
+      </a>
+    </div>
+    <p class="gen-result-hint">Скопируйте ссылку и отправьте ученику, или он увидит вариант в разделе ДЗ личного кабинета.</p>
+  `;
+
+  await loadHomeworkTeacher();
+  document.querySelector('[data-tab="homework"]').click();
+}
+
+document.getElementById('builderCreateBtn')?.addEventListener('click', async () => {
+  const createBtn = document.getElementById('builderCreateBtn');
+  const adv = document.getElementById('builder-advanced-config');
+  // Если панель настроек открыта — используем гибкий режим, иначе быстрый.
+  const mode = (adv && adv.style.display !== 'none') ? 'flex' : 'quick';
+
+  const errEl = document.getElementById('builderErrorMsg');
+  if (errEl) errEl.hidden = true;
+
+  try {
+    createBtn.disabled = true;
+    createBtn.textContent = 'Создание…';
+    await generateBuilderTasksAndMaybeHomework({ mode });
+  } catch (e) {
+    if (errEl) { errEl.hidden = false; errEl.textContent = e.message || 'Ошибка'; }
+  } finally {
+    createBtn.disabled = false;
+    createBtn.textContent = 'Создать ДЗ';
+  }
+});
+
+document.getElementById('builderRecommendBtn')?.addEventListener('click', async () => {
+  const recommendBtn = document.getElementById('builderRecommendBtn');
+  const studentId = document.getElementById('builder-student-select')?.value;
+  const errEl = document.getElementById('builderErrorMsg');
+
+  if (!studentId) return;
+
+  try {
+    recommendBtn.disabled = true;
+    if (errEl) errEl.hidden = true;
+
+    const r = await fetch(`/api/teacher/students/${studentId}/weak-words`);
+    if (!r.ok) throw new Error('Не удалось загрузить ошибки ученика');
+    const data = await r.json();
+
+    const weakWordGroups = data?.weak_words || [];
+    let reco = computeRecommendationFromWeakWords(weakWordGroups);
+
+    // Если weak-words пустой, делаем "разумную" подстановку по доступным типам.
+    if (!Object.keys(reco).length) {
+      const fallbackOrder = ['task9', 'task10', 'task11', 'task12', 'task4'];
+      reco = {};
+      let used = 0;
+      for (const key of fallbackOrder) {
+        const max = getBuilderMaxSelectedByKey(key);
+        if (max <= 0) continue;
+        reco[key] = 1;
+        used++;
+        if (used >= 3) break;
+      }
+    }
+
+    // Сбросим всё, потом применим рекомендации.
+    for (const k of Object.keys(builderCounts)) setBuilderCountForKey(k, 0);
+    clearBuilderRecommendationsHighlight();
+    for (const [k, v] of Object.entries(reco)) {
+      setBuilderCountForKey(k, v);
+      if (v > 0 && getBuilderMaxSelectedByKey(k) > 0) {
+        const card = document.querySelector(`.builder-task-card[data-key="${k}"]`);
+        card?.classList.add('builder-task-card--recommended');
+      }
+    }
+
+    // Обновим общий счётчик и доступность кнопок.
+    updateBuilderTotalAndButtons();
+  } catch (e) {
+    if (errEl) {
+      errEl.hidden = false;
+      errEl.textContent = e.message || 'Ошибка';
+    }
+  } finally {
+    if (recommendBtn) recommendBtn.disabled = false;
+    // Состояние кнопок выставит updateBuilderTotalAndButtons().
+  }
+});
+
+document.getElementById('builderSettingsBtn')?.addEventListener('click', () => {
+  const settingsBtn = document.getElementById('builderSettingsBtn');
+  const adv = document.getElementById('builder-advanced-config');
+  if (!adv) return;
+
+  const isOpen = adv.style.display !== 'none';
+  if (isOpen) {
+    adv.style.display = 'none';
+    settingsBtn.textContent = '⚙ Настройки';
+  } else {
+    primeBuilderAdvancedFilters();
+    adv.style.display = '';
+    settingsBtn.textContent = '⚙ Скрыть настройки';
+  }
+});
+
+function quickGenerate(studentId, studentName) {
+  document.querySelectorAll('.teacher-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.teacher-tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-tab="generate"]').classList.add('active');
+  document.getElementById('teacher-tab-generate').classList.add('active');
+  refreshGenerateStudentSelect();
+  document.getElementById('gen-student-select').value = studentId;
+  updateWeakHint();
+}
+
+/* ─── Модальное окно: слова по заданию ────────────────────── */
+let _weakWordsCache = null;
+let _masteryThresholdCache = 5;
+
+async function getWeakWordsData() {
+  if (_weakWordsCache) return _weakWordsCache;
+  const r = await fetch('/api/progress/weak-words');
+  const data = await r.json();
+  _weakWordsCache = data.weak_words || [];
+  _masteryThresholdCache = data.mastery_threshold || 5;
+  return _weakWordsCache;
+}
+
+async function openWordsModal(taskKey, taskLabel) {
+  const overlay = document.getElementById('words-modal-overlay');
+  const body = document.getElementById('words-modal-body');
+  document.getElementById('words-modal-title').textContent = taskLabel + ' — слова для повторения';
+  body.innerHTML = '<div class="skeleton-loader">Загрузка...</div>';
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  const wordTable = taskKey + '_words';
+  const weakWords = await getWeakWordsData();
+  const group = weakWords.find(g => g.word_table === wordTable);
+
+  renderWordsModalBody(body, group?.words || [], wordTable);
+}
+
+function renderWordsModalBody(body, words, wordTable) {
+  if (!words.length) {
+    body.innerHTML = '<p class="empty-state">Слов для повторения нет — отличная работа!</p>';
+    return;
+  }
+
+  body.innerHTML = words.map(w => `
+    <div class="wm-word-item" id="wm-word-${wordTable}-${w.word_id}">
+      <div class="wm-word-top">
+        <span class="wm-word-text">${w.word}</span>
+        <span class="weak-word-errors">${w.errors} ${pluralErrors(w.errors)}</span>
+      </div>
+      <div class="weak-word-rule">${w.rule}</div>
+      <div class="mastery-bar-wrap">
+        <div class="mastery-bar"><div class="mastery-fill" style="width:${w.mastery}%"></div></div>
+        <span class="mastery-label">${w.streak}/${_masteryThresholdCache} подряд</span>
+      </div>
+      <div class="wm-word-actions">
+        <button class="btn btn-sm btn-outline" onclick="masterWord('${wordTable}', ${w.word_id})">Отметить запомненным</button>
+        <button class="btn btn-sm btn-ghost wm-delete-btn" onclick="deleteWord('${wordTable}', ${w.word_id})">Удалить</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteWord(wordTable, wordId) {
+  const r = await fetch(`/api/progress/words/${wordTable}/${wordId}`, { method: 'DELETE' });
+  if (!r.ok) return;
+  _weakWordsCache = null; // сбросить кеш
+  document.getElementById(`wm-word-${wordTable}-${wordId}`)?.remove();
+  const body = document.getElementById('words-modal-body');
+  if (!body.querySelector('.wm-word-item')) {
+    body.innerHTML = '<p class="empty-state">Слов для повторения нет — отличная работа!</p>';
+  }
+  loadStudentData(); // обновить карточки
+}
+
+async function masterWord(wordTable, wordId) {
+  const r = await fetch(`/api/progress/words/${wordTable}/${wordId}/master`, { method: 'POST' });
+  if (!r.ok) return;
+  _weakWordsCache = null;
+  document.getElementById(`wm-word-${wordTable}-${wordId}`)?.remove();
+  const body = document.getElementById('words-modal-body');
+  if (!body.querySelector('.wm-word-item')) {
+    body.innerHTML = '<p class="empty-state">Слов для повторения нет — отличная работа!</p>';
+  }
+  loadStudentData();
+}
+
+function closeWordsModal(e) {
+  if (e && e.target !== document.getElementById('words-modal-overlay')) return;
+  document.getElementById('words-modal-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeWordsModal();
+});
+</script>

@@ -80,13 +80,23 @@ api.get('/assignments/by-id/:id', (req, res) => {
       a.explanation,
       a.rule_ref,
       a.alt_answers,
-      a.extra_data
+      a.extra_data,
+      a.passage_id,
+      p.context AS passage_context
     FROM assignments a
-    JOIN subtopics st ON st.id = a.subtopic_id
+    LEFT JOIN subtopics st ON st.id = a.subtopic_id
+    LEFT JOIN text_passages p ON p.id = a.passage_id
     WHERE a.id = ?
   `).get(id);
 
   if (!a) return res.status(404).json({ error: 'not found' });
+
+  // Если у задания есть пассаж — контекст берём из него
+  if (a.passage_id && a.passage_context) {
+    a.context = a.passage_context;
+  }
+  delete a.passage_context;
+
   res.json(a);
 });
 

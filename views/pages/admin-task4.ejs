@@ -1,0 +1,673 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Задание №4 — Орфоэпический минимум</h2>
+
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('words',this)">Словарь</button>
+    <button class="tab-btn" onclick="switchTab('tasks',this)">Готовые задания</button>
+    <button class="tab-btn" onclick="switchTab('generate',this)">Генерация</button>
+  </div>
+
+  <!-- ══ ВКЛАДКА: СЛОВАРЬ ══════════════════════════════════ -->
+  <div id="tab-words">
+    <div class="admin-section">
+      <h3 id="word-form-title">Добавить слово</h3>
+      <form id="word-form" class="admin-form" onsubmit="return false;">
+        <input type="hidden" id="word-id">
+
+        <div class="word-form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label>Слово (без знаков ударения)</label>
+            <input type="text" id="word-input" placeholder="звонить" required
+              autocomplete="off" oninput="rebuildPicker()" style="max-width:320px;">
+            <div style="margin-top:4px;font-size:12px;color:var(--text-secondary);">
+              Введите слово, затем кликните на букву, чтобы назначить ударения.
+            </div>
+          </div>
+
+          <div class="form-group" style="grid-column:1/-1;">
+            <div style="display:flex;gap:40px;flex-wrap:wrap;">
+              <div>
+                <label style="margin-bottom:6px;display:block;">
+                  Верное ударение
+                  <span style="color:var(--brand);font-size:13px;margin-left:6px;" id="preview-correct"></span>
+                </label>
+                <div id="picker-correct" class="t4-picker-row"></div>
+                <input type="hidden" id="correct-stress-index">
+              </div>
+              <div>
+                <label style="margin-bottom:6px;display:block;">
+                  Ошибочное ударение
+                  <span style="color:#f59e0b;font-size:13px;margin-left:6px;" id="preview-wrong"></span>
+                </label>
+                <div id="picker-wrong" class="t4-picker-row"></div>
+                <input type="hidden" id="wrong-stress-index">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Категория</label>
+            <select id="word-category">
+              <option value="past_fem_verb">Глаголы прош. вр. ж.р.</option>
+              <option value="short_part_fem">Краткие причастия ж.р.</option>
+              <option value="verb_it">Глаголы на -ИТЬ</option>
+              <option value="verb_from_adj">Глаголы от прилагательных</option>
+              <option value="active_part_vsh">Причастия с -ВШ-</option>
+              <option value="part_bent">Причастия загнуть/согнуть</option>
+              <option value="part_enn">Причастия с -ЁНН-</option>
+              <option value="bal_root">Корень БАЛ-</option>
+              <option value="gerund_vsh">Деепричастия с -ВШ-</option>
+              <option value="foreign_noun">Иностр. существительные</option>
+              <option value="deverbal_noun">Отглагольные существительные</option>
+              <option value="fixed_stress">Неподвижное ударение</option>
+              <option value="adj_from_noun">Прилагательные от сущ.</option>
+              <option value="krasivee">Степени сравнения красИвый</option>
+              <option value="adv_do">Наречия с ДО-</option>
+              <option value="adv_za">Наречия с ЗА-</option>
+              <option value="other" selected>Другое</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Часть речи</label>
+            <select id="word-pos">
+              <option value="noun">существительное</option>
+              <option value="verb" selected>глагол</option>
+              <option value="adj">прилагательное</option>
+              <option value="participle">причастие</option>
+              <option value="gerund">деепричастие</option>
+              <option value="adverb">наречие</option>
+              <option value="other">другое</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="align-self:end;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="word-exception">
+              Исключение из правила
+            </label>
+          </div>
+
+          <div class="form-group" style="grid-column:1/-1;">
+            <label>Подсказка <span style="color:var(--text-secondary);font-weight:400;">(необязательно)</span></label>
+            <input type="text" id="word-hint" placeholder="Исключение: вЫлила — приставка ВЫ- всегда ударна" style="max-width:480px;">
+          </div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn" id="word-submit-btn" onclick="submitWord()">Добавить</button>
+          <button type="button" class="btn btn-secondary" id="word-cancel-btn" style="display:none;" onclick="resetWordForm()">Отмена</button>
+        </div>
+        <div id="word-form-error" style="color:#D69295;margin-top:8px;display:none;"></div>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h3>Словарь <span id="words-count" style="color:var(--text-secondary);font-weight:400;font-size:15px;"></span></h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+        <input type="text" id="words-search" placeholder="Поиск..." style="max-width:200px;" oninput="filterWords()">
+        <select id="filter-category" onchange="filterWords()" style="max-width:260px;">
+          <option value="">Все категории</option>
+          <option value="past_fem_verb">Прош. вр. ж.р.</option>
+          <option value="short_part_fem">Кратк. прич. ж.р.</option>
+          <option value="verb_it">Глаголы на -ИТЬ</option>
+          <option value="verb_from_adj">Глаголы от прил.</option>
+          <option value="active_part_vsh">Прич. -ВШ-</option>
+          <option value="part_bent">Прич. загнуть/согнуть</option>
+          <option value="part_enn">Прич. -ЁНН-</option>
+          <option value="bal_root">Корень БАЛ-</option>
+          <option value="gerund_vsh">Деепр. -ВШ-</option>
+          <option value="foreign_noun">Иностр. сущ.</option>
+          <option value="deverbal_noun">Отглагольные сущ.</option>
+          <option value="fixed_stress">Неподвижное ударение</option>
+          <option value="adj_from_noun">Прилаг. от сущ.</option>
+          <option value="krasivee">КрасИвее</option>
+          <option value="adv_do">Наречия ДО-</option>
+          <option value="adv_za">Наречия ЗА-</option>
+          <option value="other">Другое</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;">
+          <input type="checkbox" id="filter-exception" onchange="filterWords()"> Только исключения
+        </label>
+      </div>
+      <table class="admin-table" id="words-table">
+        <thead>
+          <tr>
+            <th style="color:var(--brand);">Верное ударение</th>
+            <th style="color:#f59e0b;">Ошибочное ударение</th>
+            <th>Категория</th>
+            <th>Подсказка</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="words-tbody">
+          <tr><td colspan="5" style="color:var(--text-secondary);">Загрузка...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ГОТОВЫЕ ЗАДАНИЯ ══════════════════════════ -->
+  <div id="tab-tasks" style="display:none;">
+    <div class="admin-section">
+      <h3>Составить задание вручную</h3>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">
+        Выберите 5 слов, отметьте те, в которых ударение указано <strong>верно</strong> (2–4 слова).
+      </p>
+      <div id="task-builder">
+        <div id="task-slots" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:center;">
+          <button type="button" class="btn" id="btn-save-task">Сохранить задание</button>
+          <button type="button" class="btn btn-secondary" id="task-edit-cancel" style="display:none;" onclick="cancelTaskEdit()">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-section" style="margin-top:32px;">
+      <h3>Все задания</h3>
+      <div id="tasks-list">
+        <p style="color:var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ГЕНЕРАЦИЯ ════════════════════════════════ -->
+  <div id="tab-generate" style="display:none;">
+    <div class="admin-section">
+      <h3>Сгенерировать задание</h3>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">
+        5 случайных слов из словаря, из них N с верным ударением.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;max-width:600px;margin-bottom:16px;">
+        <div class="form-group">
+          <label>Правильных слов</label>
+          <select id="gen-correct-count">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Категория (необязательно)</label>
+          <select id="gen-category">
+            <option value="">Любая</option>
+            <option value="past_fem_verb">Прош. вр. ж.р.</option>
+            <option value="short_part_fem">Кратк. прич. ж.р.</option>
+            <option value="verb_it">Глаголы на -ИТЬ</option>
+            <option value="verb_from_adj">Глаголы от прил.</option>
+            <option value="active_part_vsh">Прич. -ВШ-</option>
+            <option value="part_bent">Прич. загнуть/согнуть</option>
+            <option value="part_enn">Прич. -ЁНН-</option>
+            <option value="bal_root">Корень БАЛ-</option>
+            <option value="gerund_vsh">Деепр. -ВШ-</option>
+            <option value="foreign_noun">Иностр. сущ.</option>
+            <option value="deverbal_noun">Отглагольные сущ.</option>
+            <option value="fixed_stress">Неподвижное ударение</option>
+            <option value="adj_from_noun">Прилаг. от сущ.</option>
+            <option value="krasivee">КрасИвее</option>
+            <option value="adv_do">Наречия ДО-</option>
+            <option value="adv_za">Наречия ЗА-</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Количество заданий</label>
+          <input type="number" id="gen-tasks-count" min="1" max="20" value="1" style="max-width:100px;">
+        </div>
+      </div>
+      <button class="btn" id="btn-generate-task">Сгенерировать и сохранить</button>
+      <div id="gen-result" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="admin-section" style="margin-top:32px;">
+      <h3>Сгенерированные задания</h3>
+      <div id="gen-tasks-list">
+        <p style="color:var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.admin-table th, .admin-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--glass-border); text-align: left; vertical-align: middle;
+}
+.admin-table th { color: var(--text-secondary); font-weight: 600; }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: var(--bg-tertiary); }
+
+.word-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px 24px;
+}
+@media (max-width: 700px) { .word-form-grid { grid-template-columns: 1fr; } }
+
+.t4-picker-row { display: flex; flex-wrap: wrap; gap: 4px; min-height: 36px; }
+.t4-picker-char {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 30px; height: 34px; padding: 0 5px;
+  background: var(--bg-tertiary); border: 2px solid var(--glass-border);
+  border-radius: 6px; font-size: 17px; color: var(--text-primary); cursor: pointer;
+  transition: border-color 0.1s;
+}
+.t4-picker-char:hover { border-color: var(--text-secondary); }
+.t4-picker-char.active-correct {
+  border-color: var(--brand); background: var(--brand-muted);
+  color: var(--brand); font-weight: 700;
+}
+.t4-picker-char.active-wrong {
+  border-color: #f59e0b; background: rgba(245,158,11,0.1);
+  color: #f59e0b; font-weight: 700;
+}
+
+.t4-slot {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px;
+  background: var(--bg-secondary); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+.t4-slot.correct-slot { border-color: var(--brand); }
+.t4-slot-preview { font-size: 16px; min-width: 120px; color: var(--text-secondary); }
+</style>
+
+<script src="/js/admin-task-shared.js"></script>
+<script>
+const escHtml = (s) => AdminTasks.escHtml(s);
+
+const CAT_NAMES = {
+  past_fem_verb:  'Прош. вр. ж.р.',
+  short_part_fem: 'Кратк. прич. ж.р.',
+  verb_it:        'Глаголы на -ИТЬ',
+  verb_from_adj:  'Глаголы от прил.',
+  active_part_vsh:'Прич. -ВШ-',
+  part_bent:      'Прич. загнуть/согнуть',
+  part_enn:       'Прич. -ЁНН-',
+  bal_root:       'Корень БАЛ-',
+  gerund_vsh:     'Деепр. -ВШ-',
+  foreign_noun:   'Иностр. сущ.',
+  deverbal_noun:  'Отглагол. сущ.',
+  fixed_stress:   'Неподвижн. ударение',
+  adj_from_noun:  'Прилаг. от сущ.',
+  krasivee:       'КрасИвее',
+  adv_do:         'Наречия ДО-',
+  adv_za:         'Наречия ЗА-',
+  other:          'Другое',
+};
+
+function addStress(word, index) {
+  if (index == null || index < 0 || index >= word.length) return escHtml(word);
+  return escHtml(word.slice(0, index)) + word[index].toUpperCase() + escHtml(word.slice(index + 1));
+}
+
+/* ── Вкладки ─────────────────────────────────────────────── */
+const switchTab = AdminTasks.createSwitchTab({
+  tabIds: ['words', 'tasks', 'generate'],
+  onShow: {
+    words()    { loadWords(); },
+    tasks()    { loadAllWords().then(() => { renderTaskSlots(); loadTasks(); }); },
+    generate() { loadGenTasks(); },
+  },
+});
+
+/* ── Пикер ударения ──────────────────────────────────────── */
+let pickerCorrectIndex = null;
+let pickerWrongIndex   = null;
+
+function rebuildPicker() {
+  const word = document.getElementById('word-input').value;
+  buildPicker('picker-correct', word, pickerCorrectIndex, 'correct');
+  buildPicker('picker-wrong',   word, pickerWrongIndex,   'wrong');
+  updatePreviews(word);
+}
+
+function buildPicker(containerId, word, selectedIndex, type) {
+  const el = document.getElementById(containerId);
+  if (!word) { el.innerHTML = '<span style="color:var(--text-secondary);font-size:13px;">Введите слово выше</span>'; return; }
+  el.innerHTML = Array.from(word).map((ch, i) =>
+    `<button type="button" class="t4-picker-char${i === selectedIndex ? ' active-' + type : ''}"
+      onclick="selectStress(${i},'${type}')">${escHtml(ch)}</button>`
+  ).join('');
+}
+
+function selectStress(index, type) {
+  if (type === 'correct') { pickerCorrectIndex = index; document.getElementById('correct-stress-index').value = index; }
+  else                    { pickerWrongIndex   = index; document.getElementById('wrong-stress-index').value   = index; }
+  const word = document.getElementById('word-input').value;
+  buildPicker('picker-correct', word, pickerCorrectIndex, 'correct');
+  buildPicker('picker-wrong',   word, pickerWrongIndex,   'wrong');
+  updatePreviews(word);
+}
+
+function updatePreviews(word) {
+  document.getElementById('preview-correct').innerHTML =
+    pickerCorrectIndex != null ? addStress(word, pickerCorrectIndex) : '(не выбрано)';
+  document.getElementById('preview-wrong').innerHTML =
+    pickerWrongIndex != null ? addStress(word, pickerWrongIndex) : '(не выбрано)';
+}
+
+/* ── Форма слова ─────────────────────────────────────────── */
+function resetWordForm() {
+  document.getElementById('word-id').value              = '';
+  document.getElementById('word-input').value           = '';
+  document.getElementById('word-hint').value            = '';
+  document.getElementById('correct-stress-index').value = '';
+  document.getElementById('wrong-stress-index').value   = '';
+  document.getElementById('word-category').value        = 'other';
+  document.getElementById('word-pos').value             = 'verb';
+  document.getElementById('word-exception').checked     = false;
+  pickerCorrectIndex = null; pickerWrongIndex = null;
+  document.getElementById('picker-correct').innerHTML = '';
+  document.getElementById('picker-wrong').innerHTML   = '';
+  document.getElementById('preview-correct').innerHTML = '';
+  document.getElementById('preview-wrong').innerHTML   = '';
+  document.getElementById('word-form-error').style.display = 'none';
+  document.getElementById('word-form-title').textContent   = 'Добавить слово';
+  document.getElementById('word-submit-btn').textContent   = 'Добавить';
+  document.getElementById('word-cancel-btn').style.display = 'none';
+}
+
+function editWord(w) {
+  document.getElementById('word-id').value          = w.id;
+  document.getElementById('word-input').value       = w.word;
+  document.getElementById('word-hint').value        = w.hint || '';
+  document.getElementById('word-category').value    = w.category || 'other';
+  document.getElementById('word-pos').value         = w.part_of_speech || 'other';
+  document.getElementById('word-exception').checked = !!w.is_exception;
+  pickerCorrectIndex = w.correct_stress_index;
+  pickerWrongIndex   = w.wrong_stress_index;
+  document.getElementById('correct-stress-index').value = w.correct_stress_index;
+  document.getElementById('wrong-stress-index').value   = w.wrong_stress_index;
+  rebuildPicker();
+  document.getElementById('word-form-title').textContent   = 'Редактировать слово';
+  document.getElementById('word-submit-btn').textContent   = 'Сохранить';
+  document.getElementById('word-cancel-btn').style.display = '';
+  document.getElementById('word-form-error').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function submitWord() {
+  const errEl = document.getElementById('word-form-error');
+  errEl.style.display = 'none';
+  const id   = document.getElementById('word-id').value;
+  const word = document.getElementById('word-input').value.trim();
+  const ci   = document.getElementById('correct-stress-index').value;
+  const wi   = document.getElementById('wrong-stress-index').value;
+
+  if (!word)    { showErr('Введите слово'); return; }
+  if (ci === '') { showErr('Выберите верное ударение'); return; }
+  if (wi === '') { showErr('Выберите ошибочное ударение'); return; }
+  if (ci === wi) { showErr('Верное и ошибочное ударения должны быть на разных буквах'); return; }
+
+  const body = {
+    word, correct_stress_index: +ci, wrong_stress_index: +wi,
+    hint:          document.getElementById('word-hint').value.trim() || null,
+    category:      document.getElementById('word-category').value,
+    part_of_speech:document.getElementById('word-pos').value,
+    is_exception:  document.getElementById('word-exception').checked,
+  };
+  const res  = await fetch(id ? '/api/task4/words/' + id : '/api/task4/words',
+    { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (data.error) { showErr(data.error); return; }
+  resetWordForm(); loadWords();
+
+  function showErr(msg) { errEl.textContent = msg; errEl.style.display = 'block'; }
+}
+
+async function deleteWord(id) {
+  if (!confirm('Удалить слово из словаря?')) return;
+  await fetch('/api/task4/words/' + id, { method: 'DELETE' });
+  loadWords();
+}
+
+/* ── Загрузка и рендер словаря ───────────────────────────── */
+let allWords = [];
+
+async function loadWords() {
+  const res = await fetch('/api/task4/words');
+  allWords = await res.json();
+  document.getElementById('words-count').textContent = '(' + allWords.length + ')';
+  filterWords();
+}
+
+function filterWords() {
+  const q   = document.getElementById('words-search').value.toLowerCase();
+  const cat = document.getElementById('filter-category').value;
+  const exc = document.getElementById('filter-exception').checked;
+  const list = allWords.filter(w => {
+    if (q   && !w.word.toLowerCase().includes(q)) return false;
+    if (cat && w.category !== cat)                 return false;
+    if (exc && !w.is_exception)                    return false;
+    return true;
+  });
+  renderWordsTable(list);
+}
+
+function renderWordsTable(words) {
+  const tbody = document.getElementById('words-tbody');
+  if (!words.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-secondary);">Слов не найдено</td></tr>';
+    return;
+  }
+  tbody.innerHTML = words.map(w => `
+    <tr>
+      <td style="font-size:16px;color:var(--brand);font-weight:600;">${addStress(w.word, w.correct_stress_index)}</td>
+      <td style="font-size:16px;color:#f59e0b;">${addStress(w.word, w.wrong_stress_index)}</td>
+      <td style="font-size:12px;color:var(--text-secondary);">
+        ${escHtml(CAT_NAMES[w.category] || w.category || '—')}
+        ${w.is_exception ? '<span style="color:#f59e0b;margin-left:4px;">искл.</span>' : ''}
+      </td>
+      <td style="font-size:13px;color:var(--text-secondary);max-width:200px;">${escHtml(w.hint || '—')}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn-icon" onclick='editWord(${JSON.stringify(w)})' title="Редактировать">
+          <img src="/images/type=edit, size=16.svg" width="16" height="16">
+        </button>
+        <button class="btn-icon btn-icon--delete" onclick="deleteWord(${w.id})" title="Удалить">
+          <img src="/images/type=delete, size=16.svg" width="16" height="16">
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ── Конструктор задания (вкладка «Задания») ─────────────── */
+let editingTaskId = null;
+let builderWords  = [];
+
+async function loadAllWords() {
+  const res = await fetch('/api/task4/words');
+  builderWords = await res.json();
+}
+
+function renderTaskSlots(filledItems) {
+  const container = document.getElementById('task-slots');
+  container.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const filled = filledItems && filledItems[i - 1];
+    const div = document.createElement('div');
+    div.className = 't4-slot' + (filled && filled.is_correct ? ' correct-slot' : '');
+    div.dataset.slotIndex = i;
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.dataset.correct = '1';
+    cb.checked = !!(filled && filled.is_correct);
+    cb.addEventListener('change', () => div.classList.toggle('correct-slot', cb.checked));
+
+    const lbl = document.createElement('label');
+    lbl.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;';
+    lbl.append(cb);
+    lbl.append(document.createTextNode('Верное ' + i));
+
+    const sel = document.createElement('select');
+    sel.className = 'word-select';
+    sel.dataset.slot = i;
+    sel.innerHTML = '<option value="">— слово ' + i + ' —</option>' +
+      builderWords.map(w =>
+        `<option value="${w.id}" data-correct="${w.correct_stress_index}" data-wrong="${w.wrong_stress_index}" data-word="${escHtml(w.word)}">${escHtml(w.word)} (верн: ${addStress(w.word, w.correct_stress_index)})</option>`
+      ).join('');
+    if (filled) sel.value = String(filled.word_id);
+
+    const preview = document.createElement('span');
+    preview.className = 't4-slot-preview';
+    preview.innerHTML = filled ? getSlotPreview(filled.word, filled.correct_stress_index, filled.wrong_stress_index, filled.is_correct) : '';
+
+    sel.addEventListener('change', () => {
+      const opt = sel.options[sel.selectedIndex];
+      if (!opt.value) { preview.innerHTML = ''; return; }
+      const word = opt.dataset.word;
+      const ci   = +opt.dataset.correct;
+      const wi   = +opt.dataset.wrong;
+      const isCorrect = div.querySelector('[data-correct]').checked;
+      preview.innerHTML = getSlotPreview(word, ci, wi, isCorrect);
+    });
+    cb.addEventListener('change', () => {
+      const opt = sel.options[sel.selectedIndex];
+      if (!opt.value) return;
+      const word = opt.dataset.word;
+      const ci   = +opt.dataset.correct;
+      const wi   = +opt.dataset.wrong;
+      preview.innerHTML = getSlotPreview(word, ci, wi, cb.checked);
+    });
+
+    div.append(lbl, sel, preview);
+    container.appendChild(div);
+  }
+}
+
+function getSlotPreview(word, ci, wi, isCorrect) {
+  const stressed = isCorrect
+    ? '<span style="color:var(--brand);">' + addStress(word, ci) + '</span>'
+    : '<span style="color:#f59e0b;">' + addStress(word, wi) + '</span>';
+  return stressed;
+}
+
+function cancelTaskEdit() {
+  editingTaskId = null;
+  document.getElementById('btn-save-task').textContent = 'Сохранить задание';
+  document.getElementById('task-edit-cancel').style.display = 'none';
+  renderTaskSlots();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btn-save-task').addEventListener('click', saveTask);
+});
+
+async function saveTask() {
+  const slots = document.querySelectorAll('.t4-slot');
+  const items = [];
+  for (const slot of slots) {
+    const sel = slot.querySelector('select');
+    const cb  = slot.querySelector('[data-correct]');
+    if (!sel.value) { alert('Выберите слово во всех 5 позициях'); return; }
+    items.push({ word_id: +sel.value, is_correct: cb.checked });
+  }
+  const correctCount = items.filter(i => i.is_correct).length;
+  if (correctCount < 2 || correctCount > 4) { alert('Отметьте от 2 до 4 верных слов'); return; }
+  const wordIds = items.map(i => i.word_id);
+  if (new Set(wordIds).size !== 5) { alert('Все 5 слов должны быть разными'); return; }
+
+  const url    = editingTaskId ? '/api/task4/tasks/' + editingTaskId : '/api/task4/tasks';
+  const method = editingTaskId ? 'PUT' : 'POST';
+  const res  = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify({ items }) });
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+
+  alert(editingTaskId ? 'Задание #' + editingTaskId + ' обновлено' : 'Задание #' + data.id + ' создано');
+  cancelTaskEdit();
+  loadTasks();
+}
+
+async function editTask(id) {
+  await loadAllWords();
+  const res = await fetch('/api/task4/tasks/' + id);
+  if (!res.ok) { alert('Не удалось загрузить задание'); return; }
+  const task = await res.json();
+  editingTaskId = id;
+  const sorted = task.items.sort((a, b) => a.item_index - b.item_index);
+  renderTaskSlots(sorted.map(it => ({ word_id: it.word_id, is_correct: it.is_correct, word: it.word, correct_stress_index: it.correct_stress_index, wrong_stress_index: it.wrong_stress_index })));
+  document.getElementById('btn-save-task').textContent = 'Сохранить изменения';
+  document.getElementById('task-edit-cancel').style.display = '';
+  document.getElementById('task-builder').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function loadTasks() {
+  const container = document.getElementById('tasks-list');
+  const res = await fetch('/api/task4/tasks');
+  const tasks = await res.json();
+  if (!tasks.length) {
+    container.innerHTML = '<p style="color:var(--text-secondary);">Заданий пока нет</p>';
+    return;
+  }
+  container.innerHTML = tasks.map(t => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-secondary);border:1px solid var(--glass-border);border-radius:var(--radius-lg);">
+      <span>
+        Задание #${t.id}
+        ${t.is_generated ? '<span style="font-size:11px;color:var(--text-secondary);margin-left:8px;">(сгенерировано)</span>' : ''}
+        <span style="font-size:12px;color:var(--text-secondary);margin-left:8px;">${t.created_at ? t.created_at.slice(0,10) : ''}</span>
+      </span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="/task4/${t.id}" target="_blank" class="btn btn-sm btn-secondary">Открыть</a>
+        <button type="button" class="btn btn-sm" onclick="editTask(${t.id})">Редактировать</button>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="deleteTask(${t.id})">Удалить</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteTask(id) {
+  if (!confirm('Удалить задание #' + id + '?')) return;
+  await fetch('/api/task4/tasks/' + id, { method: 'DELETE' });
+  loadTasks();
+}
+
+/* ── Генерация ────────────────────────────────────────────── */
+AdminTasks.bindGenerateButton({
+  generateUrl: '/api/task4/generate',
+  buildBody() {
+    const count  = document.getElementById('gen-tasks-count').value;
+    const cat    = document.getElementById('gen-category').value;
+    const body   = {
+      correct_count: +document.getElementById('gen-correct-count').value,
+      tasks_count:   +count,
+    };
+    if (cat) body.category = cat;
+    return body;
+  },
+  formatSuccess(data) {
+    const links = data.ids.map(id =>
+      '<a href="/task4/' + id + '" target="_blank" class="btn btn-sm btn-secondary" style="margin-left:6px;">#' + id + '</a>'
+    ).join('');
+    return '<span style="color:#A4E2D0;">✓ Создано заданий: ' + data.ids.length + '</span>' + links;
+  },
+  afterSuccess() { loadGenTasks(); },
+  buttonDoneText: 'Сгенерировать и сохранить',
+});
+
+function loadGenTasks() {
+  AdminTasks.renderGeneratedTasksList({
+    apiBase:  '/api/task4',
+    playPath: '/task4',
+    rowActionsHtml(t) {
+      return '<button type="button" class="btn btn-sm" onclick="switchToEditTask(' + t.id + ')">Редактировать</button>';
+    },
+  });
+}
+
+async function switchToEditTask(id) {
+  switchTab('tasks', document.querySelectorAll('.tab-btn')[1]);
+  await loadAllWords();
+  renderTaskSlots();
+  await editTask(id);
+}
+
+async function deleteGenTask(id) {
+  if (!confirm('Удалить задание #' + id + '?')) return;
+  await fetch('/api/task4/tasks/' + id, { method: 'DELETE' });
+  loadGenTasks();
+}
+
+/* ── Инициализация ───────────────────────────────────────── */
+loadWords();
+</script>

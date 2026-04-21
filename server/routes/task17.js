@@ -464,6 +464,92 @@ function calculateCommaPositions(base_text, commaless_text) {
 }
 
 /* ----------------------
+   ГЕНЕРАЦИЯ ОБЪЯСНЕНИЯ
+----------------------- */
+
+function spanTypeLabel(type) {
+  if (type === 'gerund') return 'деепричастный оборот';
+  if (type === 'participle') return 'причастный оборот';
+  if (type === 'definition') return 'обособленное определение';
+  return 'оборот';
+}
+
+function explainSingleSpan(span) {
+  const label = spanTypeLabel(span.type);
+  const Label = label.charAt(0).toUpperCase() + label.slice(1);
+
+  if (span.type === 'gerund') {
+    return `**${Label}** — всегда выделяется запятыми, независимо от позиции.`;
+  }
+
+  if (span.type === 'participle' || span.type === 'definition') {
+    if (span.main_word_is_pronoun) {
+      return `**${Label}** при главном слове-местоимении — выделяется запятыми в любой позиции.`;
+    }
+    if (span.position === 'after') {
+      return `**${Label}** стоит после главного слова — выделяется запятыми.`;
+    }
+    if (span.position === 'before') {
+      if (span.has_comma) {
+        return `**${Label}** стоит перед главным словом, но выделяется запятыми (имеет дополнительное обстоятельственное значение).`;
+      }
+      return `**${Label}** стоит перед главным словом — не выделяется запятыми.`;
+    }
+  }
+
+  return `**${Label}** — ${span.has_comma ? 'выделяется запятыми' : 'не выделяется запятыми'}.`;
+}
+
+// Генерирует русское объяснение по массиву спанов с расширенными полями.
+// Поля спана: type, position, main_word_is_pronoun, homogeneous_group, homogeneous_reason, has_comma.
+function generateExplanation(spans) {
+  if (!spans || spans.length === 0) return '';
+
+  const parts = [];
+  const processedGroups = new Set();
+
+  for (const span of spans) {
+    const group = span.homogeneous_group;
+
+    if (group !== null && group !== undefined) {
+      if (processedGroups.has(group)) continue;
+      processedGroups.add(group);
+
+      const groupSpans = spans.filter(s => s.homogeneous_group === group);
+      const reason = span.homogeneous_reason;
+
+      if (reason === 'same_word') {
+        const allGerunds = groupSpans.every(s => s.type === 'gerund');
+        const allParticiples = groupSpans.every(s => s.type === 'participle' || s.type === 'definition');
+        const typeDesc = allGerunds
+          ? 'Однородные деепричастные обороты'
+          : allParticiples
+          ? 'Однородные причастные обороты'
+          : 'Однородные обороты';
+
+        const hasConjunction = groupSpans.some(s => s.has_comma === false);
+        if (hasConjunction) {
+          parts.push(`**${typeDesc}** (зависят от одного слова), соединённые союзом — запятая перед союзом сохраняется.`);
+        } else {
+          parts.push(`**${typeDesc}** (зависят от одного слова) — каждый выделяется запятыми.`);
+        }
+      } else if (reason === 'different_verbs') {
+        parts.push(`**Обороты** выглядят однородными, но зависят от разных глаголов — неоднородные, каждый выделяется запятыми самостоятельно.`);
+      } else {
+        // Если причина не указана — объясняем каждый спан группы отдельно
+        for (const s of groupSpans) {
+          parts.push(explainSingleSpan(s));
+        }
+      }
+    } else {
+      parts.push(explainSingleSpan(span));
+    }
+  }
+
+  return parts.join('\n\n');
+}
+
+/* ----------------------
    АДМИНКА
 ----------------------- */
 
@@ -544,11 +630,17 @@ task17.post('/', (req, res) => {
       if (span.startOffset < 0 || span.endOffset > commaless_text.length || span.startOffset >= span.endOffset) {
         return res.status(400).json({ error: `Некорректные offsets в span: ${JSON.stringify(span)}` });
       }
-      if (span.type !== 'participle' && span.type !== 'gerund') {
+      if (!['participle', 'gerund', 'definition'].includes(span.type)) {
         return res.status(400).json({ error: `Некорректный тип span: ${span.type}` });
       }
     }
-    
+
+    // Автогенерация объяснения из спанов, если они содержат расширенные поля
+    const hasExtendedSpanFields = finalSpans.length > 0 &&
+      finalSpans.some(s => s.position !== undefined || s.has_comma !== undefined);
+    const autoExplanation = hasExtendedSpanFields ? generateExplanation(finalSpans) : null;
+    const finalExplanationMd = autoExplanation || explanation_md || null;
+
     // Вставляем задание с нормализованными текстами
     const taskResult = db.prepare(`
       INSERT INTO task17 (source_text, base_text, commaless_text, answer_text, explanation_md, source, reveal_policy)
@@ -558,7 +650,7 @@ task17.post('/', (req, res) => {
       normalizedBaseText,
       normalizedCommalessText,
       answer_text || null,
-      explanation_md || null,
+      finalExplanationMd,
       source || null,
       reveal_policy || 'after_correct'
     );
@@ -755,12 +847,24 @@ task17.put('/:id', (req, res) => {
         if (span.startOffset < 0 || span.endOffset > commaless_text.length || span.startOffset >= span.endOffset) {
           return res.status(400).json({ error: `Некорректные offsets в span: ${JSON.stringify(span)}` });
         }
-        if (span.type !== 'participle' && span.type !== 'gerund') {
+        if (!['participle', 'gerund', 'definition'].includes(span.type)) {
           return res.status(400).json({ error: `Некорректный тип span: ${span.type}` });
         }
       }
     }
-    
+
+    // Автогенерация объяснения из спанов, если они содержат расширенные поля
+    if (spans !== undefined) {
+      const hasExtendedSpanFields = finalSpans.length > 0 &&
+        finalSpans.some(s => s.position !== undefined || s.has_comma !== undefined);
+      if (hasExtendedSpanFields) {
+        const autoExplanation = generateExplanation(finalSpans);
+        if (autoExplanation) {
+          db.prepare(`UPDATE task17 SET explanation_md = ? WHERE id = ?`).run(autoExplanation, id);
+        }
+      }
+    }
+
     // Обновляем ответы, если переданы
     if (digits !== undefined || comma_positions !== undefined || spans !== undefined) {
       const existing = db.prepare('SELECT task_id FROM task17_answer WHERE task_id = ?').get(id);

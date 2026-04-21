@@ -1,0 +1,388 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Задание №11 — Управление</h2>
+
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('words',this)">Словарь слов</button>
+    <button class="tab-btn" onclick="switchTab('tasks',this)">Готовые задания</button>
+    <button class="tab-btn" onclick="switchTab('generate',this)">Генерация</button>
+  </div>
+
+  <!-- ══ ВКЛАДКА: СЛОВАРЬ ══════════════════════════════════ -->
+  <div id="tab-words">
+    <div class="admin-section">
+      <h3>Добавить слово</h3>
+      <form id="word-form" class="admin-form">
+        <input type="hidden" id="word-id">
+        <div class="word-form-grid">
+          <div class="form-group">
+            <label>Слово с пропуском (..)</label>
+            <input type="text" id="word-display" placeholder="завид..вать" required>
+          </div>
+          <div class="form-group">
+            <label>Правильная буква</label>
+            <input type="text" id="word-vowel" maxlength="2" placeholder="о">
+          </div>
+          <div class="form-group">
+            <label>Пара букв</label>
+            <input type="text" id="word-pair" placeholder="о/ы" required>
+          </div>
+          <div class="form-group">
+            <label>Правило</label>
+            <select id="word-suffix" required>
+              <option value="">—</option>
+              <optgroup label="Глаголы">
+                <option value="ова/ыва">-ова-/-ева- vs -ыва-/-ива-</option>
+                <option value="перед_вш">гласная перед -вш-/-л-/-в-</option>
+                <option value="обес/обез">обес-/обез-</option>
+              </optgroup>
+              <optgroup label="Прилагательные">
+                <option value="лив/чив">-лив-/-чив- (неизм.)</option>
+                <option value="еньк/оньк">-еньк-/-оньк- (неизм.)</option>
+                <option value="еват/оват">-еват-/-оват- (неизм.)</option>
+                <option value="ист">-ист- (неизм.)</option>
+                <option value="ев/ив">-ев-/-ив- (изм.)</option>
+                <option value="к/ск">-к-/-ск-</option>
+              </optgroup>
+              <optgroup label="Существительные">
+                <option value="инк/енк">-инк-/-ичк- vs -енк-/-ечк-</option>
+                <option value="ик/ек">-ик- vs -ек-</option>
+                <option value="ец/иц">-ец- vs -иц-</option>
+                <option value="изн/от/ин">-изн-/-от-/-ин- (неизм.)</option>
+              </optgroup>
+              <optgroup label="Прочее">
+                <option value="о/ё_шип">о/ё после шипящей</option>
+                <option value="о/а_нар">о/а в наречиях</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Часть речи</label>
+            <select id="word-pos" required>
+              <option value="">—</option>
+              <option value="глагол">глагол</option>
+              <option value="прилагательное">прилагательное</option>
+              <option value="существительное">существительное</option>
+              <option value="наречие">наречие</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Категория</label>
+            <select id="word-category" required>
+              <option value="">—</option>
+              <option value="variable">изменяемая</option>
+              <option value="fixed">неизменяемая</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button type="submit" class="btn" id="word-submit-btn">Добавить</button>
+          <button type="button" class="btn btn-secondary" id="word-cancel-btn" style="display:none;" onclick="cancelWordEdit()">Отмена</button>
+        </div>
+      </form>
+    </div>
+
+    <div style="max-width:360px;margin-bottom:16px;">
+      <div class="form-group">
+        <label>Фильтр: правило</label>
+        <select id="filter-suffix" onchange="loadWords()">
+          <option value="">Все</option>
+          <optgroup label="Глаголы">
+            <option value="ова/ыва">-ова-/-ева- vs -ыва-/-ива-</option>
+            <option value="перед_вш">гласная перед -вш-/-л-/-в-</option>
+            <option value="обес/обез">обес-/обез-</option>
+          </optgroup>
+          <optgroup label="Прилагательные">
+            <option value="лив/чив">-лив-/-чив-</option>
+            <option value="еньк/оньк">-еньк-/-оньк-</option>
+            <option value="еват/оват">-еват-/-оват-</option>
+            <option value="ист">-ист-</option>
+            <option value="ев/ив">-ев-/-ив-</option>
+            <option value="к/ск">-к-/-ск-</option>
+          </optgroup>
+          <optgroup label="Существительные">
+            <option value="инк/енк">-инк-/-ичк- vs -енк-/-ечк-</option>
+            <option value="ик/ек">-ик- vs -ек-</option>
+            <option value="ец/иц">-ец- vs -иц-</option>
+            <option value="изн/от/ин">-изн-/-от-/-ин-</option>
+          </optgroup>
+          <optgroup label="Прочее">
+            <option value="о/ё_шип">о/ё после шипящей</option>
+            <option value="о/а_нар">о/а в наречиях</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <table class="admin-table" id="words-table">
+        <thead>
+          <tr><th>Слово</th><th>Буква</th><th>Правило</th><th>ЧР</th><th>Действия</th></tr>
+        </thead>
+        <tbody id="words-tbody">
+          <tr><td colspan="5" style="color:var(--text-secondary);">Загрузка...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ГОТОВЫЕ ЗАДАНИЯ ══════════════════════════ -->
+  <div id="tab-tasks" style="display:none;">
+    <div class="admin-section">
+      <h3>Все задания</h3>
+      <div id="tasks-list-admin" style="display:flex;flex-direction:column;gap:8px;">
+        <p style="color:var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ГЕНЕРАЦИЯ ════════════════════════════════ -->
+  <div id="tab-generate" style="display:none;">
+    <div class="admin-section">
+      <h3>Сгенерировать задание</h3>
+      <div style="display:grid;grid-template-columns:minmax(340px,1fr) minmax(200px,260px);gap:12px;max-width:900px;margin-bottom:16px;align-items:start;">
+        <div class="form-group">
+          <label>Правила</label>
+          <div class="t11-check-grid">
+            <label><input type="checkbox" class="t11-rule-cb" value="ова/ыва"> -ова-/-ева- vs -ыва-/-ива-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="перед_вш"> гласная перед -вш-/-л-/-в-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="обес/обез"> обес-/обез-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="лив/чив"> -лив-/-чив-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="еньк/оньк"> -еньк-/-оньк-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="еват/оват"> -еват-/-оват-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="ист"> -ист-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="ев/ив"> -ев-/-ив-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="к/ск"> -к-/-ск-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="инк/енк"> -инк-/-ичк- vs -енк-/-ечк-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="ик/ек"> -ик- vs -ек-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="ец/иц"> -ец- vs -иц-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="изн/от/ин"> -изн-/-от-/-ин-</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="о/ё_шип"> о/ё после шипящей</label>
+            <label><input type="checkbox" class="t11-rule-cb" value="о/а_нар"> о/а в наречиях</label>
+          </div>
+          <div style="margin-top:8px;color:var(--text-secondary);font-size:12px;">Если ничего не отмечено — генерация по всем правилам.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="form-group">
+            <label>Правильных строк</label>
+            <div class="t11-check-grid t11-count-grid">
+              <label><input type="checkbox" class="t11-count-cb" value="any_2_4" checked> любое от 2 до 4</label>
+              <label><input type="checkbox" class="t11-count-cb" value="2"> 2</label>
+              <label><input type="checkbox" class="t11-count-cb" value="3"> 3</label>
+              <label><input type="checkbox" class="t11-count-cb" value="4"> 4</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Количество заданий</label>
+            <input type="number" id="gen-tasks-count" min="1" max="20" value="1">
+          </div>
+        </div>
+      </div>
+      <button class="btn" id="btn-generate-task">Сгенерировать и сохранить</button>
+      <div id="gen-result" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="admin-section" style="margin-top:32px;">
+      <h3>Сгенерированные задания</h3>
+      <div id="gen-tasks-list" style="display:flex;flex-direction:column;gap:8px;">
+        <p style="color:var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.word-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .word-form-grid { grid-template-columns: 1fr 1fr; }
+}
+.admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.admin-table th, .admin-table td {
+  padding: 10px 12px; text-align: left;
+  border-bottom: 1px solid var(--glass-border);
+}
+.admin-table th { color: var(--text-secondary); font-weight: 600; }
+.t11-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px 12px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+.t11-check-grid label {
+  display: flex; gap: 8px; align-items: center; font-size: 14px;
+}
+.t11-count-grid { grid-template-columns: 1fr; }
+.t11-check-grid input[type="checkbox"] {
+  appearance: auto; -webkit-appearance: checkbox;
+  width: 16px; height: 16px; min-width: 16px;
+  margin: 0; padding: 0; border: initial; border-radius: 3px;
+  background: initial; box-shadow: none; accent-color: var(--brand);
+}
+.task-row-builder {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+}
+.task-row-builder.correct-row { border-color: var(--brand); }
+</style>
+
+<script src="/js/admin-task-shared.js"></script>
+<script>
+const escHtml = (s) => AdminTasks.escHtml(s);
+const esc = (s) => AdminTasks.escAttr(s);
+
+let allWords = [];
+
+const switchTab = AdminTasks.createSwitchTab({
+  tabIds: ['words', 'tasks', 'generate'],
+  onShow: {
+    tasks() { loadAdminTasks(); },
+    generate() { loadGenTasks(); },
+  },
+});
+
+/* ── Словарь ── */
+async function loadWords() {
+  const suffix = document.getElementById('filter-suffix').value;
+  const url = '/api/task11/words' + (suffix ? '?suffix=' + encodeURIComponent(suffix) : '');
+  const res = await fetch(url);
+  allWords = await res.json();
+  const tbody = document.getElementById('words-tbody');
+  if (!allWords.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-secondary);">Слова не найдены</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allWords.map(w => `
+    <tr>
+      <td style="font-family:monospace;font-size:16px;">${escHtml(w.suffix_display)}</td>
+      <td>${escHtml(w.correct_vowel) || '<span style="color:var(--text-secondary);">—</span>'}</td>
+      <td>${escHtml(w.suffix)}</td>
+      <td>${escHtml(w.part_of_speech)}</td>
+      <td>
+        <button class="btn-icon" onclick="editWord(${w.id},'${esc(w.suffix_display)}','${esc(w.correct_vowel)}','${esc(w.suffix)}','${esc(w.part_of_speech)}','${esc(w.category)}','${esc(w.vowel_pair)}')" title="Редактировать"><img src="/images/type=edit, size=16.svg" width="16" height="16"></button>
+        <button class="btn-icon btn-icon--delete" onclick="deleteWord(${w.id})" title="Удалить"><img src="/images/type=delete, size=16.svg" width="16" height="16"></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function editWord(id, display, vowel, suffix, pos, category, pair) {
+  document.getElementById('word-id').value = id;
+  document.getElementById('word-display').value = display;
+  document.getElementById('word-vowel').value = vowel;
+  document.getElementById('word-suffix').value = suffix;
+  document.getElementById('word-pos').value = pos;
+  document.getElementById('word-category').value = category;
+  document.getElementById('word-pair').value = pair;
+  document.getElementById('word-submit-btn').textContent = 'Сохранить';
+  document.getElementById('word-cancel-btn').style.display = '';
+  document.getElementById('word-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelWordEdit() {
+  document.getElementById('word-form').reset();
+  document.getElementById('word-id').value = '';
+  document.getElementById('word-submit-btn').textContent = 'Добавить';
+  document.getElementById('word-cancel-btn').style.display = 'none';
+}
+
+document.getElementById('word-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('word-id').value;
+  const body = {
+    suffix_display: document.getElementById('word-display').value.trim(),
+    correct_vowel:  document.getElementById('word-vowel').value,
+    suffix:         document.getElementById('word-suffix').value,
+    part_of_speech: document.getElementById('word-pos').value,
+    category:       document.getElementById('word-category').value,
+    vowel_pair:     document.getElementById('word-pair').value.trim(),
+  };
+  const url  = id ? '/api/task11/words/' + id : '/api/task11/words';
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+  cancelWordEdit();
+  loadWords();
+});
+
+async function deleteWord(id) {
+  if (!confirm('Удалить слово?')) return;
+  await fetch('/api/task11/words/' + id, { method: 'DELETE' });
+  loadWords();
+}
+
+/* ── Готовые задания ── */
+async function loadAdminTasks() {
+  const res = await fetch('/api/task11/tasks');
+  const tasks = await res.json();
+  const list = document.getElementById('tasks-list-admin');
+  if (!tasks.length) {
+    list.innerHTML = '<p style="color:var(--text-secondary);">Заданий пока нет</p>';
+    return;
+  }
+  list.innerHTML = tasks.map(t => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg-secondary);border:1px solid var(--glass-border);border-radius:var(--radius-lg);">
+      <span style="color:var(--text-secondary);font-size:13px;">#${t.id}</span>
+      <span style="font-size:13px;color:var(--text-secondary);">${t.is_generated ? 'сгенерировано' : 'вручную'}</span>
+      <span style="font-size:12px;color:var(--text-secondary);">${t.created_at}</span>
+      <a href="/task11/${t.id}" target="_blank" class="btn btn-sm btn-secondary">Открыть</a>
+      <button class="btn-icon btn-icon--delete" onclick="deleteTask(${t.id})" title="Удалить"><img src="/images/type=delete, size=16.svg" width="16" height="16"></button>
+    </div>
+  `).join('');
+}
+
+async function deleteTask(id) {
+  if (!confirm('Удалить задание #' + id + '?')) return;
+  await fetch('/api/task11/tasks/' + id, { method: 'DELETE' });
+  loadAdminTasks();
+}
+
+/* ── Генерация ── */
+AdminTasks.bindGenerateButton({
+  generateUrl: '/api/task11/generate',
+  buildBody() {
+    const body = {};
+    const rules = Array.from(document.querySelectorAll('#tab-generate .t11-rule-cb:checked')).map((el) => el.value);
+    const correctCounts = Array.from(document.querySelectorAll('#tab-generate .t11-count-cb:checked')).map((el) => el.value);
+    if (rules.length) body.rules = rules;
+    if (!correctCounts.length) return { error: 'Выберите количество правильных строк.' };
+    body.correct_counts = correctCounts;
+    body.tasks_count = +document.getElementById('gen-tasks-count').value || 1;
+    return body;
+  },
+  formatSuccess(data) {
+    return (
+      '<span style="color:#A4E2D0;">✓ Создано заданий: ' +
+      data.count +
+      '.</span>' +
+      '<a href="/task11/' +
+      data.id +
+      '" target="_blank" class="btn btn-sm btn-secondary" style="margin-left:12px;">Открыть</a>'
+    );
+  },
+  afterSuccess() { loadGenTasks(); },
+});
+
+AdminTasks.bindExclusiveCheckboxes('#tab-generate', '.t11-count-cb');
+
+function loadGenTasks() {
+  AdminTasks.renderGeneratedTasksList({ apiBase: '/api/task11', playPath: '/task11' });
+}
+
+async function deleteGenTask(id) {
+  const ok = await AdminTasks.deleteGeneratedTask('/api/task11', id);
+  if (ok) loadGenTasks();
+}
+
+loadWords();
+</script>

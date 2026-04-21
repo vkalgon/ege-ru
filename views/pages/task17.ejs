@@ -38,14 +38,15 @@
   }
   
   .task17-digit:hover:not(.selected) {
-    background-color: rgba(0, 240, 255, 0.2);
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+    background-color: var(--brand-muted);
+    border-color: var(--brand);
   }
-  
+
   .task17-digit.selected {
-    background-color: var(--neon-cyan);
-    color: var(--bg-primary);
-    font-weight: bold;
+    background-color: rgba(164, 190, 226, 0.2);
+    color: var(--brand);
+    outline: 1.5px solid var(--brand-dim);
+    outline-offset: -1px;
   }
 
   /* Стили для кликабельных пробелов в режиме без цифр */
@@ -81,6 +82,112 @@
   .task17-space-with-comma:hover {
     background-color: rgba(0, 240, 255, 0.4) !important;
     box-shadow: 0 0 12px rgba(0, 240, 255, 0.7) !important;
+  }
+
+  .t17-tut-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.12);
+    z-index: 9999;
+    pointer-events: none;
+  }
+  .t17-tut-card {
+    pointer-events: auto;
+    width: 100%;
+    max-width: 560px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow-glass);
+  }
+  .t17-tut-title { font-weight: 800; margin-bottom: 6px; }
+  .t17-tut-text { margin: 0 0 12px; color: var(--text-secondary); line-height: 1.5; }
+  .t17-tut-actions { display: flex; justify-content: flex-end; }
+  .t17-tut-btn {
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: none;
+    color: var(--text-secondary);
+    padding: 10px 12px;
+    cursor: pointer;
+    font: 700 14px/1 "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .t17-tut-btn:hover { border-color: var(--brand); color: var(--brand); }
+  .t17-tut-highlight {
+    outline: 2px solid var(--brand) !important;
+    outline-offset: 2px;
+  }
+  .t17-tut-blink { animation: t17TutBlink 1s ease-in-out infinite; }
+  @keyframes t17TutBlink {
+    0% { outline-color: var(--brand); }
+    50% { outline-color: #fbbf24; }
+    100% { outline-color: var(--brand); }
+  }
+  .t17-select-demo {
+    position: fixed;
+    width: 210px;
+    height: 26px;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0.92;
+  }
+  .t17-select-demo__range {
+    position: absolute;
+    left: 26px;
+    top: 6px;
+    height: 14px;
+    width: 0;
+    border-radius: 4px;
+    background: rgba(164, 190, 226, 0.28);
+    border: 1px solid rgba(164, 190, 226, 0.4);
+    animation: t17SelectRange 1.7s ease-in-out infinite;
+  }
+  .t17-select-demo__cursor {
+    position: absolute;
+    left: 16px;
+    top: 2px;
+    font-size: 16px;
+    line-height: 1;
+    color: var(--brand-light);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+    animation: t17SelectCursor 1.7s ease-in-out infinite;
+  }
+  @keyframes t17SelectRange {
+    0% { width: 0; opacity: 0; }
+    20% { width: 0; opacity: 1; }
+    70% { width: 150px; opacity: 1; }
+    100% { width: 150px; opacity: 0; }
+  }
+  @keyframes t17SelectCursor {
+    0% { transform: translateX(0); opacity: 0; }
+    20% { transform: translateX(0); opacity: 1; }
+    70% { transform: translateX(150px); opacity: 1; }
+    100% { transform: translateX(150px); opacity: 0; }
+  }
+  .t17-help-fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    color: var(--text-secondary);
+    font: 700 20px/1 "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    cursor: pointer;
+    box-shadow: var(--shadow-glass);
+    z-index: 9000;
+    transition: border-color .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
+  }
+  .t17-help-fab:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+    box-shadow: var(--shadow-neon), var(--shadow-glass);
+    transform: translateY(-1px);
   }
 </style>
 
@@ -633,29 +740,29 @@
                       // Показываем ВСЕ правильные запятые после проверки
                       if (hasComma && isExtra) {
                         // Неправильная позиция - красная
-                        bgColor = 'rgba(239, 68, 68, 0.3)';
-                        textColor = '#ef4444';
+                        bgColor = 'rgba(214, 146, 149, 0.3)';
+                        textColor = '#D69295';
                         fontWeight = 'bold';
                         displayComma = true;
                       } else if (isCorrect) {
                         // Правильная позиция (выбранная или нет) - зеленая
                         // Показываем ВСЕ правильные запятые после проверки
-                        bgColor = 'rgba(34, 197, 94, 0.3)';
-                        textColor = '#22c55e';
+                        bgColor = 'rgba(164, 226, 208, 0.3)';
+                        textColor = '#A4E2D0';
                         fontWeight = 'bold';
                         displayComma = true;
                       } else if (hasComma) {
                         // Выбрана, но не является ни правильной, ни лишней (не должно происходить, но на всякий случай)
-                        bgColor = 'rgba(0, 240, 255, 0.3)';
-                        textColor = 'var(--neon-cyan)';
+                        bgColor = 'var(--brand-muted)';
+                        textColor = 'var(--brand)';
                         fontWeight = 'bold';
                         displayComma = true;
                       }
                     } else {
                       // До проверки - обычная синяя подсветка
                       if (hasComma) {
-                        bgColor = 'rgba(0, 240, 255, 0.3)';
-                        textColor = 'var(--neon-cyan)';
+                        bgColor = 'var(--brand-muted)';
+                        textColor = 'var(--brand)';
                         fontWeight = 'bold';
                         displayComma = true;
                       }
@@ -785,12 +892,12 @@
                   gap: '12px',
                   padding: '16px',
                   background: 'rgba(34, 197, 94, 0.1)',
-                  border: '2px solid rgba(34, 197, 94, 0.5)',
+                  border: '2px solid rgba(164, 226, 208, 0.5)',
                   marginBottom: '16px'
                 }}>
                   <div style={{
                     fontSize: '32px',
-                    color: '#22c55e',
+                    color: '#A4E2D0',
                     lineHeight: '1'
                   }}>
                     ✓
@@ -798,7 +905,7 @@
                   <div style={{
                     fontSize: '18px',
                     fontWeight: 'bold',
-                    color: '#22c55e'
+                    color: '#A4E2D0'
                   }}>
                     Все верно!
                   </div>
@@ -816,8 +923,8 @@
                   {checkResult.correctAnswer && (
                     <div style={{
                       padding: '12px',
-                      background: 'rgba(239, 68, 68, 0.1)',
-                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      background: 'rgba(214, 146, 149, 0.1)',
+                      border: '1px solid rgba(214, 146, 149, 0.3)',
                       marginBottom: '12px'
                     }}>
                       <div style={{
@@ -830,7 +937,7 @@
                       <div style={{
                         fontSize: '18px',
                         fontWeight: 'bold',
-                        color: '#22c55e'
+                        color: '#A4E2D0'
                       }}>
                         {checkResult.correctAnswer.join(', ')}
                       </div>
@@ -998,11 +1105,11 @@
                 style={{
                   width: '48px',
                   height: '24px',
-                    background: showDigits ? 'var(--neon-cyan)' : 'var(--text-disabled)',
+                    background: showDigits ? 'var(--brand)' : 'var(--text-disabled)',
                   position: 'relative',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                    boxShadow: showDigits ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none',
+                  transition: 'background 0.2s ease',
+                    boxShadow: 'none',
                     borderRadius: '12px',
                     flexShrink: 0
                 }}
@@ -1042,10 +1149,38 @@
     { bg: 'rgba(236, 72, 153, 0.3)', border: 'rgba(236, 72, 153, 0.8)', text: 'rgba(236, 72, 153, 1)' }, // Розовый
     { bg: 'rgba(251, 191, 36, 0.3)', border: 'rgba(251, 191, 36, 0.8)', text: 'rgba(251, 191, 36, 1)' }, // Желтый
     { bg: 'rgba(168, 85, 247, 0.3)', border: 'rgba(168, 85, 247, 0.8)', text: 'rgba(168, 85, 247, 1)' }, // Фиолетовый
-    { bg: 'rgba(239, 68, 68, 0.3)', border: 'rgba(239, 68, 68, 0.8)', text: 'rgba(239, 68, 68, 1)' }, // Красный
+    { bg: 'rgba(214, 146, 149, 0.3)', border: 'rgba(239, 68, 68, 0.8)', text: 'rgba(239, 68, 68, 1)' }, // Красный
     { bg: 'rgba(14, 165, 233, 0.3)', border: 'rgba(14, 165, 233, 0.8)', text: 'rgba(14, 165, 233, 1)' }, // Голубой
     { bg: 'rgba(245, 158, 11, 0.3)', border: 'rgba(245, 158, 11, 0.8)', text: 'rgba(245, 158, 11, 1)' }, // Оранжевый
   ];
+
+  // Стек отмены действий (хранит снимки innerHTML редактора)
+  const _undoStack = [];
+  function _saveUndo(editor) {
+    _undoStack.push({ editor, html: editor.innerHTML });
+    if (_undoStack.length > 50) _undoStack.shift();
+  }
+  function _undo() {
+    if (_undoStack.length === 0) return;
+    const { editor, html } = _undoStack.pop();
+    editor.innerHTML = html;
+    // Переустанавливаем обработчики на восстановленных элементах
+    if (typeof setupClickOnMarks === 'function') setupClickOnMarks();
+  }
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      const activeEditor = document.querySelector('.task17-text-editable:focus, .task17-text-editable [contenteditable="true"]:focus');
+      const focused = document.activeElement;
+      const inEditor = focused && focused.closest('.task17-text-editable');
+      if (inEditor && _undoStack.length > 0) {
+        e.preventDefault();
+        _undo();
+      }
+    }
+  });
+  window._undoStack = _undoStack;
+  window._saveUndo = _saveUndo;
+  window._undo = _undo;
 
   // Выносим функцию applySpanClass в глобальную область для использования в плавающей панели
   function applySpanClass(className) {
@@ -1053,8 +1188,8 @@
       if (!selection.rangeCount) return;
 
       const range = selection.getRangeAt(0);
-      const parent = range.commonAncestorContainer.nodeType === 3 
-        ? range.commonAncestorContainer.parentElement 
+      const parent = range.commonAncestorContainer.nodeType === 3
+        ? range.commonAncestorContainer.parentElement
         : range.commonAncestorContainer;
 
       let editor = parent;
@@ -1072,6 +1207,9 @@
         alert('Выделите текст для отметки');
         return;
       }
+
+      // Сохраняем снимок для undo
+      _saveUndo(editor);
 
       try {
         // Функция для расширения range до ближайших пробелов
@@ -1432,85 +1570,31 @@
               span.style.borderColor = color.border;
             }
           });
-          // Находим все элементы с подчеркиванием внутри только что созданного span
+          // Восстанавливаем z-index для вложенных спанов внутри span-main-word
+          // Цвет подчёркивания берётся из CSS-переменных (--span-*-color), не задаём inline
           const underlinedSpans = span.querySelectorAll('.span-participle, .span-gerund, .span-subject, .span-predicate');
           underlinedSpans.forEach(underlinedSpan => {
-            if (underlinedSpan.classList.contains('span-subject')) {
-              // Для подлежащего - сплошное подчеркивание
-              underlinedSpan.style.textDecoration = 'underline';
-              underlinedSpan.style.textDecorationStyle = 'solid';
-              underlinedSpan.style.textDecorationThickness = '2px';
-              underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
-              underlinedSpan.style.textUnderlineOffset = '2px';
-            } else if (underlinedSpan.classList.contains('span-predicate')) {
-              // Для сказуемого - двойное подчеркивание
-              underlinedSpan.style.textDecoration = 'underline';
-              underlinedSpan.style.textDecorationStyle = 'double';
-              underlinedSpan.style.textDecorationThickness = '2px';
-              underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
-              underlinedSpan.style.textUnderlineOffset = '2px';
-            } else if (underlinedSpan.classList.contains('span-participle')) {
-              // Для причастного оборота - волнистое подчеркивание
-              underlinedSpan.style.textDecoration = 'underline';
-              underlinedSpan.style.textDecorationStyle = 'wavy';
-              underlinedSpan.style.textDecorationThickness = '2px';
-              underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
-              underlinedSpan.style.textUnderlineOffset = '2px';
-            } else if (underlinedSpan.classList.contains('span-gerund')) {
-              // Для деепричастного оборота - устанавливаем z-index для видимости
-              underlinedSpan.style.position = 'relative';
-              underlinedSpan.style.zIndex = '1';
-            }
-            // Для деепричастного оборота background-image должен сохраниться автоматически из CSS
+            underlinedSpan.style.position = 'relative';
+            underlinedSpan.style.zIndex = '1';
           });
         }
-        
+
         selection.removeAllRanges();
-        
-        // Дополнительная проверка после вставки в DOM на случай, если что-то потерялось
+
+        // После вставки в DOM восстанавливаем цвет главного слова
         if (className === 'span-main-word') {
           const colorId = span.getAttribute('data-color-id');
-          // Используем requestAnimationFrame для гарантии, что DOM обновлен
           requestAnimationFrame(() => {
-            // Находим span-main-word в DOM по data-color-id
             const mainWordSpan = editor.querySelector('.span-main-word[data-color-id="' + colorId + '"]');
             if (mainWordSpan) {
-              // Принудительно восстанавливаем подчеркивание для всех элементов с подчеркиванием
-              const underlinedSpans = mainWordSpan.querySelectorAll('.span-participle, .span-gerund, .span-subject, .span-predicate');
-              underlinedSpans.forEach(underlinedSpan => {
-                if (underlinedSpan.classList.contains('span-subject')) {
-                  // Для подлежащего - сплошное подчеркивание
-                  underlinedSpan.style.textDecoration = 'underline';
-                  underlinedSpan.style.textDecorationStyle = 'solid';
-                  underlinedSpan.style.textDecorationThickness = '2px';
-                  underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
-                  underlinedSpan.style.textUnderlineOffset = '6px'; // Увеличено для видимости поверх border
-                  underlinedSpan.style.position = 'relative';
-                  underlinedSpan.style.zIndex = '1';
-                } else if (underlinedSpan.classList.contains('span-predicate')) {
-                  // Для сказуемого - двойное подчеркивание
-                  underlinedSpan.style.textDecoration = 'underline';
-                  underlinedSpan.style.textDecorationStyle = 'double';
-                  underlinedSpan.style.textDecorationThickness = '2px';
-                  underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
-                  underlinedSpan.style.textUnderlineOffset = '6px'; // Увеличено для видимости поверх border
-                  underlinedSpan.style.position = 'relative';
-                  underlinedSpan.style.zIndex = '1';
-                } else if (underlinedSpan.classList.contains('span-participle')) {
-                  // Для причастного оборота - волнистое подчеркивание
-                  underlinedSpan.style.textDecoration = 'underline';
-                  underlinedSpan.style.textDecorationStyle = 'wavy';
-                  underlinedSpan.style.textDecorationThickness = '2px';
-                  underlinedSpan.style.textDecorationColor = 'rgba(255, 255, 255, 0.9)';
-                  underlinedSpan.style.textUnderlineOffset = '6px'; // Увеличено для видимости поверх border
-                  underlinedSpan.style.position = 'relative';
-                  underlinedSpan.style.zIndex = '1';
-                } else if (underlinedSpan.classList.contains('span-gerund')) {
-                  // Для деепричастного оборота - устанавливаем z-index для видимости
-                  underlinedSpan.style.position = 'relative';
-                  underlinedSpan.style.zIndex = '1';
-                }
-                // Для деепричастного оборота background-image должен сохраниться автоматически из CSS
+              const colorIndex = parseInt(colorId);
+              const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
+              mainWordSpan.style.backgroundColor = color.bg;
+              mainWordSpan.style.border = `2px solid ${color.border}`;
+              // z-index для вложенных спанов
+              mainWordSpan.querySelectorAll('.span-participle, .span-gerund, .span-subject, .span-predicate').forEach(s => {
+                s.style.position = 'relative';
+                s.style.zIndex = '1';
               });
             }
           });
@@ -1529,20 +1613,22 @@
     }
 
     const range = selection.getRangeAt(0);
-    const parent = range.commonAncestorContainer.nodeType === 3 
-      ? range.commonAncestorContainer.parentElement 
+    const parent = range.commonAncestorContainer.nodeType === 3
+      ? range.commonAncestorContainer.parentElement
       : range.commonAncestorContainer;
 
-    if (parent && (parent.classList.contains('span-participle') || 
-                   parent.classList.contains('span-gerund') || 
+    if (parent && (parent.classList.contains('span-participle') ||
+                   parent.classList.contains('span-gerund') ||
                    parent.classList.contains('span-main-word') ||
                    parent.classList.contains('span-subject') ||
                    parent.classList.contains('span-predicate'))) {
+      const editor = parent.closest('.task17-text-editable');
+      if (editor) _saveUndo(editor);
       const grandParent = parent.parentNode;
       if (grandParent) {
-      const textNode = document.createTextNode(parent.textContent);
+        const textNode = document.createTextNode(parent.textContent);
         grandParent.replaceChild(textNode, parent);
-      selection.removeAllRanges();
+        selection.removeAllRanges();
       } else {
         alert('Ошибка: не удалось найти родительский элемент');
       }
@@ -1619,8 +1705,11 @@
         
         // Используем click, но проверяем, не выделяется ли текст
         mark.addEventListener('click', function(e) {
+          // Если клик на цифру внутри оборота — пропускаем, пусть React обработает
+          if (e.target.closest('.task17-digit')) return;
+
           // Если режим связывания активен и клик по обороту - не показываем панель (обработает initMainWordColorSelection)
-          if (typeof isLinkingMode !== 'undefined' && isLinkingMode && 
+          if (typeof isLinkingMode !== 'undefined' && isLinkingMode &&
               (this.classList.contains('span-participle') || this.classList.contains('span-gerund'))) {
             // Не блокируем событие, чтобы initMainWordColorSelection мог обработать связывание
             return;
@@ -1935,7 +2024,7 @@
       hint.innerHTML = `
         <span>Режим связывания: кликните на оборот для связи с главным словом</span>
         <button id="cancel-linking-btn" style="
-          background: rgba(239, 68, 68, 0.3);
+          background: rgba(214, 146, 149, 0.3);
           border: 1px solid rgba(239, 68, 68, 0.8);
           color: var(--text-primary);
           padding: 4px 12px;
@@ -2231,19 +2320,19 @@
         font-size: 14px;
         border-radius: 6px;
         border: 1px solid rgba(239, 68, 68, 0.5);
-        background: rgba(239, 68, 68, 0.2);
-        color: #f87171;
+        background: rgba(214, 146, 149, 0.2);
+        color: #D69295;
         cursor: pointer;
         z-index: 10002;
         transition: all 0.2s;
-        box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+        box-shadow: 0 0 10px rgba(214, 146, 149, 0.3);
       `;
       deleteButton.onmouseenter = () => {
-        deleteButton.style.background = 'rgba(239, 68, 68, 0.3)';
-        deleteButton.style.borderColor = '#f87171';
+        deleteButton.style.background = 'rgba(214, 146, 149, 0.3)';
+        deleteButton.style.borderColor = '#D69295';
       };
       deleteButton.onmouseleave = () => {
-        deleteButton.style.background = 'rgba(239, 68, 68, 0.2)';
+        deleteButton.style.background = 'rgba(214, 146, 149, 0.2)';
         deleteButton.style.borderColor = 'rgba(239, 68, 68, 0.5)';
       };
       deleteButton.onclick = (e) => {
@@ -2345,5 +2434,253 @@
     setupMainWordHoverGlow();
   }, 500);
 </script>
+
+<script>
+  (function () {
+    let isRunning = false;
+
+    function clearHighlights() {
+      document.querySelectorAll('.t17-tut-highlight, .t17-tut-blink').forEach(el => {
+        el.classList.remove('t17-tut-highlight', 't17-tut-blink');
+      });
+    }
+
+    function positionCard(cardEl, targetEl) {
+      if (!cardEl || !targetEl) return;
+      const rect = targetEl.getBoundingClientRect();
+      const cardW = cardEl.offsetWidth || 560;
+      const padding = 12;
+      let left = rect.left + rect.width / 2;
+      left = Math.max(padding + cardW / 2, Math.min(window.innerWidth - padding - cardW / 2, left));
+      const shouldPlaceAbove = rect.top > 160;
+      const top = shouldPlaceAbove ? (rect.top - padding) : (rect.bottom + padding);
+      cardEl.style.position = 'fixed';
+      cardEl.style.left = left + 'px';
+      cardEl.style.top = top + 'px';
+      cardEl.style.transform = shouldPlaceAbove ? 'translate(-50%, -100%)' : 'translate(-50%, 0)';
+    }
+
+    function startTask17Tutorial() {
+      if (isRunning) return;
+
+      const editor = document.querySelector('.task17-text-editable');
+      if (!editor) return;
+      const sentenceTarget = document.querySelector('.task17-digit, .task17-space') || editor;
+
+      isRunning = true;
+      let step = 1;
+
+      const overlay = document.createElement('div');
+      overlay.className = 't17-tut-overlay';
+      overlay.innerHTML = `
+        <div class="t17-tut-card">
+          <div class="t17-tut-title" id="t17-tut-title"></div>
+          <p class="t17-tut-text" id="t17-tut-text"></p>
+          <div class="t17-tut-actions">
+            <button type="button" class="t17-tut-btn" id="t17-tut-done" style="display:none;">Понятно</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      const cardEl = overlay.querySelector('.t17-tut-card');
+      const titleEl = overlay.querySelector('#t17-tut-title');
+      const textEl = overlay.querySelector('#t17-tut-text');
+      const doneBtn = overlay.querySelector('#t17-tut-done');
+      const toolbar = document.getElementById('task17-floating-toolbar');
+      const toolbarContainer = toolbar ? (toolbar.closest('.text-selection-toolbar') || toolbar) : null;
+      const getToolbarButtonByTitle = (title) => {
+        if (!toolbarContainer) return null;
+        return toolbarContainer.querySelector(`button[title="${title}"]`);
+      };
+      let selectDemoEl = null;
+
+      function hideSelectionDemo() {
+        if (selectDemoEl) {
+          selectDemoEl.remove();
+          selectDemoEl = null;
+        }
+      }
+
+      function showSelectionDemo(targetEl) {
+        hideSelectionDemo();
+        if (!targetEl) return;
+        const rect = targetEl.getBoundingClientRect();
+        selectDemoEl = document.createElement('div');
+        selectDemoEl.className = 't17-select-demo';
+        selectDemoEl.innerHTML = `
+          <div class="t17-select-demo__range"></div>
+          <div class="t17-select-demo__cursor">↔</div>
+        `;
+        selectDemoEl.style.left = (rect.left + 18) + 'px';
+        selectDemoEl.style.top = (Math.max(rect.top + 16, 8)) + 'px';
+        document.body.appendChild(selectDemoEl);
+      }
+
+      async function finish() {
+        try {
+          await fetch('/api/auth/onboarding/task17-mechanics/done', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+          });
+        } catch {}
+        clearHighlights();
+        hideSelectionDemo();
+        overlay.remove();
+        isRunning = false;
+      }
+      doneBtn.addEventListener('click', async () => {
+        document.removeEventListener('click', onDocClick, true);
+        document.removeEventListener('mouseup', onMouseUp, true);
+        await finish();
+      });
+
+      function hasSelectionInEditor() {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return false;
+        const text = selection.toString().trim();
+        if (!text) return false;
+        const node = selection.anchorNode?.nodeType === 3 ? selection.anchorNode.parentElement : selection.anchorNode;
+        return !!(node && node.closest && node.closest('.task17-text-editable'));
+      }
+
+      function renderStep() {
+        clearHighlights();
+        doneBtn.style.display = 'none';
+
+        if (step === 1) {
+          titleEl.textContent = 'Шаг 1 из 5';
+          textEl.textContent = 'Выделите фрагмент текста мышкой. После выделения появится панель инструментов.';
+          sentenceTarget.classList.add('t17-tut-highlight', 't17-tut-blink');
+          showSelectionDemo(sentenceTarget);
+          requestAnimationFrame(() => positionCard(cardEl, sentenceTarget));
+          return;
+        }
+
+        if (step === 2) {
+          hideSelectionDemo();
+          titleEl.textContent = 'Шаг 2 из 5';
+          textEl.textContent = 'Волнистая кнопка — это «Причастный оборот». Сначала выделяете оборот, потом нажимаете эту кнопку.';
+          if (toolbarContainer) {
+            const participleBtn = getToolbarButtonByTitle('Причастный');
+            (participleBtn || toolbarContainer).classList.add('t17-tut-highlight', 't17-tut-blink');
+            requestAnimationFrame(() => positionCard(cardEl, participleBtn || toolbarContainer));
+          } else {
+            requestAnimationFrame(() => positionCard(cardEl, editor));
+          }
+          return;
+        }
+
+        if (step === 3) {
+          titleEl.textContent = 'Шаг 3 из 5';
+          textEl.textContent = 'Остальные кнопки: «Деепричастный», «Подлежащее», «Сказуемое». Каждая применяется к выделенному фрагменту.';
+          if (toolbarContainer) {
+            toolbarContainer.classList.add('t17-tut-highlight', 't17-tut-blink');
+            requestAnimationFrame(() => positionCard(cardEl, toolbarContainer));
+          } else {
+            requestAnimationFrame(() => positionCard(cardEl, editor));
+          }
+          return;
+        }
+
+        if (step === 4) {
+          titleEl.textContent = 'Шаг 4 из 5';
+          textEl.textContent = '«Главное слово» (кнопка с крестиком): выделите главное слово и примените эту кнопку.';
+          const mainWordBtn = getToolbarButtonByTitle('Главное слово');
+          if (toolbarContainer) {
+            (mainWordBtn || toolbarContainer).classList.add('t17-tut-highlight', 't17-tut-blink');
+            requestAnimationFrame(() => positionCard(cardEl, mainWordBtn || toolbarContainer));
+          } else {
+            requestAnimationFrame(() => positionCard(cardEl, editor));
+          }
+          return;
+        }
+
+        titleEl.textContent = 'Шаг 5 из 5';
+        textEl.textContent = 'Связь: 1) выделяете оборот, 2) выделяете главное слово, 3) показываете связь между ними. Это ключевая механика задания.';
+        hideSelectionDemo();
+        doneBtn.style.display = 'inline-block';
+        const helpFab = document.querySelector('.t17-help-fab');
+        requestAnimationFrame(() => positionCard(cardEl, helpFab || editor));
+      }
+
+      function onMouseUp() {
+        if (step !== 1) return;
+        // Даем браузеру завершить selection
+        setTimeout(() => {
+          if (step === 1 && hasSelectionInEditor()) {
+            step = 2;
+            renderStep();
+          }
+        }, 0);
+      }
+
+      function onDocClick(e) {
+        if (step === 2) {
+          const clickedToolbarBtn = e.target.closest('#task17-floating-toolbar button, .text-selection-toolbar button');
+          if (clickedToolbarBtn) {
+            step = 3;
+            renderStep();
+            return;
+          }
+        }
+
+        if (step === 3) {
+          const clickedToolbarBtn = e.target.closest('#task17-floating-toolbar button, .text-selection-toolbar button');
+          if (clickedToolbarBtn) {
+            step = 4;
+            renderStep();
+            return;
+          }
+        }
+
+        if (step === 4) {
+          const clickedToolbarBtn = e.target.closest('#task17-floating-toolbar button, .text-selection-toolbar button');
+          if (clickedToolbarBtn) {
+            step = 5;
+            renderStep();
+          }
+        }
+      }
+
+      document.addEventListener('click', onDocClick, true);
+      document.addEventListener('mouseup', onMouseUp, true);
+
+      renderStep();
+    }
+
+    async function maybeAutoStartTask17Tutorial() {
+      try {
+        const meRes = await fetch('/api/auth/me');
+        if (!meRes.ok) return;
+        const me = await meRes.json();
+        if (!me?.success) return;
+        if (me.user?.task17_mechanics_done) return;
+
+        let tries = 0;
+        const timer = setInterval(() => {
+          tries++;
+          if (document.querySelector('.task17-text-editable')) {
+            clearInterval(timer);
+            startTask17Tutorial();
+          }
+          if (tries > 40) clearInterval(timer);
+        }, 250);
+      } catch {}
+    }
+
+    window.task17ShowTutorial = startTask17Tutorial;
+    document.addEventListener('DOMContentLoaded', maybeAutoStartTask17Tutorial);
+  })();
+</script>
+
+<button
+  type="button"
+  class="t17-help-fab"
+  aria-label="Показать обучение задания 17"
+  title="Показать обучение"
+  onclick="window.task17ShowTutorial && window.task17ShowTutorial()"
+>?</button>
 
 

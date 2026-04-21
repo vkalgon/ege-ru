@@ -1,0 +1,250 @@
+<div class="practice-session-page">
+
+  <!-- Шапка сессии -->
+  <div class="practice-session-header">
+    <a href="/profile" class="btn btn-ghost btn-sm practice-back-link">← Личный кабинет</a>
+    <div class="practice-header-center">
+      <span class="practice-task-label" id="session-task-label">Тренировка</span>
+    </div>
+    <div class="practice-header-spacer"></div>
+  </div>
+
+  <!-- Прогресс-бар -->
+  <div class="practice-progress-wrap" id="practice-progress-wrap" style="display:none">
+    <div class="practice-progress-bar">
+      <div class="practice-progress-fill" id="practice-progress-fill" style="width:0%"></div>
+    </div>
+    <span class="practice-progress-text" id="practice-progress-text">0 / 5</span>
+  </div>
+
+  <!-- Основная область — loading / задание / финиш -->
+  <div id="session-state"></div>
+
+</div>
+
+<script src="/js/task-play-card.js"></script>
+<script>
+/* ── Конфиг типов заданий ──────────────────────────────────────── */
+const TASK_CONFIGS = {
+  task9: {
+    num: 9,
+    label: 'Задание 9 — Гласные в корне',
+    apiBase: '/api/task9',
+    generateBody: n => ({
+      categories: ['verifiable', 'alternating', 'unverifiable'],
+      vowel_pairs: [], correct_counts: [2, 3], tasks_count: n,
+      alternation_types: [], alternation_rules: [], is_practice: true
+    }),
+    render: (id, task, opts) => renderTask9CardHTML(id, task, opts),
+    init:   (root, id, task, opts) => initTask9Card(root, id, task, opts),
+  },
+  task10: {
+    num: 10,
+    label: 'Задание 10 — Приставки',
+    apiBase: '/api/task10',
+    generateBody: n => ({ correct_counts: [2, 3, 4], tasks_count: n, is_practice: true }),
+    render: (id, task, opts) => renderTask10CardHTML(id, task, opts),
+    init:   (root, id, task, opts) => initTask10Card(root, id, task, opts),
+  },
+  task11: {
+    num: 11,
+    label: 'Задание 11 — Суффиксы',
+    apiBase: '/api/task11',
+    generateBody: n => ({ correct_counts: [2, 3, 4], tasks_count: n, is_practice: true }),
+    render: (id, task, opts) => renderTask11CardHTML(id, task, opts),
+    init:   (root, id, task, opts) => initTask11Card(root, id, task, opts),
+  },
+  task12: {
+    num: 12,
+    label: 'Задание 12 — Окончания и суффиксы',
+    apiBase: '/api/task12',
+    generateBody: n => ({ correct_counts: [2, 3, 4], tasks_count: n, is_practice: true }),
+    render: (id, task, opts) => renderTask12CardHTML(id, task, opts),
+    init:   (root, id, task, opts) => initTask12Card(root, id, task, opts),
+  },
+};
+
+const SESSION_SIZE = 5;
+
+/* ── Состояние сессии ──────────────────────────────────────────── */
+const urlParams = new URLSearchParams(location.search);
+const taskKey   = urlParams.get('task') || 'task9';
+const config    = TASK_CONFIGS[taskKey];
+
+const session = {
+  taskIds:  [],
+  taskData: [],
+  current:  0,
+  results:  [], // { taskId, lettersCorrect, lettersTotal, rowsCorrect }
+};
+
+/* ── DOM ───────────────────────────────────────────────────────── */
+const stateEl       = document.getElementById('session-state');
+const progressWrap  = document.getElementById('practice-progress-wrap');
+const progressFill  = document.getElementById('practice-progress-fill');
+const progressText  = document.getElementById('practice-progress-text');
+const taskLabel     = document.getElementById('session-task-label');
+
+/* ── Прогресс ──────────────────────────────────────────────────── */
+function setProgress(done, total) {
+  progressFill.style.width = (done / total * 100) + '%';
+  progressText.textContent = done + ' / ' + total;
+}
+
+/* ── Старт / рестарт сессии ────────────────────────────────────── */
+async function startSession() {
+  if (!config) {
+    stateEl.innerHTML = '<p style="color:var(--color-error);padding:24px 0">Неизвестный тип задания.</p>';
+    return;
+  }
+
+  taskLabel.textContent = config.label;
+  document.title = 'Тренировка · ' + config.label;
+  progressWrap.style.display = '';
+  setProgress(0, SESSION_SIZE);
+  stateEl.innerHTML = '<div class="skeleton-loader practice-skeleton">Генерируем задания по вашим ошибкам…</div>';
+
+  try {
+    /* Генерируем задания */
+    const genRes = await fetch(config.apiBase + '/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config.generateBody(SESSION_SIZE)),
+    });
+    const genData = await genRes.json();
+    if (!genRes.ok || !genData.ids?.length) throw new Error(genData.error || 'Не удалось сгенерировать задания');
+
+    session.taskIds  = genData.ids;
+    session.current  = 0;
+    session.results  = [];
+
+    /* Предзагружаем данные всех заданий */
+    session.taskData = await Promise.all(
+      session.taskIds.map(id =>
+        fetch(config.apiBase + '/tasks/' + id + '/play').then(r => r.json())
+      )
+    );
+
+    showCurrentTask();
+  } catch (err) {
+    stateEl.innerHTML = `
+      <div class="task-card task17-card" style="margin:0">
+        <div class="task-content">
+          <p style="color:var(--color-error);margin:0">${err.message}</p>
+          <a href="/profile" class="btn btn-outline" style="margin-top:16px">← Вернуться в кабинет</a>
+        </div>
+      </div>`;
+  }
+}
+
+/* ── Показать текущее задание ──────────────────────────────────── */
+function showCurrentTask() {
+  const i      = session.current;
+  const taskId = session.taskIds[i];
+  const task   = session.taskData[i];
+
+  setProgress(i, SESSION_SIZE);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  stateEl.innerHTML = `
+    <div class="practice-task-label-row">
+      <span class="practice-step-badge">Задание ${i + 1} из ${SESSION_SIZE}</span>
+    </div>
+    <div id="session-task-mount"></div>
+  `;
+
+  const mount = document.getElementById('session-task-mount');
+  mount.innerHTML = config.render(taskId, task, { standalone: false });
+  config.init(mount, taskId, task, {
+    standalone: false,
+    onChecked: (result, resultDiv) => onTaskChecked(result, resultDiv),
+  });
+}
+
+/* ── Callback после проверки ───────────────────────────────────── */
+function onTaskChecked(result, resultDiv) {
+  session.results.push({
+    taskId:         session.taskIds[session.current],
+    lettersCorrect: result.letters_correct,
+    lettersTotal:   result.letters_total,
+    rowsCorrect:    result.rows_correct,
+  });
+
+  const isLast = session.current >= SESSION_SIZE - 1;
+  const content = resultDiv.querySelector('.task-content');
+  if (!content) return;
+
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-primary session-next-btn';
+  btn.textContent = isLast ? 'Посмотреть результаты сессии →' : 'Следующее задание →';
+  btn.addEventListener('click', () => {
+    if (isLast) {
+      showFinish();
+    } else {
+      session.current++;
+      showCurrentTask();
+    }
+  });
+  content.appendChild(btn);
+}
+
+/* ── Финиш ─────────────────────────────────────────────────────── */
+function showFinish() {
+  setProgress(SESSION_SIZE, SESSION_SIZE);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const total          = session.results.length;
+  const perfectCount   = session.results.filter(r => r.rowsCorrect).length;
+  const totalLetters   = session.results.reduce((s, r) => s + r.lettersTotal, 0);
+  const correctLetters = session.results.reduce((s, r) => s + r.lettersCorrect, 0);
+  const accuracy       = totalLetters > 0 ? Math.round(correctLetters / totalLetters * 100) : 0;
+
+  const accColor = accuracy >= 70 ? 'var(--color-success)' : accuracy >= 50 ? 'var(--color-warning)' : 'var(--color-error)';
+
+  const rowsHtml = session.results.map((r, i) => {
+    const pct = r.lettersTotal > 0 ? Math.round(r.lettersCorrect / r.lettersTotal * 100) : 0;
+    return `<tr>
+      <td class="finish-table-num">Задание ${i + 1}</td>
+      <td>${r.lettersCorrect} / ${r.lettersTotal} (${pct}%)</td>
+      <td class="${r.rowsCorrect ? 'finish-ok' : 'finish-miss'}">${r.rowsCorrect ? '✓ Верно' : '✗ Ошибка'}</td>
+    </tr>`;
+  }).join('');
+
+  stateEl.innerHTML = `
+    <div class="practice-finish-card">
+      <div class="practice-finish-header">
+        <span class="practice-finish-emoji">${perfectCount === total ? '🎉' : perfectCount >= total / 2 ? '👍' : '💪'}</span>
+        <h2 class="practice-finish-title">Тренировка завершена!</h2>
+        <p class="practice-finish-subtitle">${config.label}</p>
+      </div>
+
+      <div class="practice-finish-stats">
+        <div class="practice-finish-stat">
+          <span class="practice-finish-val">${perfectCount} <span class="practice-finish-denom">/ ${total}</span></span>
+          <span class="practice-finish-lbl">заданий без ошибок</span>
+        </div>
+        <div class="practice-finish-stat">
+          <span class="practice-finish-val" style="color:${accColor}">${accuracy}%</span>
+          <span class="practice-finish-lbl">точность букв</span>
+        </div>
+      </div>
+
+      <table class="practice-finish-table">
+        <thead>
+          <tr><th>Задание</th><th>Буквы</th><th>Итог</th></tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+
+      <div class="practice-finish-actions">
+        <button class="btn btn-primary" id="finish-more-btn">Ещё ${SESSION_SIZE} заданий</button>
+        <a href="/profile" class="btn btn-outline">← Личный кабинет</a>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('finish-more-btn').addEventListener('click', startSession);
+}
+
+startSession();
+</script>

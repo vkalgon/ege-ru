@@ -1,0 +1,241 @@
+<div class="task-page" id="task9-list">
+  <h2 class="task-page__title">Задание №9 — Гласные в корне слова</h2>
+
+  <div class="task17-wrapper">
+    <div class="task9-column task9-feed-inner">
+      <h3 class="task10-section-title">Сгенерировать задание</h3>
+      <div class="task10-generate-wrap" style="margin-bottom:32px;">
+        <div class="task10-generate-grid task9-generate-grid">
+          <div class="form-group" style="margin:0;min-width:320px;">
+            <label>Категории</label>
+            <div class="task10-check-grid">
+              <label><input type="checkbox" class="task9-category-checkbox" value="alternating"> чередующиеся</label>
+              <label><input type="checkbox" class="task9-category-checkbox" value="verifiable"> проверяемые</label>
+              <label><input type="checkbox" class="task9-category-checkbox" value="unverifiable"> непроверяемые</label>
+            </div>
+            <div style="margin-top:8px;color:var(--text-secondary);font-size:12px;">Если ничего не выбрать, будут использованы любые категории.</div>
+          </div>
+          <div class="form-group" style="margin:0;min-width:320px;">
+            <label>Пары букв</label>
+            <div class="task10-check-grid">
+              <label><input type="checkbox" class="task9-pair-checkbox" value="о/а"> о / а</label>
+              <label><input type="checkbox" class="task9-pair-checkbox" value="е/и"> е / и</label>
+              <label><input type="checkbox" class="task9-pair-checkbox" value="у/ю"> у / ю</label>
+              <label><input type="checkbox" class="task9-pair-checkbox" value="о/ё"> о / ё</label>
+              <label><input type="checkbox" class="task9-pair-checkbox" value="е/я"> е / я</label>
+            </div>
+            <div style="margin-top:8px;color:var(--text-secondary);font-size:12px;">Если ничего не выбрать, будут использованы любые пары.</div>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Правильных строк</label>
+            <div class="task10-check-grid task10-count-grid">
+              <label><input type="checkbox" class="task9-count-checkbox" value="2" checked> 2</label>
+              <label><input type="checkbox" class="task9-count-checkbox" value="3"> 3</label>
+              <label><input type="checkbox" class="task9-count-checkbox" value="4"> 4</label>
+              <label><input type="checkbox" class="task9-count-checkbox" value="5"> 5</label>
+            </div>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Количество заданий</label>
+            <input type="number" id="task9-tasks-count" min="1" max="20" value="1">
+          </div>
+        </div>
+        <!-- Дополнительные фильтры для чередующихся (показываются только если выбрана эта категория) -->
+        <div id="t9-alt-filters" class="alternation-filters" style="display:none">
+          <div class="alt-filter-section">
+            <div class="alt-filter-label">Тип чередования <span class="alt-filter-hint">пусто = все</span></div>
+            <div class="toggle-chips" id="t9-type-chips">
+              <button class="toggle-chip" data-type="stress">По ударению</button>
+              <button class="toggle-chip" data-type="suffix">По суффиксу -А</button>
+              <button class="toggle-chip" data-type="consonant">По следующей букве</button>
+              <button class="toggle-chip" data-type="meaning">По значению</button>
+            </div>
+          </div>
+          <div class="alt-filter-section">
+            <div class="alt-filter-label">Конкретные корни <span class="alt-filter-hint">пусто = все выбранных типов</span></div>
+            <div class="toggle-chips" id="t9-root-chips"></div>
+          </div>
+        </div>
+        <div class="task10-generate-actions">
+          <button class="btn" id="btn-generate-task9" type="button">Сгенерировать</button>
+        </div>
+      </div>
+
+      <h3 class="task10-section-title">Все задания</h3>
+      <div id="tasks-feed" class="task9-task-feed">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/task-play-card.js"></script>
+<script>
+async function loadFeed() {
+  const feed = document.getElementById('tasks-feed');
+  let tasks;
+  try {
+    const res = await fetch('/api/task9/tasks');
+    if (!res.ok) throw new Error('Ошибка загрузки');
+    tasks = await res.json();
+  } catch (e) {
+    feed.innerHTML = '<p style="color:#D69295;margin:0;">Не удалось загрузить задания.</p>';
+    return;
+  }
+  if (!Array.isArray(tasks) || !tasks.length) {
+    feed.innerHTML =
+      '<p style="color:var(--text-secondary);margin:0;">Пока нет заданий. Сгенерируйте вариант или добавьте задания в админке.</p>';
+    return;
+  }
+
+  const plays = await Promise.all(
+    tasks.map((t) => fetch('/api/task9/tasks/' + t.id + '/play').then((r) => (r.ok ? r.json() : null)))
+  );
+
+  const blocks = [];
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    const play = plays[i];
+    if (!play) continue;
+    blocks.push(
+      '<div class="task9-feed-item" data-task-id="' +
+        t.id +
+        '" id="task9-feed-' +
+        t.id +
+        '">' +
+        renderTask9CardHTML(t.id, play, { standalone: false }) +
+        '</div>'
+    );
+  }
+
+  if (!blocks.length) {
+    feed.innerHTML =
+      '<p style="color:var(--text-secondary);margin:0;">Не удалось загрузить содержимое заданий.</p>';
+    return;
+  }
+
+  feed.innerHTML = blocks.join('');
+
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    const play = plays[i];
+    if (!play) continue;
+    const root = document.getElementById('task9-feed-' + t.id);
+    if (root) initTask9Card(root, t.id, play, { standalone: false });
+  }
+}
+
+/* ─── Каскадный фильтр чередования ───────────────────── */
+let t9AltTypeRules = {};
+let t9SelectedTypes = new Set();
+let t9SelectedRoots = new Set();
+
+(async function loadAltTypes() {
+  try {
+    t9AltTypeRules = await fetch('/api/task9/alternation-types').then(r => r.json());
+    renderT9RootChips();
+  } catch (_) {}
+})();
+
+function isAltSelected() {
+  return Array.from(document.querySelectorAll('.task9-category-checkbox:checked')).some(el => el.value === 'alternating');
+}
+
+function updateAltFiltersVisibility() {
+  const show = isAltSelected();
+  document.getElementById('t9-alt-filters').style.display = show ? '' : 'none';
+  if (!show) {
+    t9SelectedTypes.clear();
+    t9SelectedRoots.clear();
+    document.querySelectorAll('#t9-type-chips .toggle-chip').forEach(c => c.classList.remove('active'));
+  }
+}
+
+document.querySelectorAll('.task9-category-checkbox').forEach(cb => {
+  cb.addEventListener('change', updateAltFiltersVisibility);
+});
+
+document.getElementById('t9-type-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.toggle-chip[data-type]');
+  if (!chip) return;
+  const t = chip.dataset.type;
+  if (t9SelectedTypes.has(t)) { t9SelectedTypes.delete(t); chip.classList.remove('active'); }
+  else { t9SelectedTypes.add(t); chip.classList.add('active'); }
+  pruneT9Roots();
+  renderT9RootChips();
+});
+
+function t9VisibleRoots() {
+  if (!t9SelectedTypes.size) return Object.values(t9AltTypeRules).flat();
+  return [...t9SelectedTypes].flatMap(t => t9AltTypeRules[t] || []);
+}
+
+function pruneT9Roots() {
+  const visible = new Set(t9VisibleRoots());
+  for (const r of [...t9SelectedRoots]) { if (!visible.has(r)) t9SelectedRoots.delete(r); }
+}
+
+function renderT9RootChips() {
+  const container = document.getElementById('t9-root-chips');
+  container.innerHTML = t9VisibleRoots().map(r => {
+    const active = t9SelectedRoots.has(r) ? ' active' : '';
+    return `<button class="toggle-chip toggle-chip-root${active}" data-root="${r}">${r}</button>`;
+  }).join('');
+}
+
+document.getElementById('t9-root-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.toggle-chip[data-root]');
+  if (!chip) return;
+  const r = chip.dataset.root;
+  if (t9SelectedRoots.has(r)) { t9SelectedRoots.delete(r); chip.classList.remove('active'); }
+  else { t9SelectedRoots.add(r); chip.classList.add('active'); }
+});
+/* ─────────────────────────────────────────────────────── */
+
+document.getElementById('btn-generate-task9').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-generate-task9');
+  btn.disabled = true;
+  btn.textContent = 'Генерируем...';
+  try {
+    const body = {};
+    const categories = Array.from(document.querySelectorAll('.task9-category-checkbox:checked')).map((el) => el.value);
+    const pairs = Array.from(document.querySelectorAll('.task9-pair-checkbox:checked')).map((el) => el.value);
+    const correctCounts = Array.from(document.querySelectorAll('.task9-count-checkbox:checked')).map((el) => el.value);
+    if (categories.length) body.categories = categories;
+    if (pairs.length) body.vowel_pairs = pairs;
+    if (!correctCounts.length) { alert('Выберите количество правильных строк'); return; }
+    body.correct_counts = correctCounts;
+    body.tasks_count = +document.getElementById('task9-tasks-count').value || 1;
+
+    // Фильтр чередования (если alternating среди выбранных категорий)
+    if (isAltSelected()) {
+      if (t9SelectedRoots.size) body.alternation_rules = [...t9SelectedRoots];
+      else if (t9SelectedTypes.size) body.alternation_types = [...t9SelectedTypes];
+    }
+
+    const res = await fetch('/api/task9/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    await loadFeed();
+    location.href = '/task9/' + data.id;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Сгенерировать';
+  }
+});
+
+document.querySelectorAll('.task9-count-checkbox').forEach((checkbox) => {
+  checkbox.addEventListener('change', () => {
+    if (!checkbox.checked) return;
+    document.querySelectorAll('.task9-count-checkbox').forEach((other) => {
+      if (other !== checkbox) other.checked = false;
+    });
+  });
+});
+
+loadFeed();
+</script>

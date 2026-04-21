@@ -1,0 +1,283 @@
+<section class="variant-config">
+  <div class="variant-config__header">
+    <h1 class="variant-config__title">Создать вариант</h1>
+    <p class="variant-config__subtitle">Выберите количество заданий каждого типа</p>
+  </div>
+
+  <div class="variant-config__list" id="taskGrid">
+    <!-- Карточки заданий загружаются через JS -->
+  </div>
+
+  <div class="variant-config__footer">
+    <div class="variant-config__total">
+      Итого заданий: <span id="totalCount">0</span>
+    </div>
+    <button class="btn" id="generateBtn" disabled>
+      Сгенерировать вариант
+    </button>
+  </div>
+
+  <div class="variant-config__error" id="errorMsg" hidden></div>
+</section>
+
+<style>
+.variant-config {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.variant-config__header {
+  text-align: center;
+}
+
+.variant-config__title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.variant-config__subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.variant-config__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.task-card--empty {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.task-card__num {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand);
+  min-width: 72px;
+  flex-shrink: 0;
+}
+
+.task-card__label {
+  font-size: 15px;
+  color: var(--text-primary);
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-card__available {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.task-card__counter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.counter-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.counter-btn:hover:not(:disabled) {
+  background: var(--brand-muted);
+  border-color: var(--brand);
+}
+
+.counter-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.counter-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 24px;
+  text-align: center;
+}
+
+.task-card.task-card--active {
+  border-color: var(--brand);
+  background: var(--brand-muted);
+}
+
+.variant-config__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.variant-config__total {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.variant-config__total span {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 20px;
+}
+
+#generateBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.variant-config__error {
+  padding: 12px 16px;
+  background: rgba(255, 80, 80, 0.1);
+  border: 1px solid rgba(255, 80, 80, 0.3);
+  border-radius: 8px;
+  color: #ff6b6b;
+  font-size: 14px;
+  text-align: center;
+}
+
+.variant-config__loading {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+</style>
+
+<script>
+(async () => {
+  const grid = document.getElementById('taskGrid');
+  const totalEl = document.getElementById('totalCount');
+  const btn = document.getElementById('generateBtn');
+  const errorEl = document.getElementById('errorMsg');
+
+  // counts[key] = текущее количество
+  const counts = {};
+
+  function updateTotal() {
+    const total = Object.values(counts).reduce((s, v) => s + v, 0);
+    totalEl.textContent = total;
+    btn.disabled = total === 0;
+  }
+
+  function makeCard(task) {
+    counts[task.key] = 0;
+    const isEmpty = task.count === 0;
+
+    const card = document.createElement('div');
+    card.className = 'task-card' + (isEmpty ? ' task-card--empty' : '');
+    card.dataset.key = task.key;
+
+    card.innerHTML = `
+      <div class="task-card__num">Задание ${task.num}</div>
+      <div class="task-card__label">${task.label}</div>
+      <div class="task-card__available">${isEmpty ? 'Нет заданий' : `доступно: ${task.count}`}</div>
+      <div class="task-card__counter">
+        <button class="counter-btn" data-action="minus" ${isEmpty ? 'disabled' : ''}>−</button>
+        <span class="counter-value" id="val-${task.key}">0</span>
+        <button class="counter-btn" data-action="plus" ${isEmpty ? 'disabled' : ''}>+</button>
+      </div>
+    `;
+
+    const valEl = card.querySelector(`#val-${task.key}`);
+    const minusBtn = card.querySelector('[data-action="minus"]');
+    const plusBtn  = card.querySelector('[data-action="plus"]');
+
+    function setCount(n) {
+      counts[task.key] = n;
+      valEl.textContent = n;
+      minusBtn.disabled = n === 0;
+      plusBtn.disabled  = n >= task.count;
+      card.classList.toggle('task-card--active', n > 0);
+      updateTotal();
+    }
+
+    minusBtn.addEventListener('click', () => setCount(Math.max(0, counts[task.key] - 1)));
+    plusBtn.addEventListener('click',  () => setCount(Math.min(task.count, counts[task.key] + 1)));
+
+    return card;
+  }
+
+  // Загружаем конфиг
+  grid.innerHTML = '<div class="variant-config__loading">Загрузка…</div>';
+  try {
+    const data = await fetch('/api/variant/config').then(r => r.json());
+    grid.innerHTML = '';
+    for (const task of data) {
+      grid.appendChild(makeCard(task));
+    }
+  } catch {
+    grid.innerHTML = '<div class="variant-config__loading">Ошибка загрузки</div>';
+  }
+
+  // Генерация
+  btn.addEventListener('click', async () => {
+    errorEl.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Генерация…';
+
+    try {
+      const res = await fetch('/api/variant/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(counts),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Ошибка генерации';
+        errorEl.hidden = false;
+        btn.disabled = false;
+        btn.textContent = 'Сгенерировать вариант';
+        return;
+      }
+      window.location.href = `/variant/${data.id}`;
+    } catch {
+      errorEl.textContent = 'Ошибка сети';
+      errorEl.hidden = false;
+      btn.disabled = false;
+      btn.textContent = 'Сгенерировать вариант';
+    }
+  });
+})();
+</script>

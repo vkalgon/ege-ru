@@ -1,32 +1,93 @@
-<section class="task-list" aria-label="Список типов заданий">
-  <a href="/subtopics?type=1" class="task-button">1</a>
-  <a href="/subtopics?type=2" class="task-button">2</a>
-  <a href="/subtopics?type=3" class="task-button">3</a>
-  <a href="/subtopics?type=4" class="task-button">4</a>
-  <a href="/subtopics?type=5" class="task-button">5</a>
-  <a href="/subtopics?type=6" class="task-button">6</a>
-  <a href="/subtopics?type=7" class="task-button">7</a>
+<div class="lp-page">
 
-  <a href="/subtopics?type=8" class="task-button">8</a>
-  <a href="/subtopics?type=9" class="task-button">9</a>
-  <a href="/subtopics?type=10" class="task-button">10</a>
-  <a href="/subtopics?type=11" class="task-button">11</a>
-  <a href="/subtopics?type=12" class="task-button">12</a>
-  <a href="/subtopics?type=13" class="task-button">13</a>
-  <a href="/subtopics?type=14" class="task-button">14</a>
+  <!-- ══ HERO ══════════════════════════════════════════════════ -->
+  <section class="lp-hero">
+    <div class="lp-hero__content">
+      <h1 class="lp-hero__title">Переосмысленная<br>подготовка к ЕГЭ</h1>
+      <p class="lp-hero__sub">Генерируйте задания по нужным темам, работайте с текстом прямо в задании и отслеживайте прогресс</p>
+      <div class="lp-hero__cta">
+        <a href="/task17" class="lp-btn lp-btn--primary">Начать подготовку</a>
+        <a href="#tasks"  class="lp-btn lp-btn--ghost">Все задания</a>
+      </div>
+    </div>
+  </section>
 
-  <a href="/subtopics?type=15" class="task-button">15</a>
-  <a href="/subtopics?type=16" class="task-button">16</a>
-  <a href="/task17" class="task-button">17</a>
-  <a href="/subtopics?type=18" class="task-button">18</a>
-  <a href="/subtopics?type=19" class="task-button">19</a>
-  <a href="/subtopics?type=20" class="task-button">20</a>
-  <a href="/subtopics?type=21" class="task-button">21</a>
+  <!-- ══ FEATURES ════════════════════════════════════════════ -->
+  <section class="lp-features">
+    <h2 class="lp-features__title">Что можно делать?</h2>
+    <div class="lp-features__row">
+      <div class="lp-features__goose">
+        <img src="/images/SVG/%D0%B3%D1%83%D1%81%D1%8C%20%D1%81%D0%BC%D0%BE%D1%82%D1%80%D0%B8%D1%82.svg" alt="" aria-hidden="true">
+      </div>
+      <div class="lp-features__cards-wrap">
+        <div class="lp-features__cards">
+          <div class="lp-feat2-card">
+            <b class="lp-feat2-card__title">Учитесь на ошибках</b>
+            <p class="lp-feat2-card__desc">платформа не только запомнит слова и правила, где вы ошиблись, но и составит для вас индивидуальные задания для отработки</p>
+          </div>
+          <div class="lp-feat2-card">
+            <b class="lp-feat2-card__title">Создавайте задания на нужную тему</b>
+            <p class="lp-feat2-card__desc">например, задание 11 только с приставками «пре/при» или задание 9 только со словарными словами</p>
+          </div>
+          <div class="lp-feat2-card">
+            <b class="lp-feat2-card__title">Отслеживайте прогресс</b>
+            <p class="lp-feat2-card__desc">Статистика по заданиям и темам помогает понять, что уже освоено, а что требует внимания</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <a href="/subtopics?type=22" class="task-button">22</a>
-  <a href="/subtopics?type=23" class="task-button">23</a>
-  <a href="/subtopics?type=24" class="task-button">24</a>
-  <a href="/subtopics?type=25" class="task-button">25</a>
-  <a href="/subtopics?type=26" class="task-button">26</a>
-  <a href="/subtopics?type=27" class="task-button">27</a>
-</section>
+  <!-- ══ HOW IT WORKS ═════════════════════════════════════════ -->
+  <section class="lp-howto">
+    <h2 class="lp-howto__title">Как это работает?</h2>
+    <div class="lp-howto__cards">
+      <div class="lp-howto__card lp-howto__card--mint">
+        <span class="lp-howto__label">разбирай предложения</span>
+        <img class="lp-howto__screen lp-howto__screen--mint" src="/images/screen-task17.png" alt="">
+      </div>
+      <div class="lp-howto__card lp-howto__card--blue">
+        <span class="lp-howto__label">вписывай буквы</span>
+        <img class="lp-howto__screen lp-howto__screen--blue" src="/images/screen-task9.png" alt="">
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TASKS ═════════════════════════════════════════════════ -->
+  <section id="tasks" class="lp-tasks-new">
+    <div class="lp-tasks-new__col">
+      <h3 class="lp-tasks-new__col-title">Пунктуация</h3>
+      <div class="lp-tasks-new__items">
+        <a href="/subtopics?type=16" class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">16</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Простое осложнённое</span></span></a>
+        <a href="/task17"            class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">17</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Запятые в тексте</span></span></a>
+        <a href="/task18"            class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">18</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Вводные слова</span></span></a>
+        <a href="/task19"            class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">19</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Знаки в СПП</span></span></a>
+        <a href="/subtopics?type=20" class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">20</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">ССП и БСП</span></span></a>
+        <a href="/subtopics?type=21" class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">21</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Обособленные члены</span></span></a>
+      </div>
+    </div>
+    <div class="lp-tasks-new__col lp-tasks-new__col--orth">
+      <h3 class="lp-tasks-new__col-title">Орфография</h3>
+      <div class="lp-tasks-new__items">
+        <a href="/task9"             class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">9</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Правописание корней</span></span></a>
+        <a href="/task10"            class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">10</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Правописание приставок</span></span></a>
+        <a href="/task11"            class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">11</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Суффиксы (кроме нн)</span></span></a>
+        <a href="/subtopics?type=12" class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">12</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Окончания глаголов</span></span></a>
+      </div>
+    </div>
+    <div class="lp-tasks-new__goose" aria-hidden="true">
+      <img src="/images/SVG/%D0%B3%D1%83%D1%81%D1%8C%20%D1%81%20%D0%B8%D0%B4%D0%B5%D0%B5%D0%B9.svg" alt="">
+    </div>
+  </section>
+
+  <!-- ══ BOTTOM CTA ═════════════════════════════════════════════ -->
+  <section class="lp-bottom-cta">
+    <div class="lp-bottom-cta__inner">
+      <h2 class="lp-bottom-cta__title">Готов проверить себя?</h2>
+      <p class="lp-bottom-cta__sub">Сгенерируй полный вариант из 27 заданий — как на настоящем экзамене</p>
+      <a href="/variant" class="lp-btn lp-btn--primary">Создать вариант →</a>
+    </div>
+  </section>
+
+</div>
+

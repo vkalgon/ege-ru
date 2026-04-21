@@ -157,9 +157,10 @@ admin.get('/assignments', (req, res) => {
   try {
     const typeId = req.query.typeId;
     let query = `
-      SELECT 
+      SELECT
         a.id, a.subtopic_id, a.fipi_number, a.source, a.prompt, a.context,
         a.answer, a.explanation, a.rule_ref, a.alt_answers, a.extra_data,
+        a.passage_id,
         s.title AS subtopic_title,
         s.type_id,
         tt.title AS type_title
@@ -200,12 +201,12 @@ admin.get('/assignments/:id', (req, res) => {
     console.log('ID задания:', id);
     
     const assignment = db.prepare(`
-      SELECT 
+      SELECT
         a.id, a.subtopic_id, a.fipi_number, a.source, a.prompt, a.context,
         a.answer, a.explanation, a.rule_ref, a.alt_answers, a.extra_data,
         st.title AS subtopic_title, st.type_id
       FROM assignments a
-      JOIN subtopics st ON st.id = a.subtopic_id
+      LEFT JOIN subtopics st ON st.id = a.subtopic_id
       WHERE a.id = ?
     `).get(id);
     
@@ -320,6 +321,135 @@ admin.delete('/assignments/:id', (req, res) => {
     res.json({ message: 'Задание удалено' });
   } catch (error) {
     handleError(res, error, 'Ошибка удаления задания');
+  }
+});
+
+/* ----------------------
+   ТЕКСТЫ-ПАССАЖИ (задания 1–3)
+----------------------- */
+
+// Получить все пассажи (со счётчиком прикреплённых заданий по типам)
+admin.get('/passages', (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        p.id, p.source, p.fipi_number, p.notes, p.created_at,
+        substr(p.context, 1, 120) AS context_preview,
+        COUNT(DISTINCT a.id) AS assignment_count,
+        GROUP_CONCAT(DISTINCT s.type_id) AS type_ids
+      FROM text_passages p
+      LEFT JOIN assignments a ON a.passage_id = p.id
+      LEFT JOIN subtopics s ON s.id = a.subtopic_id
+      GROUP BY p.id
+      ORDER BY p.id DESC
+    `).all();
+    res.json(rows);
+  } catch (error) {
+    handleError(res, error, 'Ошибка получения пассажей');
+  }
+});
+
+// Получить один пассаж + прикреплённые задания
+admin.get('/passages/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const passage = db.prepare('SELECT * FROM text_passages WHERE id = ?').get(id);
+    if (!passage) return res.status(404).json({ error: 'Пассаж не найден' });
+
+    const assignments = db.prepare(`
+      SELECT a.id, a.subtopic_id, a.prompt, a.answer, a.alt_answers,
+             a.explanation, a.rule_ref, s.type_id, tt.title AS type_title
+      FROM assignments a
+      JOIN subtopics s ON s.id = a.subtopic_id
+      JOIN task_types tt ON tt.id = s.type_id
+      WHERE a.passage_id = ?
+      ORDER BY s.type_id
+    `).all(id);
+
+    assignments.forEach(a => {
+      a.alt_answers = a.alt_answers ? JSON.parse(a.alt_answers) : [];
+    });
+
+    res.json({ ...passage, assignments });
+  } catch (error) {
+    handleError(res, error, 'Ошибка получения пассажа');
+  }
+});
+
+// Создать пассаж
+admin.post('/passages', (req, res) => {
+  try {
+    const { context, source, fipi_number, notes } = req.body;
+    if (!context || !source) {
+      return res.status(400).json({ error: 'Текст и источник обязательны' });
+    }
+    const processedContext = typeof context === 'string' ? context : JSON.stringify(context);
+    const result = db.prepare(
+      'INSERT INTO text_passages (context, source, fipi_number, notes) VALUES (?, ?, ?, ?)'
+    ).run(processedContext, source, fipi_number || null, notes || null);
+    res.json({ id: result.lastInsertRowid, message: 'Пассаж создан' });
+  } catch (error) {
+    handleError(res, error, 'Ошибка создания пассажа');
+  }
+});
+
+// Обновить пассаж
+admin.put('/passages/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { context, source, fipi_number, notes } = req.body;
+    if (!context || !source) {
+      return res.status(400).json({ error: 'Текст и источник обязательны' });
+    }
+    const processedContext = typeof context === 'string' ? context : JSON.stringify(context);
+    const result = db.prepare(`
+      UPDATE text_passages SET context = ?, source = ?, fipi_number = ?, notes = ? WHERE id = ?
+    `).run(processedContext, source, fipi_number || null, notes || null, id);
+    if (result.changes === 0) return res.status(404).json({ error: 'Пассаж не найден' });
+    res.json({ message: 'Пассаж обновлён' });
+  } catch (error) {
+    handleError(res, error, 'Ошибка обновления пассажа');
+  }
+});
+
+// Удалить пассаж (задания открепляются — passage_id → NULL)
+admin.delete('/passages/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    db.prepare('UPDATE assignments SET passage_id = NULL WHERE passage_id = ?').run(id);
+    const result = db.prepare('DELETE FROM text_passages WHERE id = ?').run(id);
+    if (result.changes === 0) return res.status(404).json({ error: 'Пассаж не найден' });
+    res.json({ message: 'Пассаж удалён' });
+  } catch (error) {
+    handleError(res, error, 'Ошибка удаления пассажа');
+  }
+});
+
+// Прикрепить задание к пассажу
+admin.post('/passages/:id/attach', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { assignment_id } = req.body;
+    if (!assignment_id) return res.status(400).json({ error: 'assignment_id обязателен' });
+    const passage = db.prepare('SELECT id FROM text_passages WHERE id = ?').get(id);
+    if (!passage) return res.status(404).json({ error: 'Пассаж не найден' });
+    db.prepare('UPDATE assignments SET passage_id = ? WHERE id = ?').run(id, assignment_id);
+    res.json({ message: 'Задание прикреплено' });
+  } catch (error) {
+    handleError(res, error, 'Ошибка прикрепления задания');
+  }
+});
+
+// Открепить задание от пассажа
+admin.post('/passages/:id/detach', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { assignment_id } = req.body;
+    if (!assignment_id) return res.status(400).json({ error: 'assignment_id обязателен' });
+    db.prepare('UPDATE assignments SET passage_id = NULL WHERE id = ? AND passage_id = ?').run(assignment_id, id);
+    res.json({ message: 'Задание откреплено' });
+  } catch (error) {
+    handleError(res, error, 'Ошибка открепления задания');
   }
 });
 

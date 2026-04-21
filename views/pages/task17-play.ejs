@@ -1,46 +1,8 @@
 <div class="task-page" id="task17App">
   <h2 class="task-page__title">Задание №17: Пунктуация</h2>
   
-  <!-- Панель инструментов слева для выделений в предложении (sticky) -->
-  <div id="task17-toolbar-left" class="task17-student-toolbar-left" style="
-    position: fixed;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 200px;
-    padding: 16px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    display: block;
-  ">
-    <div style="margin-bottom: 12px; color: var(--text-primary); font-weight: 600; font-size: 14px;">
-      Инструменты выделения
-    </div>
-    
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-      <button type="button" class="btn btn-sm" id="task17-mark-participle-text" style="width: 100%; justify-content: flex-start;">
-        <span style="text-decoration: underline wavy;">Причастный</span>
-      </button>
-      <button type="button" class="btn btn-sm" id="task17-mark-gerund-text" style="width: 100%; justify-content: flex-start;">
-        Деепричастный
-      </button>
-      <button type="button" class="btn btn-sm" id="task17-mark-main-word-text" style="width: 100%; justify-content: flex-start; border: 1px solid rgba(236, 72, 153, 0.5);">
-        Главное слово
-      </button>
-      <button type="button" class="btn btn-sm btn-secondary" id="task17-remove-mark-text" style="width: 100%; justify-content: flex-start;">
-        Убрать выделение
-      </button>
-    </div>
-    
-    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--glass-border); font-size: 11px; color: var(--text-secondary); line-height: 1.6;">
-      <div style="margin-bottom: 6px;"><span class="span-participle" style="display: inline-block;">Причастный</span></div>
-      <div style="margin-bottom: 6px;"><span class="span-gerund" style="display: inline-block; position: relative; padding-bottom: 2px;">Деепричастный</span></div>
-      <div><span class="span-main-word" style="display: inline-block; position: relative;">Главное слово</span></div>
-    </div>
-  </div>
+  <!-- Плавающая панель инструментов выделения -->
+  <div id="task17-floating-toolbar" class="task17-floating-toolbar"></div>
   
   
   <div id="task17Container">
@@ -69,34 +31,41 @@
   }
   
   .task17-digit:hover:not(.selected) {
-    background-color: rgba(0, 240, 255, 0.2);
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+    background-color: var(--brand-muted);
+    border-color: var(--brand);
   }
-  
+
   .task17-digit.selected {
-    background-color: var(--neon-cyan);
-    color: var(--bg-primary);
-    font-weight: bold;
+    background-color: rgba(164, 190, 226, 0.2);
+    color: var(--brand);
+    outline: 1.5px solid var(--brand-dim);
+    outline-offset: -1px;
   }
   
   /* Подсветка правильных и лишних цифр после проверки */
   .task17-digit.correct {
-    background-color: rgba(34, 197, 94, 0.3) !important;
-    color: #22c55e !important;
+    background-color: transparent !important;
+    color: #A4E2D0 !important;
+    outline: 1.5px solid #A4E2D0 !important;
+    outline-offset: -1px;
   }
-  
+
   .task17-digit.correct-selected {
-    background-color: #22c55e !important;
-    color: #fff !important;
+    background-color: rgba(164, 226, 208, 0.12) !important;
+    color: #A4E2D0 !important;
+    outline: 1.5px solid #A4E2D0 !important;
+    outline-offset: -1px;
     font-weight: bold;
   }
   
   .task17-digit.extra-selected {
-    background-color: #ef4444 !important;
-    color: #fff !important;
+    background-color: #D69295 !important;
+    color: #0f1117 !important;
     font-weight: bold;
   }
 </style>
+
+<script src="/js/text-selection-toolbar.js"></script>
 
 <!-- React через CDN -->
 <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -465,14 +434,14 @@
                   alignItems: 'center',
                   gap: '12px',
                   padding: '16px',
-                  background: 'rgba(34, 197, 94, 0.1)',
-                  border: '2px solid rgba(34, 197, 94, 0.5)',
+                  background: 'rgba(164, 226, 208, 0.07)',
+                  border: '1px solid rgba(164, 226, 208, 0.4)',
                   borderRadius: '8px',
                   marginBottom: '16px'
                 }}>
                   <div style={{
                     fontSize: '32px',
-                    color: '#22c55e',
+                    color: '#A4E2D0',
                     lineHeight: '1'
                   }}>
                     ✓
@@ -480,7 +449,7 @@
                   <div style={{
                     fontSize: '18px',
                     fontWeight: 'bold',
-                    color: '#22c55e'
+                    color: '#A4E2D0'
                   }}>
                     Все верно!
                   </div>
@@ -513,7 +482,7 @@
                       <div style={{
                         fontSize: '18px',
                         fontWeight: 'bold',
-                        color: '#22c55e'
+                        color: '#A4E2D0'
                       }}>
                         {checkResult.correctAnswer.join(', ')}
                       </div>
@@ -533,7 +502,6 @@
     const [allTasks, setAllTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showDigits, setShowDigits] = useState(true);
-    const [showToolbar, setShowToolbar] = useState(true);
 
     useEffect(() => {
       const loadAllTasks = async () => {
@@ -550,14 +518,6 @@
       };
       loadAllTasks();
     }, []);
-
-    // Управление видимостью левой панели инструментов
-    useEffect(() => {
-      const toolbarLeft = document.getElementById('task17-toolbar-left');
-      if (toolbarLeft) {
-        toolbarLeft.style.display = showToolbar ? 'block' : 'none';
-      }
-    }, [showToolbar]);
 
     if (loading) {
       return (
@@ -609,11 +569,11 @@
                   width: '48px',
                   height: '24px',
                   borderRadius: '12px',
-                  background: showDigits ? 'var(--neon-cyan)' : 'var(--text-disabled)',
+                  background: showDigits ? 'var(--brand)' : 'var(--text-disabled)',
                   position: 'relative',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: showDigits ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none'
+                  transition: 'background 0.2s ease',
+                  boxShadow: 'none'
                 }}
               >
                 <div
@@ -625,44 +585,6 @@
                     position: 'absolute',
                     top: '2px',
                     left: showDigits ? '26px' : '2px',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
-                  }}
-                />
-              </div>
-            </label>
-            
-            <label style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              color: 'var(--text-primary)',
-              fontSize: '14px'
-            }}>
-              <span>Панель выделений</span>
-              <div
-                onClick={() => setShowToolbar(!showToolbar)}
-                style={{
-                  width: '48px',
-                  height: '24px',
-                  borderRadius: '12px',
-                  background: showToolbar ? 'var(--neon-cyan)' : 'var(--text-disabled)',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: showToolbar ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none'
-                }}
-              >
-                <div
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    background: '#fff',
-                    position: 'absolute',
-                    top: '2px',
-                    left: showToolbar ? '26px' : '2px',
                     transition: 'all 0.3s ease',
                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
                   }}
@@ -687,7 +609,6 @@
     const [isLiked, setIsLiked] = useState(false);
     const [showSolution, setShowSolution] = useState(false);
     const [showDigits, setShowDigits] = useState(true);
-    const [showToolbar, setShowToolbar] = useState(true);
     const [currentTaskId, setCurrentTaskId] = useState(taskId);
     const [allTasks, setAllTasks] = useState([]);
     const [currentTaskIndex, setCurrentTaskIndex] = useState(-1);
@@ -767,14 +688,6 @@
         }, 300);
       }
     }, [showSolution, taskData]);
-
-    // Управление видимостью левой панели инструментов
-    useEffect(() => {
-      const toolbarLeft = document.getElementById('task17-toolbar-left');
-      if (toolbarLeft) {
-        toolbarLeft.style.display = showToolbar ? 'block' : 'none';
-      }
-    }, [showToolbar]);
 
     // Парсинг текста с метками (1), (2)...
     const parseTextWithDigits = (text) => {
@@ -987,8 +900,9 @@
         <div className="task-content">
           {/* Текст задания */}
           <div className="task-prompt" id="task17-text-container" style={{position: 'relative', margin: 0}}>
-            <div 
+            <div
               id="task17-text-editable"
+              className="task17-text-editable"
               style={{
                 padding: '16px',
                 border: '1px solid var(--glass-border)',
@@ -998,7 +912,7 @@
                 lineHeight: '1.8',
                 minHeight: '80px'
               }}
-              contentEditable={false}
+              contentEditable={true}
               suppressContentEditableWarning={true}
               onCopy={(e) => {
                 // Перехватываем событие копирования и заменяем текст на исходный с цифрами
@@ -1178,14 +1092,14 @@
                   alignItems: 'center',
                   gap: '12px',
                   padding: '16px',
-                  background: 'rgba(34, 197, 94, 0.1)',
-                  border: '2px solid rgba(34, 197, 94, 0.5)',
+                  background: 'rgba(164, 226, 208, 0.07)',
+                  border: '1px solid rgba(164, 226, 208, 0.4)',
                   borderRadius: '8px',
                   marginBottom: '16px'
                 }}>
                   <div style={{
                     fontSize: '32px',
-                    color: '#22c55e',
+                    color: '#A4E2D0',
                     lineHeight: '1'
                   }}>
                     ✓
@@ -1193,7 +1107,7 @@
                   <div style={{
                     fontSize: '18px',
                     fontWeight: 'bold',
-                    color: '#22c55e'
+                    color: '#A4E2D0'
                   }}>
                     Все верно!
                   </div>
@@ -1226,7 +1140,7 @@
                       <div style={{
                         fontSize: '18px',
                         fontWeight: 'bold',
-                        color: '#22c55e'
+                        color: '#A4E2D0'
                       }}>
                         {checkResult.correctAnswer.join(', ')}
                       </div>
@@ -1302,11 +1216,11 @@
                   width: '48px',
                   height: '24px',
                   borderRadius: '12px',
-                  background: showDigits ? 'var(--neon-cyan)' : 'var(--text-disabled)',
+                  background: showDigits ? 'var(--brand)' : 'var(--text-disabled)',
                   position: 'relative',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: showDigits ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none'
+                  transition: 'background 0.2s ease',
+                  boxShadow: 'none'
                 }}
               >
                 <div
@@ -1318,45 +1232,6 @@
                     position: 'absolute',
                     top: '2px',
                     left: showDigits ? '26px' : '2px',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
-                  }}
-                />
-              </div>
-            </label>
-            
-            {/* Переключатель для панели инструментов */}
-            <label style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              color: 'var(--text-primary)',
-              fontSize: '14px'
-            }}>
-              <span>Панель выделений</span>
-              <div
-                onClick={() => setShowToolbar(!showToolbar)}
-                style={{
-                  width: '48px',
-                  height: '24px',
-                  borderRadius: '12px',
-                  background: showToolbar ? 'var(--neon-cyan)' : 'var(--text-disabled)',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: showToolbar ? '0 0 10px rgba(0, 240, 255, 0.5)' : 'none'
-                }}
-              >
-                <div
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    background: '#fff',
-                    position: 'absolute',
-                    top: '2px',
-                    left: showToolbar ? '26px' : '2px',
                     transition: 'all 0.3s ease',
                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
                   }}
@@ -1434,183 +1309,147 @@
     });
   }
   
-  // Инициализация панели инструментов для текста задания (слева)
-  function initTextToolbar() {
-    const toolbar = document.getElementById('task17-toolbar-left');
-    const textContainer = document.getElementById('task17-text-editable');
-    
-    if (!toolbar || !textContainer) return;
-    
-    const markParticipleBtn = document.getElementById('task17-mark-participle-text');
-    const markGerundBtn = document.getElementById('task17-mark-gerund-text');
-    const markMainWordBtn = document.getElementById('task17-mark-main-word-text');
-    const removeMarkBtn = document.getElementById('task17-remove-mark-text');
-    
-    // Функция для применения стиля
-    function applySpanClass(className) {
-      const selection = window.getSelection();
-      if (selection.rangeCount === 0 || selection.toString().trim() === '') {
-        alert('Выделите текст в предложении');
-        return;
-      }
-      
-      let range = selection.getRangeAt(0);
-      if (range.collapsed) {
-        alert('Выделите текст');
-        return;
-      }
-      
-      // Проверяем, что выделение внутри текста задания
-      if (!textContainer.contains(range.commonAncestorContainer)) {
-        alert('Выделите текст в предложении');
-        return;
-      }
-      
-      // Игнорируем клики по цифрам
-      if (range.commonAncestorContainer.closest && range.commonAncestorContainer.closest('.task17-digit')) {
-        return;
-      }
-      
-      // Функция для расширения range до ближайших пробелов
-      function expandRangeToSpaces(range) {
-        const expandedRange = range.cloneRange();
-        
-        // Расширяем начало влево до пробела
-        let startContainer = expandedRange.startContainer;
-        let startOffset = expandedRange.startOffset;
-        
-        if (startContainer.nodeType === Node.TEXT_NODE) {
-          const text = startContainer.textContent;
-          let newOffset = startOffset;
-          while (newOffset > 0 && text[newOffset - 1] !== ' ') {
-            newOffset--;
-          }
-          expandedRange.setStart(startContainer, newOffset);
-        }
-        
-        // Расширяем конец вправо до пробела
-        let endContainer = expandedRange.endContainer;
-        let endOffset = expandedRange.endOffset;
-        
-        if (endContainer.nodeType === Node.TEXT_NODE) {
-          const text = endContainer.textContent;
-          let newOffset = endOffset;
-          while (newOffset < text.length && text[newOffset] !== ' ') {
-            newOffset++;
-          }
-          if (newOffset < text.length && text[newOffset] === ' ') {
-            newOffset++;
-          }
-          expandedRange.setEnd(endContainer, newOffset);
-        }
-        
-        // Расширяем начало, проходя по предыдущим узлам
-        while (true) {
-          const startContainer = expandedRange.startContainer;
-          const startOffset = expandedRange.startOffset;
-          
-          if (startContainer.nodeType === Node.TEXT_NODE && startOffset === 0) {
-            const prevNode = startContainer.previousSibling;
-            if (prevNode && prevNode.nodeType === Node.TEXT_NODE) {
-              const text = prevNode.textContent;
-              const spacePos = text.lastIndexOf(' ');
-              if (spacePos >= 0) {
-                expandedRange.setStart(prevNode, spacePos + 1);
-                continue;
-              } else {
-                expandedRange.setStart(prevNode, 0);
-                continue;
-              }
-            }
-          }
-          break;
-        }
-        
-        // Расширяем конец, проходя по следующим узлам
-        while (true) {
-          const endContainer = expandedRange.endContainer;
-          const endOffset = expandedRange.endOffset;
-          
-          if (endContainer.nodeType === Node.TEXT_NODE && 
-              endOffset >= endContainer.textContent.length) {
-            const nextNode = endContainer.nextSibling;
-            if (nextNode && nextNode.nodeType === Node.TEXT_NODE) {
-              const text = nextNode.textContent;
-              const spacePos = text.indexOf(' ');
-              if (spacePos >= 0) {
-                expandedRange.setEnd(nextNode, spacePos + 1);
-                continue;
-              } else {
-                expandedRange.setEnd(nextNode, text.length);
-                continue;
-              }
-            }
-          }
-          break;
-        }
-        
-        return expandedRange;
-      }
-      
-      // Расширяем range до пробелов
-      range = expandRangeToSpaces(range);
-      
-      const span = document.createElement('span');
-      span.className = className;
-      
-      try {
-        range.surroundContents(span);
-      } catch (e) {
-        const contents = range.extractContents();
-        span.appendChild(contents);
-        range.insertNode(span);
-      }
-      
-      selection.removeAllRanges();
-      textContainer.focus();
-    }
-    
-    markParticipleBtn.addEventListener('click', () => applySpanClass('span-participle'));
-    markGerundBtn.addEventListener('click', () => applySpanClass('span-gerund'));
-    markMainWordBtn.addEventListener('click', () => applySpanClass('span-main-word'));
-    
-    removeMarkBtn.addEventListener('click', () => {
-      const selection = window.getSelection();
-      let range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
-      
-      if (!range) {
-        range = document.createRange();
-        if (selection.anchorNode) {
-          range.setStart(selection.anchorNode, selection.anchorOffset);
-          range.setEnd(selection.anchorNode, selection.anchorOffset);
-        }
-      }
-      
-      const selectedParent = range.commonAncestorContainer;
-      let parent = selectedParent.nodeType === 1 ? selectedParent : selectedParent.parentElement;
-      
-      while (parent && parent !== textContainer) {
-        if (parent.classList && (parent.classList.contains('span-participle') || parent.classList.contains('span-gerund') || parent.classList.contains('span-main-word'))) {
-          const grandParent = parent.parentNode;
-          while (parent.firstChild) {
-            grandParent.insertBefore(parent.firstChild, parent);
-          }
-          grandParent.removeChild(parent);
-          selection.removeAllRanges();
-          textContainer.focus();
-          return;
-        }
-        parent = parent.parentElement;
-      }
-      
-      alert('Поместите курсор в текст с выделением');
-    });
+  // Глобальный стек отмены для выделений (доступен для всех редакторов на странице)
+  const _playUndoStack = [];
+  function _playSaveUndo(editor) {
+    _playUndoStack.push({ editor, html: editor.innerHTML });
+    if (_playUndoStack.length > 50) _playUndoStack.shift();
   }
-  
-  
+  function _playUndo() {
+    if (_playUndoStack.length === 0) return;
+    const { editor, html } = _playUndoStack.pop();
+    editor.innerHTML = html;
+  }
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      if (_playUndoStack.length > 0) {
+        const inEditor = document.activeElement && document.activeElement.closest('.task17-text-editable');
+        if (inEditor) {
+          e.preventDefault();
+          _playUndo();
+        }
+      }
+    }
+  });
+
+  // Глобальная функция применения стиля (используется плавающей панелью)
+  window.applySpanClass = function(className) {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const parent = range.commonAncestorContainer.nodeType === 3
+      ? range.commonAncestorContainer.parentElement
+      : range.commonAncestorContainer;
+
+    let editor = parent;
+    while (editor && !editor.classList.contains('task17-text-editable')) {
+      editor = editor.parentElement;
+    }
+    if (!editor) return;
+
+    const selectedText = selection.toString().trim();
+    if (!selectedText) return;
+
+    _playSaveUndo(editor);
+
+    // Расширяем range до ближайших пробелов
+    function expandRangeToSpaces(r) {
+      const exp = r.cloneRange();
+      if (exp.startContainer.nodeType === Node.TEXT_NODE) {
+        const text = exp.startContainer.textContent;
+        let o = exp.startOffset;
+        while (o > 0 && text[o - 1] !== ' ') o--;
+        exp.setStart(exp.startContainer, o);
+      }
+      if (exp.endContainer.nodeType === Node.TEXT_NODE) {
+        const text = exp.endContainer.textContent;
+        let o = exp.endOffset;
+        while (o < text.length && text[o] !== ' ') o++;
+        exp.setEnd(exp.endContainer, o);
+      }
+      return exp;
+    }
+
+    const expandedRange = expandRangeToSpaces(range);
+    const span = document.createElement('span');
+    span.className = className;
+    span.style.position = 'relative';
+    span.style.zIndex = '1';
+
+    try {
+      expandedRange.surroundContents(span);
+    } catch (e) {
+      const contents = expandedRange.extractContents();
+      span.appendChild(contents);
+      expandedRange.insertNode(span);
+    }
+
+    selection.removeAllRanges();
+    editor.focus();
+  };
+
+  // Глобальная функция удаления выделения
+  window.removeMark = function() {
+    const selection = window.getSelection();
+    let range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+    if (!range) return;
+
+    const selectedParent = range.commonAncestorContainer;
+    let parent = selectedParent.nodeType === 1 ? selectedParent : selectedParent.parentElement;
+
+    while (parent) {
+      if (parent.classList && (
+        parent.classList.contains('span-participle') ||
+        parent.classList.contains('span-gerund') ||
+        parent.classList.contains('span-main-word')
+      )) {
+        let editor = parent.parentElement;
+        while (editor && !editor.classList.contains('task17-text-editable')) {
+          editor = editor.parentElement;
+        }
+        if (editor) _playSaveUndo(editor);
+
+        const grandParent = parent.parentNode;
+        while (parent.firstChild) {
+          grandParent.insertBefore(parent.firstChild, parent);
+        }
+        grandParent.removeChild(parent);
+        selection.removeAllRanges();
+        return;
+      }
+      if (parent.classList && parent.classList.contains('task17-text-editable')) break;
+      parent = parent.parentElement;
+    }
+  };
+
+  // Инициализация плавающей панели инструментов (как в админке)
+  function initFloatingToolbar() {
+    if (typeof TextSelectionToolbar === 'undefined') return;
+
+    const toolbar = new TextSelectionToolbar({
+      containerId: 'task17-floating-toolbar',
+      editorSelector: '.task17-text-editable',
+      ignoreSelectors: ['.task17-digit'],
+      defaultButtons: true,
+      onButtonClick: (buttonConfig, savedRange, selection) => {
+        if (buttonConfig.class && typeof window.applySpanClass === 'function') {
+          window.applySpanClass(buttonConfig.class);
+        }
+      },
+      onRemoveClick: (savedRange, selection) => {
+        if (typeof window.removeMark === 'function') {
+          window.removeMark();
+        }
+      }
+    });
+
+    toolbar.setupAutoShow();
+  }
+
   // Инициализация панели для текста задания
   setTimeout(() => {
-    initTextToolbar();
+    initFloatingToolbar();
   }, 500);
   
   // Ожидаем, когда объяснение будет отображено

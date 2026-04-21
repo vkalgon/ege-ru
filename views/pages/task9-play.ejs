@@ -1,0 +1,31 @@
+<div class="task-page" id="task9-play">
+  <h2 class="task-page__title">Задание №9 — Гласные в корне</h2>
+
+  <div class="task17-wrapper">
+    <div class="task9-column">
+      <div id="task9-container">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/task-play-card.js"></script>
+<script>
+const TASK_ID = <%- taskId %>;
+
+async function loadTask() {
+  const container = document.getElementById('task9-container');
+  const res = await fetch('/api/task9/tasks/' + TASK_ID + '/play');
+  if (!res.ok) {
+    container.innerHTML =
+      '<div class="task-card task17-card"><div class="task-content"><p style="color:#D69295;margin:0;">Задание не найдено.</p></div></div>';
+    return;
+  }
+  const task = await res.json();
+  container.innerHTML = renderTask9CardHTML(TASK_ID, task, { standalone: true });
+  initTask9Card(container, TASK_ID, task, { standalone: true });
+}
+
+loadTask();
+</script>

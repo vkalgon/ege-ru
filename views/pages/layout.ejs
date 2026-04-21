@@ -8,7 +8,7 @@
   <script>
     // Устанавливаем тему синхронно перед загрузкой страницы для избежания мерцания
     (function() {
-      const savedTheme = localStorage.getItem('theme') || 'dark';
+      const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
     })();
   </script>
@@ -53,7 +53,19 @@
       
       document.getElementById('user-name').textContent = name;
       document.getElementById('user-contact').textContent = contact;
-      document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+      const avatarSpan = document.getElementById('user-avatar');
+      const avatarImg = document.getElementById('user-avatar-img');
+      const initial = name.charAt(0).toUpperCase();
+      if (user.avatar && (user.avatar.startsWith('data:image/') || user.avatar.startsWith('/images/'))) {
+        avatarImg.src = user.avatar;
+        avatarImg.style.display = 'block';
+        avatarSpan.style.display = 'none';
+      } else {
+        avatarImg.removeAttribute('src');
+        avatarImg.style.display = 'none';
+        avatarSpan.style.display = 'flex';
+        avatarSpan.textContent = user.avatar?.startsWith('emoji:') ? user.avatar.slice(6) : initial;
+      }
     }
     
     function showGuestAuth() {

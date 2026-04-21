@@ -1,0 +1,424 @@
+<div class="task-page">
+  <h2 class="task-page__title">Администрирование · Задание №16</h2>
+  <div id="adminTask16Container" style="max-width: 960px;"><p>Загрузка...</p></div>
+</div>
+
+<style>
+  .t16-tabs { display:flex; gap:0; border-bottom:2px solid var(--glass-border); margin-bottom:24px; }
+  .t16-tab {
+    padding:8px 20px; cursor:pointer; font-size:14px;
+    border:none; background:none; color:var(--text-secondary);
+    border-bottom:2px solid transparent; margin-bottom:-2px;
+    font-family:inherit; transition:color 0.15s, border-color 0.15s;
+  }
+  .t16-tab.active { color:var(--brand); border-bottom-color:var(--brand); }
+
+  .t16-form {
+    background:var(--bg-secondary); border:1px solid var(--glass-border);
+    border-radius:10px; padding:20px; margin-bottom:24px;
+  }
+  .t16-form h3 { margin:0 0 16px; font-size:1.05rem; }
+  .t16-field { margin-bottom:14px; }
+  .t16-field label { display:block; font-size:13px; color:var(--text-secondary); margin-bottom:4px; }
+  .t16-field input, .t16-field textarea, .t16-field select {
+    width:100%; box-sizing:border-box; padding:8px 10px;
+    border:1px solid var(--glass-border); border-radius:6px;
+    background:var(--bg-primary); color:var(--text-primary);
+    font-family:inherit; font-size:14px;
+  }
+  .t16-field textarea { min-height:72px; resize:vertical; }
+
+  .t16-btn { padding:8px 16px; border-radius:7px; border:none; cursor:pointer; font-size:14px; font-family:inherit; transition:opacity 0.15s; }
+  .t16-btn:hover { opacity:0.85; }
+  .t16-btn-primary { background:var(--brand); color:var(--bg-primary); }
+  .t16-btn-danger  { background:#D69295; color:#fff; padding:5px 10px; font-size:12px; }
+  .t16-btn-edit    { background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); padding:5px 10px; font-size:12px; }
+
+  .t16-row {
+    display:flex; align-items:flex-start; gap:10px;
+    padding:12px 14px; border:1px solid var(--glass-border);
+    border-radius:8px; margin-bottom:8px; background:var(--bg-secondary);
+  }
+  .t16-row__main { flex:1; font-size:14px; line-height:1.5; }
+  .t16-row__meta { font-size:12px; color:var(--text-secondary); margin-top:4px; }
+  .t16-row__actions { display:flex; gap:6px; flex-shrink:0; }
+  .t16-tag { display:inline-block; padding:1px 7px; border-radius:12px; font-size:11px; margin-left:4px; }
+  .t16-empty { padding:20px; color:var(--text-secondary); font-style:italic; }
+
+  /* Слоты для задания */
+  .t16-slot {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; border:1px solid var(--glass-border);
+    border-radius:8px; margin-bottom:8px; background:var(--bg-primary);
+  }
+  .t16-slot__num { font-size:15px; font-weight:600; color:var(--text-secondary); width:24px; flex-shrink:0; }
+  .t16-slot select { flex:1; }
+  .t16-slot__preview { flex:2; font-size:13px; color:var(--text-secondary); font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+</style>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+/* ── Константы ─────────────────────────────────────────────── */
+const RULE_TYPES = [
+  { value:'homogeneous',    label:'Однородные члены',           color:'#4a9eff' },
+  { value:'ssp',            label:'ССП',                        color:'#ff8c42' },
+  { value:'double_union',   label:'Двойной союз (как...так и)', color:'#A4E2D0' },
+  { value:'repeated_union', label:'Повторяющийся союз (и...и)', color:'#c084fc' },
+  { value:'none',           label:'Ловушка (запятая не нужна)', color:'#a0a0a0' },
+];
+const RULE_COLORS = Object.fromEntries(RULE_TYPES.map(r => [r.value, r.color]));
+const RULE_LABELS = Object.fromEntries(RULE_TYPES.map(r => [r.value, r.label]));
+
+/* ── Хелпер: убрать запятые (как видит ученик) ────────────── */
+function stripCommas(text) {
+  return text.replace(/,(\s)/g, '$1').replace(/,$/, '').trim();
+}
+
+/* ── Хелпер: парсим позиции запятых из текста ─────────────── */
+function parseGaps(text) {
+  const words = text.trim().split(/\s+/);
+  return words.reduce((acc, w, i) => (w.endsWith(',') ? [...acc, i] : acc), []);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Вкладка 1: Банк предложений
+══════════════════════════════════════════════════════════════ */
+const EMPTY_SENT = { source_text:'', rule_types:[], explanation_md:'', source:'' };
+
+function SentencesTab() {
+  const [sentences, setSentences] = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [form,      setForm]      = useState(EMPTY_SENT);
+  const [editId,    setEditId]    = useState(null);
+  const [saving,    setSaving]    = useState(false);
+  const [msg,       setMsg]       = useState(null);
+  const formRef = useRef(null);
+
+  const load = async () => {
+    try { setSentences(await (await fetch('/api/task16/sentences')).json()); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const showMsg = (t, ok=true) => { setMsg({t,ok}); setTimeout(()=>setMsg(null),3000); };
+  const setField = (k, v) => setForm(f => ({...f, [k]: v}));
+  const toggleRule = (val) => setForm(f => {
+    const cur = f.rule_types || [];
+    return {...f, rule_types: cur.includes(val) ? cur.filter(v=>v!==val) : [...cur, val]};
+  });
+
+  const handleSubmit = async () => {
+    if (!form.source_text.trim()) { showMsg('Введите текст предложения', false); return; }
+    const body = {
+      source_text:    form.source_text.trim(),
+      rule_types:     form.rule_types,
+      explanation_md: form.explanation_md.trim() || null,
+      source:         form.source.trim() || null,
+    };
+    try {
+      setSaving(true);
+      const url    = editId ? `/api/task16/sentences/${editId}` : '/api/task16/sentences';
+      const method = editId ? 'PUT' : 'POST';
+      const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if (!r.ok) { const e = await r.json(); showMsg(e.error||'Ошибка', false); return; }
+      showMsg(editId ? 'Сохранено!' : 'Добавлено!');
+      setForm(EMPTY_SENT); setEditId(null);
+      await load();
+    } finally { setSaving(false); }
+  };
+
+  const handleEdit = (s) => {
+    setForm({ source_text: s.source_text, rule_types: s.rule_types||[], explanation_md: s.explanation_md||'', source: s.source||'' });
+    setEditId(s.id);
+    formRef.current?.scrollIntoView({ behavior:'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Удалить предложение?')) return;
+    const r = await fetch(`/api/task16/sentences/${id}`, { method:'DELETE' });
+    if (r.ok) { showMsg('Удалено'); await load(); }
+    else showMsg('Ошибка удаления', false);
+  };
+
+  const playPreview = form.source_text ? stripCommas(form.source_text) : '';
+  const gapsCount   = form.source_text ? parseGaps(form.source_text).length : 0;
+
+  return (
+    <div>
+      {msg && (
+        <div style={{ padding:'10px 14px', borderRadius:'8px', marginBottom:'16px',
+          background: msg.ok ? 'rgba(164,226,208,0.15)' : 'rgba(214,146,149,0.15)',
+          color: msg.ok ? '#A4E2D0' : '#D69295',
+          border:`1px solid ${msg.ok ? 'rgba(164,226,208,0.4)' : 'rgba(214,146,149,0.4)'}` }}>
+          {msg.t}
+        </div>
+      )}
+
+      <div className="t16-form" ref={formRef}>
+        <h3>{editId ? `Редактировать предложение #${editId}` : 'Добавить предложение'}</h3>
+
+        <div className="t16-field">
+          <label>Текст предложения с правильными запятыми *</label>
+          <input value={form.source_text} onChange={e => setField('source_text', e.target.value)}
+            placeholder="Кто-то терем прибирал, да хозяев поджидал." />
+          {form.source_text.trim() && (
+            <div style={{marginTop:'6px', fontSize:'13px', color:'var(--text-secondary)'}}>
+              Ученик увидит: <strong style={{color:'var(--text-primary)'}}>{playPreview}</strong>
+              {gapsCount > 0
+                ? <span style={{marginLeft:'8px', color:'#A4E2D0'}}>({gapsCount} запят{gapsCount===1?'ая':'ых'} обнаружено)</span>
+                : <span style={{marginLeft:'8px', color:'#a0a0a0'}}>(ловушка — запятых нет)</span>
+              }
+            </div>
+          )}
+        </div>
+
+        <div className="t16-field">
+          <label>Тип(ы) правила</label>
+          <div style={{display:'flex', flexWrap:'wrap', gap:'8px', marginTop:'4px'}}>
+            {RULE_TYPES.map(r => {
+              const checked = (form.rule_types||[]).includes(r.value);
+              return (
+                <label key={r.value} style={{
+                  display:'flex', alignItems:'center', gap:'6px', cursor:'pointer',
+                  padding:'5px 12px', borderRadius:'20px', fontSize:'13px',
+                  border:`1.5px solid ${checked ? r.color : 'var(--glass-border)'}`,
+                  background: checked ? `${r.color}20` : 'var(--bg-primary)',
+                  color: checked ? r.color : 'var(--text-primary)',
+                  transition:'all 0.15s',
+                }}>
+                  <input type="checkbox" checked={checked} onChange={() => toggleRule(r.value)} style={{display:'none'}} />
+                  {checked ? '✓ ' : ''}{r.label}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="t16-field">
+          <label>Объяснение (необязательно)</label>
+          <textarea value={form.explanation_md} onChange={e => setField('explanation_md', e.target.value)}
+            placeholder="Двойной союз «как...так и» — запятая перед второй частью." />
+        </div>
+
+        <div className="t16-field">
+          <label>Источник</label>
+          <input value={form.source} onChange={e => setField('source', e.target.value)} placeholder="ФИПИ" />
+        </div>
+
+        <div style={{display:'flex', gap:'10px'}}>
+          <button className="t16-btn t16-btn-primary" onClick={handleSubmit} disabled={saving}>
+            {saving ? 'Сохранение...' : (editId ? 'Сохранить' : 'Добавить')}
+          </button>
+          {editId && <button className="t16-btn t16-btn-edit"
+            onClick={() => { setForm(EMPTY_SENT); setGaps(new Set()); setEditId(null); }}>
+            Отмена
+          </button>}
+        </div>
+      </div>
+
+      <h3 style={{marginBottom:'12px', fontSize:'1.05rem'}}>Предложения ({sentences.length})</h3>
+      {loading ? <p>Загрузка...</p>
+      : !sentences.length ? <p className="t16-empty">Предложений пока нет.</p>
+      : sentences.map(s => (
+        <div key={s.id} className="t16-row">
+          <div className="t16-row__main">
+            <div style={{fontSize:'14px'}}>{s.source_text}</div>
+            {s.base_text && (
+              <div style={{fontSize:'13px', color:'var(--text-secondary)', marginTop:'2px'}}>
+                → {s.base_text}
+              </div>
+            )}
+            <div className="t16-row__meta">
+              <span>Запятые после слов: <strong>{s.comma_positions.length ? s.comma_positions.map(g => `[${g}]`).join(', ') : 'нет'}</strong></span>
+              {(s.rule_types||[]).map(rt => (
+                <span key={rt} className="t16-tag" style={{border:`1px solid ${RULE_COLORS[rt]}40`, background:`${RULE_COLORS[rt]}15`, color:RULE_COLORS[rt]}}>
+                  {RULE_LABELS[rt]}
+                </span>
+              ))}
+              {s.source && <span style={{marginLeft:'8px'}}>· {s.source}</span>}
+            </div>
+          </div>
+          <div className="t16-row__actions">
+            <button className="t16-btn t16-btn-edit" onClick={() => handleEdit(s)}>Изменить</button>
+            <button className="t16-btn t16-btn-danger" onClick={() => handleDelete(s.id)}>Удалить</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Вкладка 2: Задания
+══════════════════════════════════════════════════════════════ */
+function TasksTab() {
+  const [tasks,     setTasks]     = useState([]);
+  const [sentences, setSentences] = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [slots,     setSlots]     = useState(['','','','','']);
+  const [editId,    setEditId]    = useState(null);
+  const [source,    setSource]    = useState('');
+  const [saving,    setSaving]    = useState(false);
+  const [msg,       setMsg]       = useState(null);
+  const formRef = useRef(null);
+
+  const load = async () => {
+    try {
+      const [tRes, sRes] = await Promise.all([
+        fetch('/api/task16/tasks'),
+        fetch('/api/task16/sentences'),
+      ]);
+      setTasks(await tRes.json());
+      setSentences(await sRes.json());
+    } finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const showMsg = (t, ok=true) => { setMsg({t,ok}); setTimeout(()=>setMsg(null),3000); };
+  const setSlot  = (idx, val) => setSlots(s => { const n=[...s]; n[idx]=val; return n; });
+  const getSentenceById = (id) => sentences.find(s => s.id === Number(id));
+
+  const handleSubmit = async () => {
+    const filled = slots.map((id, i) => ({ sentence_id: Number(id), position: i+1 }))
+                        .filter(s => s.sentence_id > 0);
+    if (filled.length < 2) { showMsg('Выберите хотя бы 2 предложения', false); return; }
+    const body = { source: source.trim() || null, sentences: filled };
+    try {
+      setSaving(true);
+      const url    = editId ? `/api/task16/tasks/${editId}` : '/api/task16/tasks';
+      const method = editId ? 'PUT' : 'POST';
+      const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if (!r.ok) { const e = await r.json(); showMsg(e.error||'Ошибка', false); return; }
+      showMsg(editId ? 'Сохранено!' : 'Задание создано!');
+      setSlots(['','','','','']); setEditId(null); setSource('');
+      await load();
+    } finally { setSaving(false); }
+  };
+
+  const handleEdit = async (taskId) => {
+    const r  = await fetch(`/api/task16/tasks/${taskId}`);
+    const task = await r.json();
+    const newSlots = ['','','','',''];
+    for (const s of task.sentences) newSlots[s.position-1] = String(s.sentence_id);
+    setSlots(newSlots); setSource(task.source || ''); setEditId(taskId);
+    formRef.current?.scrollIntoView({ behavior:'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Удалить задание?')) return;
+    const r = await fetch(`/api/task16/tasks/${id}`, { method:'DELETE' });
+    if (r.ok) { showMsg('Удалено'); await load(); }
+    else showMsg('Ошибка удаления', false);
+  };
+
+  return (
+    <div>
+      {msg && (
+        <div style={{ padding:'10px 14px', borderRadius:'8px', marginBottom:'16px',
+          background: msg.ok ? 'rgba(164,226,208,0.15)' : 'rgba(214,146,149,0.15)',
+          color: msg.ok ? '#A4E2D0' : '#D69295',
+          border:`1px solid ${msg.ok ? 'rgba(164,226,208,0.4)' : 'rgba(214,146,149,0.4)'}` }}>
+          {msg.t}
+        </div>
+      )}
+
+      {sentences.length === 0 && !loading && (
+        <div style={{padding:'14px', borderRadius:'8px', background:'rgba(246,180,98,0.1)', border:'1px solid rgba(246,180,98,0.3)', color:'#f6b462', marginBottom:'20px', fontSize:'14px'}}>
+          Сначала добавьте предложения в банк (вкладка «Предложения»).
+        </div>
+      )}
+
+      <div className="t16-form" ref={formRef}>
+        <h3>{editId ? `Редактировать задание #${editId}` : 'Составить задание'}</h3>
+
+        {[0,1,2,3,4].map(i => {
+          const selected = getSentenceById(slots[i]);
+          return (
+            <div key={i} className="t16-slot">
+              <span className="t16-slot__num">{i+1}</span>
+              <select value={slots[i]} onChange={e => setSlot(i, e.target.value)}>
+                <option value="">— выберите предложение —</option>
+                {sentences.map(s => (
+                  <option key={s.id} value={s.id}>
+                    #{s.id} · {s.source_text.slice(0,70)}{s.source_text.length>70?'…':''}
+                  </option>
+                ))}
+              </select>
+              {selected && (
+                <div className="t16-slot__preview" title={selected.base_text || selected.source_text}>
+                  {selected.base_text || selected.source_text}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        <div className="t16-field" style={{marginTop:'14px'}}>
+          <label>Источник</label>
+          <input value={source} onChange={e => setSource(e.target.value)} placeholder="ФИПИ" />
+        </div>
+
+        <div style={{display:'flex', gap:'10px', marginTop:'4px'}}>
+          <button className="t16-btn t16-btn-primary" onClick={handleSubmit} disabled={saving}>
+            {saving ? 'Сохранение...' : (editId ? 'Сохранить' : 'Создать задание')}
+          </button>
+          {editId && <button className="t16-btn t16-btn-edit"
+            onClick={() => { setSlots(['','','','','']); setEditId(null); setSource(''); }}>
+            Отмена
+          </button>}
+        </div>
+      </div>
+
+      <h3 style={{marginBottom:'12px', fontSize:'1.05rem'}}>Задания ({tasks.length})</h3>
+      {loading ? <p>Загрузка...</p>
+      : !tasks.length ? <p className="t16-empty">Заданий пока нет.</p>
+      : tasks.map(task => (
+        <div key={task.id} className="t16-row">
+          <div className="t16-row__main">
+            <div style={{fontWeight:600, fontSize:'14px'}}>Задание #{task.id}</div>
+            <div className="t16-row__meta">
+              {task.sentence_count} предложений
+              {task.source && <span style={{marginLeft:'8px'}}>· {task.source}</span>}
+              <a href={`/task16/${task.id}`} target="_blank"
+                style={{marginLeft:'10px', fontSize:'12px', color:'var(--brand)', textDecoration:'none'}}>
+                ↗ Открыть
+              </a>
+            </div>
+          </div>
+          <div className="t16-row__actions">
+            <button className="t16-btn t16-btn-edit" onClick={() => handleEdit(task.id)}>Изменить</button>
+            <button className="t16-btn t16-btn-danger" onClick={() => handleDelete(task.id)}>Удалить</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Корневой компонент
+══════════════════════════════════════════════════════════════ */
+function AdminTask16() {
+  const [tab, setTab] = useState('sentences');
+  return (
+    <div>
+      <div className="t16-tabs">
+        <button className={`t16-tab ${tab==='sentences'?'active':''}`} onClick={() => setTab('sentences')}>
+          Предложения
+        </button>
+        <button className={`t16-tab ${tab==='tasks'?'active':''}`} onClick={() => setTab('tasks')}>
+          Задания
+        </button>
+      </div>
+      {tab === 'sentences' ? <SentencesTab /> : <TasksTab />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('adminTask16Container')).render(<AdminTask16 />);
+</script>

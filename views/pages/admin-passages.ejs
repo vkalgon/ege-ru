@@ -1,0 +1,546 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Тексты для заданий 1–3</h2>
+  <p style="color:var(--text-secondary);margin:0 0 20px;">
+    Задания 1, 2 и 3 ЕГЭ используют один общий текст. Здесь вы создаёте текст-пассаж и привязываете к нему по одному заданию каждого типа.
+  </p>
+
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('list', this)">Все тексты</button>
+    <button class="tab-btn" onclick="switchTab('new', this)">Добавить текст</button>
+  </div>
+
+  <!-- ══ СПИСОК ПАССАЖЕЙ ════════════════════════════════════════ -->
+  <div id="tab-list">
+    <div id="passages-list" class="admin-list" style="margin-top:16px;">
+      <p>Загрузка...</p>
+    </div>
+  </div>
+
+  <!-- ══ СОЗДАНИЕ / РЕДАКТИРОВАНИЕ ПАССАЖА ════════════════════ -->
+  <div id="tab-new" style="display:none;">
+    <div class="admin-section">
+      <h3 id="passage-form-title">Новый текст</h3>
+      <form id="passage-form" class="admin-form">
+        <input type="hidden" id="p-id">
+
+        <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Источник:</label>
+            <select id="p-source" required>
+              <option value="ФИПИ">ФИПИ</option>
+              <option value="Другой источник">Другой источник</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Номер ФИПИ (необязательно):</label>
+            <input type="text" id="p-fipi" placeholder="12345">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Текст:</label>
+          <div id="editor-passage" class="editor-container editor-large"></div>
+          <textarea id="p-context" style="display:none;"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Заметки (необязательно):</label>
+          <input type="text" id="p-notes" placeholder="внутренние заметки">
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button type="submit" class="btn" id="p-submit-btn">Создать текст</button>
+          <button type="button" class="btn btn-secondary" onclick="resetPassageForm()">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ ДЕТАЛЬНАЯ КАРТОЧКА ПАССАЖА ════════════════════════════ -->
+  <div id="tab-detail" style="display:none;">
+    <div class="admin-section">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+        <div>
+          <h3 id="detail-title" style="margin:0 0 4px;">Текст #—</h3>
+          <span id="detail-meta" style="color:var(--text-secondary);font-size:13px;"></span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" onclick="editPassage()">Редактировать текст</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCurrentPassage()">Удалить текст</button>
+        </div>
+      </div>
+
+      <!-- Превью текста -->
+      <div id="detail-context-preview" class="task-fulltext editor-content"
+           style="max-height:200px;overflow-y:auto;padding:12px;border:1px solid var(--glass-border);border-radius:8px;margin-bottom:20px;font-size:14px;line-height:1.6;">
+      </div>
+
+      <!-- Задания 1, 2, 3 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;" id="task-slots">
+        <!-- заполняется JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal для добавления/выбора задания -->
+<div id="assignment-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--bg-secondary);border:1px solid var(--glass-border);border-radius:12px;padding:24px;width:min(600px,95vw);max-height:90vh;overflow-y:auto;">
+    <h3 id="modal-title" style="margin:0 0 16px;">Задание 1 для этого текста</h3>
+
+    <div class="admin-task-tabs-bar" style="margin-bottom:16px;">
+      <button class="tab-btn active" onclick="switchModalTab('existing', this)">Выбрать существующее</button>
+      <button class="tab-btn" onclick="switchModalTab('create', this)">Создать новое</button>
+    </div>
+
+    <!-- Выбор существующего -->
+    <div id="modal-tab-existing">
+      <p style="color:var(--text-secondary);font-size:13px;margin:0 0 8px;">
+        Задания без прикреплённого текста для типа <strong id="modal-type-label"></strong>:
+      </p>
+      <div id="modal-assignments-list" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
+        <p>Загрузка...</p>
+      </div>
+    </div>
+
+    <!-- Создание нового -->
+    <div id="modal-tab-create" style="display:none;">
+      <form id="modal-assignment-form" class="admin-form" style="margin-top:0;">
+        <div class="form-group">
+          <label>Тема (подтип):</label>
+          <select id="modal-subtopic" required>
+            <option value="">Выберите тему</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Условие задания:</label>
+          <textarea id="modal-prompt" rows="3" placeholder="Самостоятельно подберите…" required
+                    style="resize:vertical;padding:8px;border:1px solid var(--glass-border);border-radius:8px;background:var(--bg-tertiary);color:var(--text-primary);width:100%;box-sizing:border-box;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Правильный ответ:</label>
+          <input type="text" id="modal-answer" placeholder="но" required>
+        </div>
+        <div class="form-group">
+          <label>Доп. ответы (через запятую):</label>
+          <input type="text" id="modal-alt-answers" placeholder="а, однако">
+        </div>
+        <div class="form-group">
+          <label>Объяснение (необязательно):</label>
+          <textarea id="modal-explanation" rows="2"
+                    style="resize:vertical;padding:8px;border:1px solid var(--glass-border);border-radius:8px;background:var(--bg-tertiary);color:var(--text-primary);width:100%;box-sizing:border-box;"></textarea>
+        </div>
+        <button type="submit" class="btn">Создать и прикрепить</button>
+      </form>
+    </div>
+
+    <div style="text-align:right;margin-top:16px;">
+      <button class="btn btn-secondary" onclick="closeModal()">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/editor-renderer.js"></script>
+<script>
+// ── Состояние ──────────────────────────────────────────────────
+let currentPassageId = null;
+let currentPassage   = null;
+let modalTypeId      = null;
+let modalSlot        = null; // 1|2|3
+let editorPassage    = null;
+
+// ── Вкладки ────────────────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.admin-task-tabs-bar .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  ['list','new','detail'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = (t === tab ? 'block' : 'none');
+  });
+  if (tab === 'list') loadPassagesList();
+  if (tab === 'new' && !editorPassage) initPassageEditor();
+}
+
+function switchModalTab(tab, btn) {
+  document.querySelectorAll('#assignment-modal .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('modal-tab-existing').style.display = tab === 'existing' ? 'block' : 'none';
+  document.getElementById('modal-tab-create').style.display   = tab === 'create'   ? 'block' : 'none';
+}
+
+// ── Список пассажей ────────────────────────────────────────────
+async function loadPassagesList() {
+  const list = document.getElementById('passages-list');
+  list.innerHTML = '<p>Загрузка...</p>';
+  const rows = await fetch('/api/admin/passages').then(r => r.json());
+  if (!rows.length) {
+    list.innerHTML = '<p style="color:var(--text-secondary);">Текстов ещё нет. Создайте первый.</p>';
+    return;
+  }
+  const typeSet = (row) => {
+    const ids = row.type_ids ? row.type_ids.split(',').map(Number).sort() : [];
+    const badges = [1,2,3].map(n => {
+      const has = ids.includes(n);
+      return `<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;
+              background:${has ? 'rgba(164,190,226,0.2)' : 'rgba(255,255,255,0.05)'};
+              color:${has ? 'var(--neon-cyan)' : 'var(--text-secondary)'};
+              border:1px solid ${has ? 'var(--neon-cyan)' : 'var(--glass-border)'};">${n}</span>`;
+    }).join(' ');
+    return badges;
+  };
+  list.innerHTML = rows.map(row => `
+    <div class="admin-item" style="cursor:pointer;" onclick="openPassageDetail(${row.id})">
+      <div class="item-info" style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <strong>#${row.id}</strong>
+          <span style="color:var(--text-secondary);font-size:12px;">${row.source}${row.fipi_number ? ' №' + row.fipi_number : ''}</span>
+          <span style="display:flex;gap:4px;">${typeSet(row)}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${escapeHtml(row.context_preview || '').replace(/\{.*?\}/g, '').trim().substring(0,120)}…
+        </div>
+        ${row.notes ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">📝 ${escapeHtml(row.notes)}</div>` : ''}
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openPassageDetail(${row.id})">Открыть</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deletePassage(${row.id})">Удалить</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Детальная карточка ─────────────────────────────────────────
+async function openPassageDetail(id) {
+  currentPassageId = id;
+  const data = await fetch(`/api/admin/passages/${id}`).then(r => r.json());
+  currentPassage = data;
+
+  document.getElementById('detail-title').textContent = `Текст #${data.id}`;
+  document.getElementById('detail-meta').textContent =
+    `${data.source}${data.fipi_number ? ' №' + data.fipi_number : ''} · ${data.created_at.substring(0,10)}`;
+
+  // Превью текста
+  const preview = document.getElementById('detail-context-preview');
+  if (typeof EditorRenderer !== 'undefined') {
+    try {
+      const parsed = typeof data.context === 'string' && data.context.trim().startsWith('{')
+        ? JSON.parse(data.context) : null;
+      preview.innerHTML = parsed ? EditorRenderer.render(parsed) : escapeHtml(data.context);
+    } catch { preview.textContent = data.context; }
+  } else {
+    preview.textContent = data.context;
+  }
+
+  // Слоты для заданий 1, 2, 3
+  renderTaskSlots(data.assignments);
+
+  switchTab('detail', null);
+}
+
+function renderTaskSlots(assignments) {
+  const container = document.getElementById('task-slots');
+  const TYPES = [
+    { id: 1, title: 'Задание 1', desc: 'Информационная обработка' },
+    { id: 2, title: 'Задание 2', desc: 'Средства связи' },
+    { id: 3, title: 'Задание 3', desc: 'Лексическое значение' },
+  ];
+
+  container.innerHTML = TYPES.map(type => {
+    const a = assignments.find(x => x.type_id === type.id);
+    if (a) {
+      const promptText = extractPreview(a.prompt);
+      return `
+        <div style="border:1px solid var(--glass-border);border-radius:10px;padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <strong style="color:var(--neon-cyan);">${type.title}</strong>
+            <span style="font-size:11px;color:var(--text-secondary);">ID ${a.id}</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">${type.desc}</div>
+          <div style="font-size:13px;margin-bottom:8px;line-height:1.4;">${escapeHtml(promptText.substring(0,100))}${promptText.length > 100 ? '…' : ''}</div>
+          <div style="font-size:13px;">Ответ: <strong>${escapeHtml(a.answer)}</strong></div>
+          <div style="display:flex;gap:6px;margin-top:10px;">
+            <a href="/admin/assignment/${a.id}/edit" class="btn btn-secondary btn-sm" style="font-size:12px;">Редактировать</a>
+            <button class="btn btn-danger btn-sm" style="font-size:12px;" onclick="detachAssignment(${a.id}, ${type.id})">Открепить</button>
+          </div>
+        </div>`;
+    } else {
+      return `
+        <div style="border:2px dashed var(--glass-border);border-radius:10px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;">
+          <strong style="color:var(--text-secondary);">${type.title}</strong>
+          <div style="font-size:12px;color:var(--text-secondary);text-align:center;">${type.desc}</div>
+          <button class="btn btn-sm" onclick="openModal(${type.id})">+ Добавить</button>
+        </div>`;
+    }
+  }).join('');
+}
+
+// ── Форма пассажа ──────────────────────────────────────────────
+function resetPassageForm() {
+  document.getElementById('p-id').value = '';
+  document.getElementById('p-source').value = 'ФИПИ';
+  document.getElementById('p-fipi').value = '';
+  document.getElementById('p-notes').value = '';
+  document.getElementById('p-submit-btn').textContent = 'Создать текст';
+  document.getElementById('passage-form-title').textContent = 'Новый текст';
+  if (editorPassage) editorPassage.clear();
+  switchTab('new', document.querySelector('.tab-btn:nth-child(2)'));
+}
+
+function editPassage() {
+  if (!currentPassage) return;
+  document.getElementById('p-id').value = currentPassage.id;
+  document.getElementById('p-source').value = currentPassage.source || 'ФИПИ';
+  document.getElementById('p-fipi').value = currentPassage.fipi_number || '';
+  document.getElementById('p-notes').value = currentPassage.notes || '';
+  document.getElementById('p-submit-btn').textContent = 'Сохранить изменения';
+  document.getElementById('passage-form-title').textContent = `Редактировать текст #${currentPassage.id}`;
+
+  const tabBtn = document.querySelector('.tab-btn:nth-child(2)');
+  switchTab('new', tabBtn);
+
+  // Загрузить текст в редактор
+  if (editorPassage) {
+    try {
+      const data = typeof currentPassage.context === 'string' && currentPassage.context.trim().startsWith('{')
+        ? JSON.parse(currentPassage.context) : { blocks: [{ type: 'paragraph', data: { text: currentPassage.context } }] };
+      editorPassage.render(data);
+    } catch { }
+  } else {
+    document.getElementById('p-context').value = currentPassage.context || '';
+  }
+}
+
+document.getElementById('passage-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('p-id').value;
+
+  let contextValue = '';
+  if (editorPassage) {
+    const saved = await editorPassage.save();
+    contextValue = JSON.stringify(saved);
+  } else {
+    contextValue = document.getElementById('p-context').value;
+  }
+  if (!contextValue || contextValue === '{"blocks":[]}') {
+    alert('Введите текст'); return;
+  }
+
+  const body = {
+    context:     contextValue,
+    source:      document.getElementById('p-source').value,
+    fipi_number: document.getElementById('p-fipi').value,
+    notes:       document.getElementById('p-notes').value,
+  };
+
+  const url    = id ? `/api/admin/passages/${id}` : '/api/admin/passages';
+  const method = id ? 'PUT' : 'POST';
+  const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await r.json();
+  if (!r.ok) { alert('Ошибка: ' + (data.error || r.status)); return; }
+
+  alert(id ? 'Текст обновлён!' : 'Текст создан!');
+  if (!id) {
+    // открываем только что созданный
+    await openPassageDetail(data.id);
+  } else {
+    await openPassageDetail(id);
+  }
+});
+
+// ── Удаление ──────────────────────────────────────────────────
+async function deletePassage(id) {
+  if (!confirm('Удалить текст? Задания будут откреплены, но не удалены.')) return;
+  const r = await fetch(`/api/admin/passages/${id}`, { method: 'DELETE' });
+  if (r.ok) { loadPassagesList(); }
+  else { const d = await r.json(); alert('Ошибка: ' + (d.error || r.status)); }
+}
+
+async function deleteCurrentPassage() {
+  if (!currentPassageId) return;
+  await deletePassage(currentPassageId);
+  switchTab('list', document.querySelector('.tab-btn:nth-child(1)'));
+}
+
+async function detachAssignment(assignmentId, typeId) {
+  if (!confirm(`Открепить задание ${typeId} от этого текста?`)) return;
+  const r = await fetch(`/api/admin/passages/${currentPassageId}/detach`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assignment_id: assignmentId })
+  });
+  if (r.ok) openPassageDetail(currentPassageId);
+  else { const d = await r.json(); alert('Ошибка: ' + (d.error || r.status)); }
+}
+
+// ── Modal: добавить задание к слоту ───────────────────────────
+async function openModal(typeId) {
+  modalTypeId = typeId;
+  document.getElementById('modal-title').textContent = `Задание ${typeId} для этого текста`;
+  document.getElementById('modal-type-label').textContent = typeId;
+  document.getElementById('assignment-modal').style.display = 'flex';
+  switchModalTab('existing', document.querySelector('#assignment-modal .tab-btn'));
+
+  // Загрузить задания без пассажа для этого typeId
+  await loadModalAssignments(typeId);
+
+  // Загрузить темы для формы создания
+  const subs = await fetch(`/api/admin/subtopics?typeId=${typeId}`).then(r => r.json());
+  const sel = document.getElementById('modal-subtopic');
+  sel.innerHTML = '<option value="">Выберите тему</option>' +
+    subs.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
+}
+
+async function loadModalAssignments(typeId) {
+  const list = document.getElementById('modal-assignments-list');
+  list.innerHTML = '<p>Загрузка...</p>';
+  const all = await fetch(`/api/admin/assignments?typeId=${typeId}`).then(r => r.json());
+  const free = all.filter(a => !a.passage_id || a.passage_id === null);
+  if (!free.length) {
+    list.innerHTML = '<p style="color:var(--text-secondary);font-size:13px;">Нет свободных заданий этого типа. Создайте новое.</p>';
+    return;
+  }
+  list.innerHTML = free.map(a => {
+    const preview = escapeHtml(extractPreview(a.prompt).substring(0, 80));
+    return `
+      <div class="admin-item" style="cursor:pointer;padding:10px 12px;" onclick="attachExisting(${a.id})">
+        <div style="flex:1;">
+          <strong style="font-size:13px;">ID ${a.id}</strong>
+          <span style="font-size:12px;color:var(--text-secondary);margin-left:8px;">${preview}…</span>
+        </div>
+        <div style="font-size:13px;color:var(--neon-cyan);">Ответ: ${escapeHtml(a.answer)}</div>
+      </div>`;
+  }).join('');
+}
+
+async function attachExisting(assignmentId) {
+  const r = await fetch(`/api/admin/passages/${currentPassageId}/attach`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assignment_id: assignmentId })
+  });
+  if (r.ok) { closeModal(); openPassageDetail(currentPassageId); }
+  else { const d = await r.json(); alert('Ошибка: ' + (d.error || r.status)); }
+}
+
+document.getElementById('modal-assignment-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const subtopicId = document.getElementById('modal-subtopic').value;
+  const prompt     = document.getElementById('modal-prompt').value.trim();
+  const answer     = document.getElementById('modal-answer').value.trim();
+  const altRaw     = document.getElementById('modal-alt-answers').value;
+  const explanation = document.getElementById('modal-explanation').value.trim();
+
+  if (!subtopicId) { alert('Выберите тему'); return; }
+
+  const altAnswers = altRaw ? altRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  // Создаём задание без context (текст берётся из пассажа)
+  const createResp = await fetch('/api/admin/assignments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      subtopic_id: subtopicId,
+      source: currentPassage.source,
+      prompt,
+      answer,
+      alt_answers: altAnswers,
+      explanation: explanation || null,
+    })
+  });
+  const createData = await createResp.json();
+  if (!createResp.ok) { alert('Ошибка создания: ' + (createData.error || createResp.status)); return; }
+
+  // Прикрепляем к пассажу
+  await fetch(`/api/admin/passages/${currentPassageId}/attach`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assignment_id: createData.id })
+  });
+
+  closeModal();
+  openPassageDetail(currentPassageId);
+});
+
+function closeModal() {
+  document.getElementById('assignment-modal').style.display = 'none';
+}
+document.getElementById('assignment-modal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ── Editor.js для пассажа ──────────────────────────────────────
+function initPassageEditor() {
+  if (typeof EditorJS === 'undefined') {
+    document.getElementById('editor-passage').style.display = 'none';
+    document.getElementById('p-context').style.display = 'block';
+    return;
+  }
+  try {
+    editorPassage = new EditorJS({
+      holder: 'editor-passage',
+      placeholder: 'Введите текст пассажа…',
+      data: { blocks: [] },
+      tools: {
+        paragraph: { class: Paragraph, inlineToolbar: true },
+        ...(typeof Header !== 'undefined' ? {
+          header: { class: Header, config: { levels: [2,3,4], defaultLevel: 3 } }
+        } : {}),
+        ...(typeof window.List !== 'undefined' ? {
+          list: { class: window.List, inlineToolbar: true }
+        } : {}),
+        ...(typeof Marker !== 'undefined' ? { marker: { class: Marker } } : {}),
+        ...(typeof InlineCode !== 'undefined' ? { inlineCode: { class: InlineCode } } : {}),
+      }
+    });
+  } catch(e) {
+    console.error('Ошибка редактора:', e);
+    document.getElementById('editor-passage').style.display = 'none';
+    document.getElementById('p-context').style.display = 'block';
+  }
+}
+
+// ── Утилиты ────────────────────────────────────────────────────
+function extractPreview(data) {
+  if (!data) return '';
+  if (typeof data === 'string') {
+    if (data.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed.blocks) {
+          return parsed.blocks.map(b => (b.data && b.data.text) ? b.data.text.replace(/<[^>]+>/g,'') : '').filter(Boolean).join(' ');
+        }
+      } catch {}
+    }
+    return data;
+  }
+  return '';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Инициализация ─────────────────────────────────────────────
+window.addEventListener('load', () => {
+  loadPassagesList();
+});
+</script>
+
+<!-- Editor.js CDN (те же версии что в admin.ejs) -->
+<script>
+(async () => {
+  function loadScript(src) {
+    return new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = src; s.onload = () => setTimeout(resolve, 100); s.onerror = resolve;
+      document.head.appendChild(s);
+    });
+  }
+  await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.31.0');
+  await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.8');
+  await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.11.7');
+  try { await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.8'); if (typeof List !== 'undefined') window.List = List; } catch {}
+  await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0');
+  await loadScript('https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.2');
+})();
+</script>

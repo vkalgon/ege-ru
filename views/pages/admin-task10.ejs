@@ -1,0 +1,475 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Задание №10 — Управление</h2>
+
+  <!-- Вкладки -->
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('words',this)">Словарь слов</button>
+    <button class="tab-btn" onclick="switchTab('tasks',this)">Готовые задания</button>
+    <button class="tab-btn" onclick="switchTab('generate',this)">Генерация</button>
+  </div>
+
+  <!-- ══ ВКЛАДКА: СЛОВАРЬ ══════════════════════════════════ -->
+  <div id="tab-words">
+    <div class="admin-section">
+      <h3>Добавить слово</h3>
+      <form id="word-form" class="admin-form">
+        <input type="hidden" id="word-id">
+        <div class="word-form-grid">
+          <div class="form-group">
+            <label>Слово с пропуском (..)</label>
+            <input type="text" id="word-prefix" placeholder="ра..цветать" required>
+          </div>
+          <div class="form-group">
+            <label>Правильная буква</label>
+            <input type="text" id="word-letter" maxlength="2" placeholder="с" required>
+          </div>
+          <div class="form-group">
+            <label>Правило</label>
+            <select id="word-rule" required>
+              <option value="">—</option>
+              <option value="ъ/ь">ъ / ь разделительные знаки</option>
+              <option value="з/с">з / с (чередование)</option>
+              <option value="пре/при">пре / при</option>
+              <option value="пра/про">пра / про</option>
+              <option value="ы/и">ы / и в корне после приставки</option>
+              <option value="неизменяемые гласные">Неизменяемые (с гласными)</option>
+              <option value="неизменяемые согласные">Неизменяемые (с согласными)</option>
+            </select>
+          </div>
+        </div>
+
+<div style="display:flex;gap:8px;margin-top:12px;">
+          <button type="submit" class="btn" id="word-submit-btn">Добавить</button>
+          <button type="button" class="btn btn-secondary" id="word-cancel-btn" style="display:none;" onclick="cancelWordEdit()">Отмена</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Фильтр -->
+    <div style="max-width:300px;margin-bottom:16px;">
+      <div class="form-group">
+        <label>Фильтр: правило</label>
+        <select id="filter-rule" onchange="loadWords()">
+          <option value="">Все</option>
+          <option value="ъ/ь">ъ / ь</option>
+          <option value="з/с">з / с</option>
+          <option value="пре/при">пре / при</option>
+          <option value="пра/про">пра / про</option>
+          <option value="ы/и">ы / и</option>
+          <option value="неизменяемые гласные">Неизменяемые (гласные)</option>
+          <option value="неизменяемые согласные">Неизменяемые (согласные)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <table class="admin-table" id="words-table">
+        <thead>
+          <tr><th>Слово</th><th>Буква</th><th>Правило</th><th>Действия</th></tr>
+        </thead>
+        <tbody id="words-tbody">
+          <tr><td colspan="5" style="color:var(--text-secondary);">Загрузка...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ГЕНЕРАЦИЯ ════════════════════════════════ -->
+  <div id="tab-generate" style="display:none;">
+    <div class="admin-section">
+      <h3>Сгенерировать задание</h3>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">
+        Задание создаётся автоматически из словаря. Правильные строки — все три слова с одной буквой. Неправильные — смешанные.
+      </p>
+      <div style="display:grid;grid-template-columns:minmax(320px,1fr) minmax(200px,260px);gap:12px;max-width:900px;margin-bottom:16px;align-items:start;">
+        <div class="form-group">
+          <label>Правила</label>
+          <div class="task10-check-grid">
+            <label><input type="checkbox" class="task10-rule-checkbox" value="ъ/ь"> ъ / ь</label>
+            <label><input type="checkbox" class="task10-rule-checkbox" value="з/с"> з / с</label>
+            <label><input type="checkbox" class="task10-rule-checkbox" value="пре/при"> пре / при</label>
+            <label><input type="checkbox" class="task10-rule-checkbox" value="пра/про"> пра / про</label>
+            <label><input type="checkbox" class="task10-rule-checkbox" value="ы/и"> ы / и</label>
+            <label><input type="checkbox" class="task10-rule-checkbox" value="неизменяемые гласные"> неизменяемые (гласные)</label>
+            <label><input type="checkbox" class="task10-rule-checkbox" value="неизменяемые согласные"> неизменяемые (согласные)</label>
+          </div>
+          <div style="margin-top:8px;color:var(--text-secondary);font-size:12px;">Если ничего не отмечено, генерация идёт по любым правилам.</div>
+        </div>
+        <div class="form-group">
+          <label>Правильных строк</label>
+          <div class="task10-check-grid task10-count-grid">
+            <label><input type="checkbox" class="task10-count-checkbox" value="any_2_4" checked> любое от 2 до 4</label>
+            <label><input type="checkbox" class="task10-count-checkbox" value="2"> 2</label>
+            <label><input type="checkbox" class="task10-count-checkbox" value="3"> 3</label>
+            <label><input type="checkbox" class="task10-count-checkbox" value="4"> 4</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Количество заданий</label>
+          <input type="number" id="gen-tasks-count" min="1" max="20" value="1">
+        </div>
+      </div>
+      <button class="btn" id="btn-generate-task">Сгенерировать и сохранить</button>
+      <div id="gen-result" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="admin-section" style="margin-top:32px;">
+      <h3>Сгенерированные задания</h3>
+      <div id="gen-tasks-list" style="display:flex;flex-direction:column;gap:8px;">
+        <p style="color:var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ЗАДАНИЯ ══════════════════════════════════ -->
+  <div id="tab-tasks" style="display:none;">
+    <div class="admin-section">
+      <h3>Создать задание вручную</h3>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">
+        Выберите 3 слова для каждой из 5 строк и отметьте правильные строки (2–5).
+      </p>
+      <div id="task-builder">
+        <div id="task-rows" style="display:flex;flex-direction:column;gap:12px;"></div>
+        <button class="btn" id="btn-save-task" style="margin-top:16px;">Сохранить задание</button>
+      </div>
+    </div>
+
+    <div class="admin-section" style="margin-top:32px;">
+      <h3>Список заданий</h3>
+      <div id="tasks-list" style="display:flex;flex-direction:column;gap:8px;">
+        <p style="color:var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.word-form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr;
+  gap: 12px;
+  align-items: start;
+}
+@media (max-width: 700px) {
+  .word-form-grid { grid-template-columns: 1fr 1fr; }
+}
+.admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.admin-table th, .admin-table td {
+  padding: 10px 12px; text-align: left;
+  border-bottom: 1px solid var(--glass-border);
+}
+.admin-table th { color: var(--text-secondary); font-weight: 600; }
+.task-row-builder {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+}
+.task-row-builder.correct-row { border-color: var(--brand); }
+.task10-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px 12px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+.task10-check-grid label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}
+.task10-count-grid {
+  grid-template-columns: 1fr;
+}
+.task10-check-grid input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  margin: 0;
+  padding: 0;
+  border: initial;
+  border-radius: 3px;
+  background: initial;
+  box-shadow: none;
+  accent-color: var(--brand);
+}
+</style>
+
+<script src="/js/admin-task-shared.js"></script>
+<script>
+const escHtml = (s) => AdminTasks.escHtml(s);
+const esc = (s) => AdminTasks.escAttr(s);
+
+let allWords = [];
+
+const switchTab = AdminTasks.createSwitchTab({
+  tabIds: ['words', 'tasks', 'generate'],
+  onShow: {
+    tasks() { loadAllWords(); loadTasks(); },
+    generate() { loadGenTasks(); },
+  },
+});
+
+/* ─── СЛОВАРЬ ────────────────────────────────── */
+
+async function loadWords() {
+  const rule = document.getElementById('filter-rule').value;
+  const params = new URLSearchParams();
+  if (rule) params.set('rule', rule);
+  const res = await fetch('/api/task10/words?' + params);
+  const words = await res.json();
+  const tbody = document.getElementById('words-tbody');
+  if (!words.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-secondary);">Слов нет</td></tr>';
+    return;
+  }
+  tbody.innerHTML = words.map(w => `
+    <tr>
+      <td style="font-family:monospace;font-size:16px;">${escHtml(w.prefix_display)}</td>
+      <td>${escHtml(w.correct_letter)}</td>
+      <td>${escHtml(w.rule)}</td>
+      <td>
+        <button class="btn-icon" onclick="editWord(${w.id},'${esc(w.prefix_display)}','${esc(w.correct_letter)}','${esc(w.rule)}')" title="Редактировать"><img src="/images/type=edit, size=16.svg" width="16" height="16"></button>
+        <button class="btn-icon btn-icon--delete" onclick="deleteWord(${w.id})" title="Удалить"><img src="/images/type=delete, size=16.svg" width="16" height="16"></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('word-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('word-id').value;
+  const body = {
+    prefix_display: document.getElementById('word-prefix').value.trim(),
+    correct_letter: document.getElementById('word-letter').value.trim(),
+    rule:           document.getElementById('word-rule').value
+  };
+  const url    = id ? `/api/task10/words/${id}` : '/api/task10/words';
+  const method = id ? 'PUT' : 'POST';
+  const res  = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (data.error) { alert('Ошибка: ' + data.error); return; }
+  cancelWordEdit();
+  loadWords();
+});
+
+function editWord(id, prefix, letter, rule) {
+  document.getElementById('word-id').value       = id;
+  document.getElementById('word-prefix').value   = prefix;
+  document.getElementById('word-letter').value   = letter;
+  document.getElementById('word-rule').value     = rule;
+  document.getElementById('word-submit-btn').textContent = 'Сохранить';
+  document.getElementById('word-cancel-btn').style.display = '';
+  document.getElementById('word-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function cancelWordEdit() {
+  document.getElementById('word-id').value       = '';
+  document.getElementById('word-prefix').value   = '';
+  document.getElementById('word-letter').value   = '';
+  document.getElementById('word-rule').value     = '';
+  document.getElementById('word-submit-btn').textContent = 'Добавить';
+  document.getElementById('word-cancel-btn').style.display = 'none';
+}
+
+async function deleteWord(id) {
+  if (!confirm('Удалить слово?')) return;
+  await fetch(`/api/task10/words/${id}`, { method: 'DELETE' });
+  loadWords();
+}
+
+/* ─── ГРУППЫ ВАРИАНТОВ ───────────────────────── */
+
+async function createNewGroup() {
+  const wordId = document.getElementById('word-id').value;
+  if (!wordId) { alert('Сначала откройте слово для редактирования'); return; }
+  const res  = await fetch('/api/task10/words/new-group', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ word_id: Number(wordId) })
+  });
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+  document.getElementById('word-group-id').value = data.word_group_id;
+  document.getElementById('btn-new-group').style.display = 'none';
+  updateGroupHint(data.word_group_id);
+  loadWords();
+}
+
+function updateGroupHint(groupId) {
+  const hint = document.getElementById('group-hint');
+  hint.textContent = groupId ? `Группа G${groupId} — варианты не попадут в одно задание` : '';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('word-group-id').addEventListener('input', function() {
+    updateGroupHint(this.value ? Number(this.value) : null);
+    document.getElementById('btn-new-group').style.display = this.value ? 'none' : '';
+  });
+});
+
+async function loadGroups() {
+  const res = await fetch('/api/task10/words/groups');
+  const groups = await res.json();
+  const list = document.getElementById('groups-list');
+  if (!groups.length) {
+    list.innerHTML = '<p style="color:var(--text-secondary);">Групп пока нет. Откройте слово на вкладке «Словарь» и нажмите «Новая группа».</p>';
+    return;
+  }
+  list.innerHTML = groups.map(g => `
+    <div style="padding:14px 16px;background:var(--bg-secondary);border:1px solid var(--glass-border);border-radius:var(--radius-lg);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <span style="background:var(--brand-muted);border:1px solid var(--brand);border-radius:4px;padding:2px 8px;color:var(--brand);font-size:13px;font-weight:600;">G${g.id}</span>
+        <span style="color:var(--text-secondary);font-size:13px;">${g.words.length} вариант(а)</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${g.words.map(w => `
+          <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg-tertiary);border:1px solid var(--glass-border);border-radius:var(--radius-lg);font-family:monospace;">
+            <span>${escHtml(w.prefix_display)}</span>
+            <span style="color:var(--text-secondary);font-size:12px;">(${escHtml(w.correct_letter)})</span>
+            <button onclick="removeFromGroup(${w.id})" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:0 2px;font-size:14px;" title="Убрать из группы">✕</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function removeFromGroup(wordId) {
+  await fetch(`/api/task10/words/${wordId}/group`, {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ word_group_id: null })
+  });
+  loadGroups();
+  loadWords();
+}
+
+/* ─── ЗАДАНИЯ ────────────────────────────────── */
+
+async function loadAllWords() {
+  const res = await fetch('/api/task10/words');
+  allWords = await res.json();
+  renderTaskBuilder();
+}
+
+function renderTaskBuilder() {
+  const container = document.getElementById('task-rows');
+  container.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const div = document.createElement('div');
+    div.className = 'task-row-builder';
+    div.dataset.rowIndex = i;
+    div.innerHTML = `
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;">
+        <input type="checkbox" data-correct class="row-correct-cb" onchange="this.closest('.task-row-builder').classList.toggle('correct-row',this.checked)">
+        Строка ${i} ✓
+      </label>
+      ${[1,2,3].map(j => `
+        <select class="word-select" data-cell="${j}">
+          <option value="">— слово ${j} —</option>
+          ${allWords.map(w => `<option value="${w.id}">${escHtml(w.prefix_display)} (${escHtml(w.correct_letter)})</option>`).join('')}
+        </select>
+      `).join('')}
+    `;
+    container.appendChild(div);
+  }
+}
+
+document.getElementById('btn-save-task').addEventListener('click', async () => {
+  const rowEls = document.querySelectorAll('.task-row-builder');
+  const rows = [];
+  for (const rowEl of rowEls) {
+    const word_ids = Array.from(rowEl.querySelectorAll('select[data-cell]')).map(s => +s.value);
+    if (word_ids.some(id => !id)) { alert('Выберите все слова во всех строках'); return; }
+    rows.push({
+      row_index:  +rowEl.dataset.rowIndex,
+      is_correct: rowEl.querySelector('[data-correct]').checked,
+      word_ids
+    });
+  }
+  const correct = rows.filter(r => r.is_correct).length;
+  if (correct < 2 || correct > 5) { alert('Отметьте от 2 до 5 правильных строк'); return; }
+  const res = await fetch('/api/task10/tasks', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ rows })
+  });
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+  alert(`Задание #${data.id} создано`);
+  renderTaskBuilder();
+  loadTasks();
+});
+
+async function loadTasks() {
+  const res = await fetch('/api/task10/tasks');
+  const tasks = await res.json();
+  const list = document.getElementById('tasks-list');
+  if (!tasks.length) {
+    list.innerHTML = '<p style="color:var(--text-secondary);">Заданий пока нет</p>';
+    return;
+  }
+  list.innerHTML = tasks.map(t => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-secondary);border:1px solid var(--glass-border);border-radius:var(--radius-lg);">
+      <span>
+        Задание #${t.id}
+        ${t.is_generated ? '<span style="font-size:11px;color:var(--text-secondary);margin-left:8px;">(сгенерировано)</span>' : ''}
+        <span style="font-size:12px;color:var(--text-secondary);margin-left:8px;">${new Date(t.created_at).toLocaleDateString('ru')}</span>
+      </span>
+      <div style="display:flex;gap:8px;">
+        <a href="/task10/${t.id}" target="_blank" class="btn btn-sm btn-secondary">Открыть</a>
+        <button class="btn btn-sm btn-secondary" onclick="deleteTask(${t.id})">Удалить</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteTask(id) {
+  if (!confirm(`Удалить задание #${id}?`)) return;
+  await fetch(`/api/task10/tasks/${id}`, { method: 'DELETE' });
+  loadTasks();
+}
+
+/* ─── ГЕНЕРАЦИЯ ──────────────────────────────── */
+
+AdminTasks.bindGenerateButton({
+  generateUrl: '/api/task10/generate',
+  buildBody() {
+    const body = {};
+    const rules = Array.from(document.querySelectorAll('#tab-generate .task10-rule-checkbox:checked')).map((el) => el.value);
+    const correctCounts = Array.from(document.querySelectorAll('#tab-generate .task10-count-checkbox:checked')).map((el) => el.value);
+    if (rules.length) body.rules = rules;
+    if (!correctCounts.length) return { error: 'Выберите количество правильных строк.' };
+    body.correct_counts = correctCounts;
+    body.tasks_count = +document.getElementById('gen-tasks-count').value || 1;
+    return body;
+  },
+  formatSuccess(data) {
+    return (
+      '<span style="color:#A4E2D0;">✓ Создано заданий: ' +
+      data.count +
+      '.</span>' +
+      '<a href="/task10/' +
+      data.id +
+      '" target="_blank" class="btn btn-sm btn-secondary" style="margin-left:12px;">Открыть</a>'
+    );
+  },
+  afterSuccess() { loadGenTasks(); },
+});
+
+AdminTasks.bindExclusiveCheckboxes('#tab-generate', '.task10-count-checkbox');
+
+function loadGenTasks() {
+  AdminTasks.renderGeneratedTasksList({ apiBase: '/api/task10', playPath: '/task10' });
+}
+
+async function deleteGenTask(id) {
+  const ok = await AdminTasks.deleteGeneratedTask('/api/task10', id);
+  if (ok) loadGenTasks();
+}
+
+loadWords();
+</script>

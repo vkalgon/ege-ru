@@ -6,7 +6,9 @@
         "dev": "nodemon server/index.js",
         "start": "node server/index.js",
         "seed:task17": "node server/db/seeds/task17.seed.js",
-        "export:figma": "node scripts/export-to-figma.js"
+        "seed:task4": "node server/seeds/task4.seed.mjs",
+        "seed:task5": "node server/seeds/task5.seed.js",
+        "seed:task7": "node server/db/seeds/task7.seed.js"
     },
     "dependencies": {
         "@editorjs/checklist": "^1.5.0",
@@ -34,5 +36,8 @@
         "node-fetch": "^3.3.2",
         "nodemon": "^3.1.10",
         "sqlite3": "^5.1.7"
+    },
+    "devDependencies": {
+        "pdf-parse": "^1.1.1"
     }
 }

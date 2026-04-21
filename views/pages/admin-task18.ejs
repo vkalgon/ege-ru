@@ -1,0 +1,492 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Задание №18 — Вводные слова (управление)</h2>
+
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('words',this)">Банк слов</button>
+    <button class="tab-btn" onclick="switchTab('tasks',this)">Задания</button>
+  </div>
+
+  <!-- ══ ВКЛАДКА: БАНК СЛОВ ════════════════════════════════ -->
+  <div id="tab-words">
+
+    <div class="admin-section">
+      <h3>Добавить / редактировать слово</h3>
+      <form id="word-form" class="admin-form">
+        <input type="hidden" id="w-id">
+        <div class="word-form-grid" style="grid-template-columns: 1fr 1fr 1fr">
+          <div class="form-group">
+            <label>Слово / словосочетание</label>
+            <input type="text" id="w-phrase" placeholder="наверное" required>
+          </div>
+          <div class="form-group">
+            <label>Тип</label>
+            <select id="w-intro-type" required onchange="onTypeChange()">
+              <option value="always">Всегда вводное</option>
+              <option value="never">Никогда не вводное</option>
+              <option value="context">Зависит от контекста</option>
+            </select>
+          </div>
+          <div class="form-group" id="w-cat-group">
+            <label>Категория</label>
+            <select id="w-category">
+              <option value="">— нет —</option>
+              <option value="certainty">Уверенность</option>
+              <option value="uncertainty">Неуверенность</option>
+              <option value="feeling">Чувства</option>
+              <option value="source">Источник сообщения</option>
+              <option value="sequence">Последовательность / связь</option>
+              <option value="style">Способ оформления мыслей</option>
+              <option value="attention">Привлечение внимания</option>
+              <option value="usual">Степень обычности</option>
+              <option value="measure">Оценка меры</option>
+              <option value="expressive">Экспрессивность</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id="w-rule-intro-group">
+          <label>Пояснение (когда вводное)</label>
+          <input type="text" id="w-rule-intro" placeholder="Выражает неуверенность. Выделяется запятыми.">
+        </div>
+        <div class="form-group">
+          <label>Пояснение (когда НЕ вводное)</label>
+          <input type="text" id="w-rule-not-intro" placeholder="Если является сказуемым — не вводное.">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button type="submit" class="btn btn-primary" id="w-submit-btn">Добавить</button>
+          <button type="button" class="btn btn-secondary" onclick="resetWordForm()">Сбросить</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Фильтры и таблица -->
+    <div class="admin-section">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+        <select id="filter-type" onchange="loadWords()" style="min-width:160px">
+          <option value="">Все типы</option>
+          <option value="always">Всегда вводное</option>
+          <option value="never">Никогда не вводное</option>
+          <option value="context">Зависит от контекста</option>
+        </select>
+        <select id="filter-cat" onchange="loadWords()" style="min-width:180px">
+          <option value="">Все категории</option>
+          <option value="certainty">Уверенность</option>
+          <option value="uncertainty">Неуверенность</option>
+          <option value="feeling">Чувства</option>
+          <option value="source">Источник сообщения</option>
+          <option value="sequence">Последовательность</option>
+          <option value="style">Способ оформления</option>
+          <option value="attention">Привлечение внимания</option>
+          <option value="usual">Обычность</option>
+          <option value="measure">Мера</option>
+          <option value="expressive">Экспрессивность</option>
+        </select>
+        <span id="words-count" style="color:var(--text-secondary,#888);font-size:0.85rem"></span>
+      </div>
+      <div id="words-table-wrap" style="overflow-x:auto"></div>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ЗАДАНИЯ ══════════════════════════════════ -->
+  <div id="tab-tasks" style="display:none">
+
+    <div class="admin-section">
+      <h3 id="task-form-title">Добавить задание</h3>
+      <form id="task-form" class="admin-form">
+        <input type="hidden" id="t-id">
+
+        <div class="form-group">
+          <label>Текст с маркерами (1)(2)(3)…</label>
+          <textarea id="t-source" rows="3" required
+            placeholder="Этот мужчина (1) как будто (2) знал, что мне (3) возможно (4) придётся сдавать экзамен."></textarea>
+          <div style="margin-top:6px">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="detectWords()">Определить слова из банка</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Текст с расставленными запятыми (без маркеров)</label>
+          <textarea id="t-base" rows="2" required
+            placeholder="Этот мужчина как будто знал, что мне, возможно, придётся сдавать экзамен."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Правильные позиции (через запятую)</label>
+          <input type="text" id="t-positions" placeholder="3, 4" required>
+          <small style="color:var(--text-secondary,#888)">Укажите номера, на месте которых должны стоять запятые</small>
+        </div>
+
+        <div class="form-group">
+          <label>Источник</label>
+          <input type="text" id="t-source-name" placeholder="ЕГЭ 2023 / ФИПИ">
+        </div>
+
+        <div class="form-group">
+          <label>Пояснение (необязательно)</label>
+          <textarea id="t-explanation" rows="2" placeholder="«Возможно» — вводное слово, выражает неуверенность…"></textarea>
+        </div>
+
+        <!-- Связанные слова -->
+        <div class="form-group">
+          <label>Слова из банка в этом задании</label>
+          <div id="task-words-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px"></div>
+          <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="addTaskWordRow()">+ Добавить слово вручную</button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button type="submit" class="btn btn-primary" id="t-submit-btn">Сохранить задание</button>
+          <button type="button" class="btn btn-secondary" onclick="resetTaskForm()">Сбросить</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <div id="tasks-list-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+.word-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.badge-always  { background: rgba(164,226,208,0.15); color: #A4E2D0; }
+.badge-never   { background: rgba(214,146,149,0.15); color: #D69295; }
+.badge-context { background: rgba(234,179,8,0.15);  color: #eab308; }
+
+.tw-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px auto;
+  gap: 8px;
+  align-items: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.tw-row select, .tw-row input { width: 100%; }
+.tw-pos-input { font-family: monospace; }
+
+.tasks-list { display: flex; flex-direction: column; gap: 12px; }
+.task-admin-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+.task-admin-card__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.task-admin-card__text { font-size: 0.95rem; flex: 1; }
+.task-admin-card__meta { font-size: 0.8rem; color: var(--text-secondary,#888); margin-top: 4px; }
+.task-admin-card__actions { display: flex; gap: 6px; flex-shrink: 0; }
+</style>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   Вспомогательное
+═══════════════════════════════════════════════════════════════*/
+const CAT_LABELS = {
+  certainty:'Уверенность', uncertainty:'Неуверенность', feeling:'Чувства',
+  source:'Источник', sequence:'Последовательность', style:'Способ оформления',
+  attention:'Привлечение внимания', usual:'Обычность', measure:'Мера', expressive:'Экспрессивность'
+};
+const TYPE_LABELS = { always:'Всегда вводное', never:'Никогда не вводное', context:'Зависит от контекста' };
+const TYPE_BADGE  = { always:'badge-always', never:'badge-never', context:'badge-context' };
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.admin-task-tabs-bar .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-words').style.display = name === 'words' ? '' : 'none';
+  document.getElementById('tab-tasks').style.display = name === 'tasks' ? '' : 'none';
+  if (name === 'tasks') loadTasks();
+}
+
+function onTypeChange() {
+  const t = document.getElementById('w-intro-type').value;
+  document.getElementById('w-cat-group').style.display        = (t === 'never') ? 'none' : '';
+  document.getElementById('w-rule-intro-group').style.display = (t === 'never') ? 'none' : '';
+}
+
+/* ════════════════════════════════════════════════════════════
+   Банк слов
+═══════════════════════════════════════════════════════════════*/
+let allWords = [];
+
+async function loadWords() {
+  const type = document.getElementById('filter-type').value;
+  const cat  = document.getElementById('filter-cat').value;
+  const params = new URLSearchParams();
+  if (type) params.append('intro_type', type);
+  if (cat)  params.append('category', cat);
+  const r = await fetch('/api/task18/words?' + params);
+  allWords = await r.json();
+  renderWordsTable();
+}
+
+function renderWordsTable() {
+  const wrap = document.getElementById('words-table-wrap');
+  document.getElementById('words-count').textContent = `Слов: ${allWords.length}`;
+  if (!allWords.length) { wrap.innerHTML = '<p style="color:var(--text-secondary,#888)">Нет слов по фильтру.</p>'; return; }
+
+  let html = `
+    <table class="admin-table" style="width:100%;font-size:0.88rem">
+      <thead><tr>
+        <th>Слово</th><th>Тип</th><th>Категория</th><th>Пояснение</th><th></th>
+      </tr></thead><tbody>`;
+  for (const w of allWords) {
+    const catL = w.category ? (CAT_LABELS[w.category] || w.category) : '—';
+    const rule = [w.rule_intro, w.rule_not_intro].filter(Boolean).join(' / ').substring(0,80) || '—';
+    html += `<tr>
+      <td><strong>${escHtml(w.phrase)}</strong></td>
+      <td><span class="word-badge ${TYPE_BADGE[w.intro_type]}">${TYPE_LABELS[w.intro_type]}</span></td>
+      <td>${catL}</td>
+      <td style="color:var(--text-secondary,#888)">${escHtml(rule)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-icon" onclick="editWord(${w.id})" title="Редактировать"><img src="/images/type=edit, size=16.svg" width="16" height="16"></button>
+        <button class="btn-icon btn-icon--delete" onclick="deleteWord(${w.id})" title="Удалить"><img src="/images/type=delete, size=16.svg" width="16" height="16"></button>
+      </td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function resetWordForm() {
+  document.getElementById('word-form').reset();
+  document.getElementById('w-id').value = '';
+  document.getElementById('w-submit-btn').textContent = 'Добавить';
+  onTypeChange();
+}
+
+function editWord(id) {
+  const w = allWords.find(x => x.id === id);
+  if (!w) return;
+  document.getElementById('w-id').value         = w.id;
+  document.getElementById('w-phrase').value     = w.phrase;
+  document.getElementById('w-intro-type').value = w.intro_type;
+  document.getElementById('w-category').value   = w.category || '';
+  document.getElementById('w-rule-intro').value     = w.rule_intro || '';
+  document.getElementById('w-rule-not-intro').value = w.rule_not_intro || '';
+  document.getElementById('w-submit-btn').textContent = 'Сохранить';
+  onTypeChange();
+  document.getElementById('w-phrase').focus();
+  document.querySelector('#tab-words').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function deleteWord(id) {
+  if (!confirm('Удалить это слово из банка?')) return;
+  await fetch(`/api/task18/words/${id}`, { method: 'DELETE' });
+  loadWords();
+}
+
+document.getElementById('word-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('w-id').value;
+  const body = {
+    phrase:        document.getElementById('w-phrase').value.trim(),
+    intro_type:    document.getElementById('w-intro-type').value,
+    category:      document.getElementById('w-category').value || null,
+    rule_intro:    document.getElementById('w-rule-intro').value.trim() || null,
+    rule_not_intro:document.getElementById('w-rule-not-intro').value.trim() || null,
+  };
+  const method = id ? 'PUT' : 'POST';
+  const url    = id ? `/api/task18/words/${id}` : '/api/task18/words';
+  const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const data = await r.json();
+  if (!r.ok) { alert(data.error); return; }
+  resetWordForm();
+  loadWords();
+});
+
+/* ════════════════════════════════════════════════════════════
+   Задания
+═══════════════════════════════════════════════════════════════*/
+let allTasks = [];
+let taskWordRows = []; // [{word_id, is_intro, position_indices}]
+
+async function loadTasks() {
+  const r = await fetch('/api/task18/tasks');
+  allTasks = await r.json();
+  renderTasksList();
+}
+
+function renderTasksList() {
+  const wrap = document.getElementById('tasks-list-wrap');
+  if (!allTasks.length) { wrap.innerHTML = '<p style="color:var(--text-secondary,#888)">Заданий пока нет.</p>'; return; }
+  let html = '<div class="tasks-list">';
+  for (const t of allTasks) {
+    const preview = t.source_text.replace(/\(\d+\)/g, '(…)').substring(0, 100);
+    const positions = t.comma_positions ? t.comma_positions.join(', ') : '—';
+    html += `
+      <div class="task-admin-card">
+        <div class="task-admin-card__header">
+          <div>
+            <div class="task-admin-card__text">${escHtml(preview)}</div>
+            <div class="task-admin-card__meta">Ответ: ${positions} · ${t.source || ''}· слов: ${t.word_count}</div>
+          </div>
+          <div class="task-admin-card__actions">
+            <a href="/task18/${t.id}" target="_blank" class="btn btn-secondary btn-sm">→</a>
+            <button class="btn-icon" onclick="editTask(${t.id})" title="Редактировать"><img src="/images/type=edit, size=16.svg" width="16" height="16"></button>
+            <button class="btn-icon btn-icon--delete" onclick="deleteTask(${t.id})" title="Удалить"><img src="/images/type=delete, size=16.svg" width="16" height="16"></button>
+          </div>
+        </div>
+      </div>`;
+  }
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+function resetTaskForm() {
+  document.getElementById('task-form').reset();
+  document.getElementById('t-id').value = '';
+  document.getElementById('task-form-title').textContent = 'Добавить задание';
+  document.getElementById('t-submit-btn').textContent = 'Сохранить задание';
+  taskWordRows = [];
+  renderTaskWordRows();
+}
+
+async function editTask(id) {
+  const r = await fetch(`/api/task18/tasks/${id}`);
+  const t = await r.json();
+  document.getElementById('t-id').value          = t.id;
+  document.getElementById('t-source').value      = t.source_text;
+  document.getElementById('t-base').value        = t.base_text;
+  document.getElementById('t-positions').value   = t.comma_positions.join(', ');
+  document.getElementById('t-source-name').value = t.source || '';
+  document.getElementById('t-explanation').value = t.explanation_md || '';
+  document.getElementById('task-form-title').textContent = `Редактировать задание #${id}`;
+  document.getElementById('t-submit-btn').textContent = 'Обновить задание';
+
+  taskWordRows = t.task_words.map(tw => ({
+    word_id: tw.word_id,
+    is_intro: !!tw.is_intro_in_task,
+    position_indices: tw.position_indices,
+  }));
+  renderTaskWordRows();
+
+  document.getElementById('task-form-title').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function deleteTask(id) {
+  if (!confirm('Удалить это задание?')) return;
+  await fetch(`/api/task18/tasks/${id}`, { method: 'DELETE' });
+  loadTasks();
+}
+
+/* ── Слова в задании ─────────────────────────────────────── */
+
+async function detectWords() {
+  const sourceText = document.getElementById('t-source').value.trim();
+  if (!sourceText) { alert('Сначала введите текст задания.'); return; }
+  const r = await fetch('/api/task18/words/detect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ source_text: sourceText }),
+  });
+  const data = await r.json();
+  if (!data.words || !data.words.length) { alert('Слова из банка не найдены в этом тексте.'); return; }
+
+  // Добавляем только новые
+  for (const w of data.words) {
+    if (!taskWordRows.find(r => r.word_id === w.id)) {
+      taskWordRows.push({
+        word_id: w.id,
+        is_intro: w.intro_type !== 'never',
+        position_indices: [],
+      });
+    }
+  }
+  renderTaskWordRows();
+}
+
+function addTaskWordRow() {
+  taskWordRows.push({ word_id: null, is_intro: true, position_indices: [] });
+  renderTaskWordRows();
+}
+
+function renderTaskWordRows() {
+  const container = document.getElementById('task-words-list');
+  if (!taskWordRows.length) { container.innerHTML = '<p style="color:var(--text-secondary,#888);font-size:0.85rem">Нет связанных слов. Нажмите «Определить» или добавьте вручную.</p>'; return; }
+
+  let html = '';
+  taskWordRows.forEach((row, idx) => {
+    const word = allWords.find(w => w.id === row.word_id);
+    const wordOpts = allWords.map(w =>
+      `<option value="${w.id}" ${w.id === row.word_id ? 'selected' : ''}>${escHtml(w.phrase)} (${TYPE_LABELS[w.intro_type]})</option>`
+    ).join('');
+
+    html += `
+      <div class="tw-row" data-idx="${idx}">
+        <select onchange="twSetWord(${idx},this.value)">
+          <option value="">— выбрать слово —</option>
+          ${wordOpts}
+        </select>
+        <select onchange="twSetIntro(${idx},this.value)">
+          <option value="1" ${row.is_intro ? 'selected':''}>Вводное</option>
+          <option value="0" ${!row.is_intro ? 'selected':''}>Не вводное</option>
+        </select>
+        <input class="tw-pos-input" type="text" placeholder="позиции: 3,4"
+          value="${row.position_indices.join(',')}"
+          onchange="twSetPos(${idx},this.value)"
+          title="Маркеры вокруг слова (напр. 3,4)">
+        <button type="button" class="btn btn-danger btn-sm" onclick="twRemove(${idx})">✕</button>
+      </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function twSetWord(idx, val)  { taskWordRows[idx].word_id = val ? parseInt(val) : null; }
+function twSetIntro(idx, val) { taskWordRows[idx].is_intro = val === '1'; }
+function twSetPos(idx, val)   {
+  taskWordRows[idx].position_indices = val.split(/[,\s]+/).map(Number).filter(n => n > 0);
+}
+function twRemove(idx) { taskWordRows.splice(idx, 1); renderTaskWordRows(); }
+
+/* ── Сабмит задания ──────────────────────────────────────── */
+
+document.getElementById('task-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('t-id').value;
+  const positions = document.getElementById('t-positions').value
+    .split(/[,\s]+/).map(Number).filter(n => n > 0);
+
+  if (!positions.length) { alert('Укажите хотя бы одну позицию запятой.'); return; }
+
+  const body = {
+    source_text:   document.getElementById('t-source').value.trim(),
+    base_text:     document.getElementById('t-base').value.trim(),
+    comma_positions: positions,
+    source:        document.getElementById('t-source-name').value.trim() || null,
+    explanation_md:document.getElementById('t-explanation').value.trim() || null,
+    task_words: taskWordRows.filter(r => r.word_id).map(r => ({
+      word_id:          r.word_id,
+      is_intro:         r.is_intro,
+      position_indices: r.position_indices,
+    })),
+  };
+
+  const method = id ? 'PUT' : 'POST';
+  const url    = id ? `/api/task18/tasks/${id}` : '/api/task18/tasks';
+  const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const data = await r.json();
+  if (!r.ok) { alert(data.error); return; }
+  resetTaskForm();
+  loadTasks();
+  alert(id ? 'Задание обновлено.' : `Задание #${data.id} создано.`);
+});
+
+/* ════════════════════════════════════════════════════════════
+   Утилиты
+═══════════════════════════════════════════════════════════════*/
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* Инициализация */
+loadWords();
+onTypeChange();
+</script>

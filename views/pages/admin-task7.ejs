@@ -1,0 +1,326 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Задание №7 — Морфологические нормы</h2>
+
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('words',this)">Банк слов</button>
+    <button class="tab-btn" onclick="switchTab('generate',this)">Задания</button>
+  </div>
+
+  <!-- ══ ВКЛАДКА: БАНК СЛОВ ══════════════════════════════════ -->
+  <div id="tab-words">
+
+    <div class="admin-section">
+      <h3 id="word-form-title">Добавить слово</h3>
+      <form id="word-form" class="admin-form" onsubmit="return false;">
+        <input type="hidden" id="word-id">
+
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+          <div class="form-group" style="flex:1;min-width:180px;">
+            <label>Правильная форма</label>
+            <input id="word-correct" type="text" placeholder="МАНЖЕТ" autocomplete="off"
+                   oninput="updateWordPreview()">
+          </div>
+          <div class="form-group" style="flex:1;min-width:180px;">
+            <label>Ошибочная форма</label>
+            <input id="word-error" type="text" placeholder="МАНЖЕТОВ" autocomplete="off"
+                   oninput="updateWordPreview()">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+          <div class="form-group" style="flex:1;min-width:180px;">
+            <label>Слова до (контекст)</label>
+            <input id="word-before" type="text" placeholder="нет пяти" autocomplete="off"
+                   oninput="updateWordPreview()">
+          </div>
+          <div class="form-group" style="flex:1;min-width:180px;">
+            <label>Слова после (контекст)</label>
+            <input id="word-after" type="text" placeholder="тысячами" autocomplete="off"
+                   oninput="updateWordPreview()">
+          </div>
+        </div>
+
+        <div id="word-preview" class="t7-preview" style="display:none;"></div>
+
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn" onclick="saveWord()">Сохранить</button>
+          <button class="btn btn-secondary" onclick="resetWordForm()">Сбросить</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h3>Слова в банке</h3>
+      <div id="words-table-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ЗАДАНИЯ ════════════════════════════════════ -->
+  <div id="tab-generate" style="display:none;">
+
+    <div class="admin-section">
+      <h3>Генерация заданий</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+        Система случайно выберет 1 слово с ошибкой и 4 правильных из банка.
+        Для каждого берётся случайный контекст из его пула.
+      </p>
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+        <div class="form-group">
+          <label>Количество заданий</label>
+          <input id="gen-count" type="number" min="1" max="20" value="1" style="width:100px;">
+        </div>
+        <button class="btn" onclick="generateTasks()">Сгенерировать</button>
+      </div>
+      <div id="gen-result" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="admin-section">
+      <h3>Список заданий</h3>
+      <div id="tasks-list"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+.t7-preview {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.8;
+  margin-top: 4px;
+}
+.t7-preview-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+.t7-form-correct  { color: var(--brand); font-weight: 700; }
+.t7-form-error    { color: #f59e0b;     font-weight: 700; }
+
+.words-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.words-table th { text-align: left; padding: 8px 10px; color: var(--text-secondary); font-weight: 500; border-bottom: 1px solid var(--glass-border); }
+.words-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+.words-table tr:last-child td { border-bottom: none; }
+.words-table tr:hover td { background: var(--bg-tertiary); }
+
+.ctx-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--bg-secondary); border: 1px solid var(--glass-border);
+  border-radius: 12px; padding: 3px 10px; font-size: 12px; margin: 2px;
+}
+.ctx-chip__del { color: var(--text-secondary); cursor: pointer; font-size: 15px; line-height: 1; }
+.ctx-chip__del:hover { color: #D69295; }
+</style>
+
+<script>
+let allWords = [];
+let editingContextWordId = null;
+
+// ── Вкладки ──────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['words','generate'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === name ? '' : 'none';
+  });
+  if (name === 'generate') loadTasks();
+}
+
+// ── Превью ───────────────────────────────────────────────────
+function updateWordPreview() {
+  const correct = document.getElementById('word-correct').value.trim();
+  const error   = document.getElementById('word-error').value.trim();
+  const before  = document.getElementById('word-before').value.trim();
+  const after   = document.getElementById('word-after').value.trim();
+  const wrap = document.getElementById('word-preview');
+
+  if (!correct && !error) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  const correctPhrase = [before, correct ? `<span class="t7-form-correct">${esc(correct)}</span>` : '…', after].filter(Boolean).join(' ');
+  const errorPhrase   = [before, error   ? `<span class="t7-form-error">${esc(error)}</span>`   : '…', after].filter(Boolean).join(' ');
+
+  wrap.innerHTML = `
+    <div class="t7-preview-label">Правильная форма:</div>
+    <div>${correctPhrase}</div>
+    <div class="t7-preview-label" style="margin-top:8px;">Ошибочная форма:</div>
+    <div>${errorPhrase}</div>`;
+}
+
+// ── Слова ────────────────────────────────────────────────────
+async function loadWords() {
+  allWords = await fetch('/api/task7/words').then(r => r.json());
+  renderWordsTable();
+}
+
+function renderWordsTable() {
+  const wrap = document.getElementById('words-table-wrap');
+  if (!allWords.length) {
+    wrap.innerHTML = '<p style="color:var(--text-secondary);font-size:13px;">Слов в банке нет. Добавьте первое слово.</p>';
+    return;
+  }
+  wrap.innerHTML = `<table class="words-table">
+    <thead><tr>
+      <th style="width:50px;">ID</th>
+      <th>Правильная форма</th>
+      <th>Ошибочная форма</th>
+      <th>Контексты</th>
+      <th style="width:120px;">Действия</th>
+    </tr></thead>
+    <tbody>
+    ${allWords.map(w => `<tr>
+      <td style="color:var(--text-secondary);">${w.id}</td>
+      <td style="color:var(--brand);font-weight:600;">${esc(w.correct_form)}</td>
+      <td style="color:#f59e0b;font-weight:600;">${esc(w.error_form)}</td>
+      <td>${renderContextChips(w)}</td>
+      <td>
+        <button class="btn btn-sm btn-secondary" onclick="editWord(${w.id})">Ред.</button>
+        <button class="btn btn-sm btn-danger" style="margin-top:4px;" onclick="deleteWord(${w.id})">Удалить</button>
+      </td>
+    </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderContextChips(w) {
+  if (!w.contexts || !w.contexts.length) return '<span style="color:var(--text-secondary);font-size:12px;">нет</span>';
+  return w.contexts.map(c => {
+    const label = [c.before_text, '…', c.after_text].filter(Boolean).join(' ');
+    return `<span class="ctx-chip">
+      ${esc(label)}
+      <span class="ctx-chip__del" onclick="deleteContext(${c.id},${w.id})" title="Удалить контекст">×</span>
+    </span>`;
+  }).join('');
+}
+
+async function saveWord() {
+  const id      = document.getElementById('word-id').value;
+  const correct_form = document.getElementById('word-correct').value.trim();
+  const error_form   = document.getElementById('word-error').value.trim();
+  const before_text  = document.getElementById('word-before').value.trim();
+  const after_text   = document.getElementById('word-after').value.trim();
+
+  if (!correct_form) { alert('Введите правильную форму'); return; }
+  if (!error_form)   { alert('Введите ошибочную форму'); return; }
+
+  if (id) {
+    // Обновляем только формы слова
+    await fetch(`/api/task7/words/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correct_form, error_form }),
+    });
+    // Если указан контекст — добавляем его в пул
+    if (before_text || after_text) {
+      await fetch(`/api/task7/words/${id}/contexts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ before_text, after_text }),
+      });
+    }
+  } else {
+    await fetch('/api/task7/words', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correct_form, error_form, before_text, after_text }),
+    });
+  }
+
+  resetWordForm();
+  await loadWords();
+}
+
+function editWord(id) {
+  const w = allWords.find(x => x.id === id);
+  if (!w) return;
+  document.getElementById('word-form-title').textContent = `Редактировать слово #${id}`;
+  document.getElementById('word-id').value = id;
+  document.getElementById('word-correct').value = w.correct_form;
+  document.getElementById('word-error').value = w.error_form;
+  document.getElementById('word-before').value = '';
+  document.getElementById('word-after').value = '';
+  updateWordPreview();
+  document.getElementById('word-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function deleteWord(id) {
+  if (!confirm('Удалить слово и все его контексты?')) return;
+  await fetch(`/api/task7/words/${id}`, { method: 'DELETE' });
+  await loadWords();
+}
+
+async function deleteContext(ctxId, wordId) {
+  const w = allWords.find(x => x.id === wordId);
+  if (w && w.contexts && w.contexts.length <= 1) {
+    alert('Нельзя удалить последний контекст. Сначала добавьте другой.');
+    return;
+  }
+  await fetch(`/api/task7/contexts/${ctxId}`, { method: 'DELETE' });
+  await loadWords();
+}
+
+function resetWordForm() {
+  document.getElementById('word-form-title').textContent = 'Добавить слово';
+  document.getElementById('word-id').value = '';
+  document.getElementById('word-correct').value = '';
+  document.getElementById('word-error').value = '';
+  document.getElementById('word-before').value = '';
+  document.getElementById('word-after').value = '';
+  document.getElementById('word-preview').style.display = 'none';
+}
+
+// ── Задания ──────────────────────────────────────────────────
+async function generateTasks() {
+  const count = parseInt(document.getElementById('gen-count').value) || 1;
+  const resultDiv = document.getElementById('gen-result');
+  resultDiv.innerHTML = 'Генерация…';
+
+  const resp = await fetch('/api/task7/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ count }),
+  }).then(r => r.json());
+
+  if (resp.error) {
+    resultDiv.innerHTML = `<span style="color:#D69295;">Ошибка: ${esc(resp.error)}</span>`;
+    return;
+  }
+  resultDiv.innerHTML = `<span style="color:var(--brand)">✓ Создано заданий: ${resp.count}</span>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+      ${resp.ids.map(id => `<a href="/task7/${id}" target="_blank" class="btn btn-sm">Задание #${id}</a>`).join('')}
+    </div>`;
+  loadTasks();
+}
+
+async function loadTasks() {
+  const tasks = await fetch('/api/task7/tasks').then(r => r.json());
+  const wrap = document.getElementById('tasks-list');
+  if (!tasks.length) {
+    wrap.innerHTML = '<p style="color:var(--text-secondary);font-size:13px;">Заданий нет.</p>';
+    return;
+  }
+  wrap.innerHTML = tasks.map(t => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);flex-wrap:wrap;">
+      <span style="color:var(--text-secondary);font-size:13px;min-width:90px;">Задание #${t.id}</span>
+      ${t.error_phrase ? `<span style="font-size:13px;color:#f59e0b;">${esc(t.error_phrase)}</span>
+        <span style="color:var(--text-secondary);">→</span>
+        <span style="font-size:13px;color:var(--brand);">${esc(t.correct_form || '')}</span>` : ''}
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <a href="/task7/${t.id}" target="_blank" class="btn btn-sm">Открыть</a>
+        <button class="btn btn-sm btn-danger" onclick="deleteTask(${t.id})">Удалить</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteTask(id) {
+  if (!confirm('Удалить задание?')) return;
+  await fetch(`/api/task7/tasks/${id}`, { method: 'DELETE' });
+  loadTasks();
+}
+
+// ── Утилиты ──────────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── Init ─────────────────────────────────────────────────────
+loadWords();
+</script>

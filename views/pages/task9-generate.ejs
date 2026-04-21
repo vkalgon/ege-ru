@@ -1,0 +1,200 @@
+<div class="task-page" id="task9-generate">
+  <h2 class="task-page__title">Сгенерировать задание №9</h2>
+
+  <div class="task17-wrapper">
+    <div class="task9-column">
+      <div class="task-card task17-card">
+        <div class="task-meta">
+          <span class="task-meta__number">Параметры</span>
+        </div>
+        <div class="task-content">
+          <p class="task-prompt" style="margin:0 0 16px;">
+            Подберите параметры — будет создано новое задание и откроется страница решения.
+          </p>
+          <div class="task9-filters-grid">
+            <div class="form-group" style="margin:0;">
+              <label>Категория</label>
+              <select id="filter-category">
+                <option value="">Все</option>
+                <option value="alternating">Чередующиеся</option>
+                <option value="verifiable">Безударные проверяемые</option>
+                <option value="unverifiable">Безударные непроверяемые</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>Пара букв</label>
+              <select id="filter-pair">
+                <option value="">Все</option>
+                <option value="о/а">о / а</option>
+                <option value="е/и">е / и</option>
+                <option value="у/ю">у / ю</option>
+                <option value="о/ё">о / ё</option>
+                <option value="е/я">е / я</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>Правильных строк</label>
+              <select id="filter-correct-count">
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Дополнительные фильтры для чередующихся -->
+          <div id="alternation-filters" class="alternation-filters" style="display:none">
+            <div class="alt-filter-section">
+              <div class="alt-filter-label">Тип чередования <span class="alt-filter-hint">пусто = все</span></div>
+              <div class="toggle-chips" id="type-chips">
+                <button class="toggle-chip" data-type="stress">По ударению</button>
+                <button class="toggle-chip" data-type="suffix">По суффиксу -А</button>
+                <button class="toggle-chip" data-type="consonant">По следующей букве</button>
+                <button class="toggle-chip" data-type="meaning">По значению</button>
+              </div>
+            </div>
+            <div class="alt-filter-section" id="root-filter-section">
+              <div class="alt-filter-label">Конкретные корни <span class="alt-filter-hint">пусто = все выбранных типов</span></div>
+              <div class="toggle-chips" id="root-chips"></div>
+            </div>
+          </div>
+
+          <div class="task9-filters-actions" style="margin-top:16px">
+            <button class="btn" id="btn-generate" type="button">Сгенерировать</button>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin:16px 0 0;">
+        <a href="/task9" class="btn btn-secondary">← К списку заданий</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+const TYPE_LABELS = {
+  stress:    'По ударению',
+  suffix:    'По суффиксу -А',
+  consonant: 'По следующей букве',
+  meaning:   'По значению',
+};
+
+let altTypeRules = {};   // { stress: [...], suffix: [...], ... }
+let selectedTypes = new Set();
+let selectedRoots = new Set();
+
+/* ─── Инициализация ─────────────────────────────────── */
+async function init() {
+  try {
+    const data = await fetch('/api/task9/alternation-types').then(r => r.json());
+    altTypeRules = data;
+  } catch (_) {}
+  renderRootChips();
+}
+init();
+
+/* ─── Показ/скрытие фильтров чередования ────────────── */
+document.getElementById('filter-category').addEventListener('change', function () {
+  const show = this.value === 'alternating';
+  document.getElementById('alternation-filters').style.display = show ? '' : 'none';
+  if (!show) {
+    selectedTypes.clear();
+    selectedRoots.clear();
+    document.querySelectorAll('.toggle-chip').forEach(c => c.classList.remove('active'));
+  }
+});
+
+/* ─── Тип чередования ───────────────────────────────── */
+document.getElementById('type-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.toggle-chip[data-type]');
+  if (!chip) return;
+  const t = chip.dataset.type;
+  if (selectedTypes.has(t)) {
+    selectedTypes.delete(t);
+    chip.classList.remove('active');
+  } else {
+    selectedTypes.add(t);
+    chip.classList.add('active');
+  }
+  // Убираем корни, которые больше не входят в выбранные типы
+  pruneRoots();
+  renderRootChips();
+});
+
+/* ─── Корни ─────────────────────────────────────────── */
+function visibleRoots() {
+  if (!selectedTypes.size) {
+    return Object.values(altTypeRules).flat();
+  }
+  return [...selectedTypes].flatMap(t => altTypeRules[t] || []);
+}
+
+function pruneRoots() {
+  const visible = new Set(visibleRoots());
+  for (const r of [...selectedRoots]) {
+    if (!visible.has(r)) selectedRoots.delete(r);
+  }
+}
+
+function renderRootChips() {
+  const container = document.getElementById('root-chips');
+  const roots = visibleRoots();
+  container.innerHTML = roots.map(r => {
+    const active = selectedRoots.has(r) ? ' active' : '';
+    return `<button class="toggle-chip toggle-chip-root${active}" data-root="${r}">${r}</button>`;
+  }).join('');
+}
+
+document.getElementById('root-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.toggle-chip[data-root]');
+  if (!chip) return;
+  const r = chip.dataset.root;
+  if (selectedRoots.has(r)) {
+    selectedRoots.delete(r);
+    chip.classList.remove('active');
+  } else {
+    selectedRoots.add(r);
+    chip.classList.add('active');
+  }
+});
+
+/* ─── Генерация ─────────────────────────────────────── */
+document.getElementById('btn-generate').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  btn.textContent = 'Генерируем...';
+  try {
+    const body = {
+      correct_count: +document.getElementById('filter-correct-count').value,
+    };
+
+    const cat = document.getElementById('filter-category').value;
+    if (cat) body.category = cat;
+
+    const pair = document.getElementById('filter-pair').value;
+    if (pair) body.vowel_pair = pair;
+
+    if (cat === 'alternating') {
+      if (selectedRoots.size) {
+        body.alternation_rules = [...selectedRoots];
+      } else if (selectedTypes.size) {
+        body.alternation_types = [...selectedTypes];
+      }
+    }
+
+    const res = await fetch('/api/task9/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    location.href = `/task9/${data.id}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Сгенерировать';
+  }
+});
+</script>

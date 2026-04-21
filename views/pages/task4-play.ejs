@@ -1,0 +1,508 @@
+<div class="task-page" id="task4-play">
+  <h2 class="task-page__title">Задание №4 — Орфоэпические нормы (ударения)</h2>
+  <div class="task17-wrapper">
+    <div class="task9-column">
+      <div id="task4-container">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.t4-items { display: flex; flex-direction: column; gap: 10px; }
+
+.t4-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.t4-item.selected       { border-color: var(--brand);        background: var(--brand-muted); }
+.t4-item.result-correct { border-color: var(--brand);        background: var(--brand-muted); }
+.t4-item.result-missed  { border-color: #f59e0b;             background: rgba(245,158,11,0.06); }
+.t4-item.result-wrong   { border-color: #D69295;             background: rgba(214,146,149,0.08); }
+.t4-item.result-neutral { border-color: var(--glass-border); opacity: 0.65; }
+
+.t4-num {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: none; cursor: pointer;
+  font-size: 14px; font-weight: 700;
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.t4-num:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+.t4-num.selected { border-color: var(--brand); color: var(--brand); background: var(--brand-muted); }
+.t4-num:disabled { cursor: default; }
+
+.t4-word { font-size: 20px; cursor: default; }
+
+.t4-ch { cursor: pointer; border-radius: 3px; }
+.t4-ch:hover { background: rgba(255,255,255,0.08); }
+.t4-ch.marked { background: rgba(245,158,11,0.35); }
+.t4-ch.locked { cursor: default; }
+.t4-ch.locked:hover { background: none; }
+.t4-ch.answer-ch { color: var(--brand); font-weight: 700; }
+
+.t4-result-block { display: flex; flex-direction: column; gap: 10px; }
+.t4-result-row   { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; }
+.t4-result-icon  { font-weight: 700; width: 18px; flex-shrink: 0; padding-top: 1px; }
+.t4-rule         { margin-top: 3px; font-size: 12px; color: var(--text-secondary); }
+
+.t4-tut-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 9999;
+  pointer-events: none; /* фон не блокирует клики */
+}
+.t4-tut-card {
+  pointer-events: auto; /* но кнопки кликабельны */
+  width: 100%;
+  max-width: 560px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+.t4-tut-title {
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.t4-tut-text {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-size: 14px;
+}
+.t4-tut-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.t4-tut-btn {
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: none;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+.t4-tut-btn:hover { border-color: var(--brand); color: var(--brand); }
+.t4-tut-btn--primary {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: rgba(255,255,255,0.06);
+}
+.t4-tut-highlight {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  background: rgba(245,158,11,0.20);
+}
+.t4-tut-blink {
+  animation: t4TutBlink 1s ease-in-out infinite;
+}
+
+@keyframes t4TutBlink {
+  0% {
+    outline-color: var(--brand);
+    background: rgba(245,158,11,0.20);
+  }
+  50% {
+    outline-color: #fbbf24;
+    background: rgba(245,158,11,0.40);
+  }
+  100% {
+    outline-color: var(--brand);
+    background: rgba(245,158,11,0.20);
+  }
+}
+
+.t4-help-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  color: var(--text-secondary);
+  font: 700 20px/1 "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  cursor: pointer;
+  box-shadow: var(--shadow-glass);
+  z-index: 9000;
+  transition: border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.t4-help-fab:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: var(--shadow-neon), var(--shadow-glass);
+  transform: translateY(-1px);
+}
+</style>
+
+<script src="/js/task-card-shell.js"></script>
+<script>
+const TASK_ID = <%- taskId %>;
+const UID = 't4-' + TASK_ID;
+const escHtml = TaskCardShell.escHtml;
+
+function stressIdx(word, wordStressed) {
+  const p = wordStressed.indexOf('\u0301');
+  return p >= 1 ? p - 1 : -1;
+}
+
+function renderWord(word, stressIndex, itemIndex) {
+  return Array.from(word).map((ch, i) => {
+    const display = i === stressIndex ? ch.toUpperCase() : ch;
+    return `<span class="t4-ch" data-item="${itemIndex}" data-pos="${i}">${escHtml(display)}</span>`;
+  }).join('');
+}
+
+function renderAnswerWord(word, correctIndex) {
+  return Array.from(word).map((ch, i) => {
+    if (i === correctIndex)
+      return `<span class="t4-ch locked answer-ch">${ch.toUpperCase()}</span>`;
+    return `<span class="t4-ch locked">${escHtml(ch)}</span>`;
+  }).join('');
+}
+
+function renderPlayCard(taskId, task) {
+  const itemsHtml = task.items.map(it => `
+    <div class="t4-item" id="t4-item-${taskId}-${it.item_index}">
+      <button class="t4-num" data-index="${it.item_index}">${it.item_index}</button>
+      <span class="t4-word" id="t4-word-${taskId}-${it.item_index}">
+        ${renderWord(it.word, stressIdx(it.word, it.word_stressed), it.item_index)}
+      </span>
+    </div>
+  `).join('');
+
+  const bodyHtml = `
+    <p class="task-prompt" style="margin:0;">
+      Укажите варианты ответов, в которых <strong>верно</strong> выделено ударение.
+      Запишите номера ответов.
+    </p>
+    <div class="t4-items" id="t4-items-${taskId}">${itemsHtml}</div>`;
+
+  const controlsHtml = `
+    <button type="button" class="task-send" id="t4-check-${taskId}">Проверить</button>
+    <a href="/task4" class="btn btn-secondary task9-back-btn">← К списку</a>`;
+
+  return TaskCardShell.buildCardShell({ taskNum: 4, taskId, bodyHtml, controlsHtml, uid: UID });
+}
+
+function initPlayCard(taskId, task) {
+  const selected = new Set();
+  const grid     = document.getElementById('t4-items-' + taskId);
+  const checkBtn = document.getElementById('t4-check-' + taskId);
+
+  grid.addEventListener('click', e => {
+    const numBtn = e.target.closest('.t4-num');
+    if (numBtn && !numBtn.disabled) {
+      const idx  = +numBtn.dataset.index;
+      const card = document.getElementById('t4-item-' + taskId + '-' + idx);
+      if (selected.has(idx)) {
+        selected.delete(idx);
+        numBtn.classList.remove('selected');
+        card.classList.remove('selected');
+      } else {
+        selected.add(idx);
+        numBtn.classList.add('selected');
+        card.classList.add('selected');
+      }
+      return;
+    }
+
+    const ch = e.target.closest('.t4-ch');
+    if (ch && !ch.classList.contains('locked')) {
+      const itemIdx = ch.dataset.item;
+      grid.querySelectorAll(`.t4-ch[data-item="${itemIdx}"]`)
+        .forEach(l => { if (l !== ch) l.classList.remove('marked'); });
+      ch.classList.toggle('marked');
+    }
+  });
+
+  checkBtn.addEventListener('click', async () => {
+    checkBtn.disabled = true;
+    checkBtn.textContent = '...';
+    try {
+      const res = await fetch('/api/task4/tasks/' + taskId + '/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selected: Array.from(selected) })
+      });
+      const data = await res.json();
+      if (data.error) { alert(data.error); return; }
+
+      grid.querySelectorAll('.t4-ch').forEach(c => c.classList.add('locked'));
+      TaskCardShell.lockCard(UID);
+
+      renderResult(data);
+    } finally {
+      checkBtn.textContent = 'Проверить';
+    }
+  });
+
+  function renderResult(data) {
+    data.items.forEach(item => {
+      const card   = document.getElementById('t4-item-' + taskId + '-' + item.item_index);
+      const wordEl = document.getElementById('t4-word-' + taskId + '-' + item.item_index);
+
+      card.classList.remove('selected');
+      if      (item.is_correct && item.user_selected)  card.classList.add('result-correct');
+      else if (item.is_correct && !item.user_selected) card.classList.add('result-missed');
+      else if (!item.is_correct && item.user_selected) card.classList.add('result-wrong');
+      else                                              card.classList.add('result-neutral');
+
+      wordEl.innerHTML = renderAnswerWord(item.word, item.correct_stress_index);
+    });
+
+    const allOk      = data.all_correct;
+    const correctStr = data.correct_indices.join(', ');
+
+    let itemsHtml = '';
+    data.items.forEach(item => {
+      const color = item.item_ok ? 'var(--brand)' : '#D69295';
+      const icon  = item.item_ok ? '✓' : '✗';
+      const ci    = item.correct_stress_index;
+      const correctDisplay =
+        escHtml(item.word.slice(0, ci)) +
+        `<strong>${item.word[ci].toUpperCase()}</strong>` +
+        escHtml(item.word.slice(ci + 1));
+
+      let desc = item.is_correct
+        ? `${correctDisplay} — ударение верное`
+        : `${escHtml(item.word_stressed)} — неверное, правильно: ${correctDisplay}`;
+      if (item.hint)
+        desc += ` <span style="color:var(--text-secondary);font-size:13px;">— ${escHtml(item.hint)}</span>`;
+
+      let ruleHtml = '';
+      if (item.category_rule) {
+        const exc = item.is_exception
+          ? '<span style="background:rgba(245,158,11,.15);color:#f59e0b;border-radius:3px;padding:1px 5px;font-size:11px;margin-left:4px;">исключение</span>'
+          : '';
+        ruleHtml = `<div class="t4-rule">${escHtml(item.category_name)}${exc}: ${escHtml(item.category_rule)}</div>`;
+      }
+
+      itemsHtml += `<div class="t4-result-row">
+        <span class="t4-result-icon" style="color:${color};">${icon}</span>
+        <div><span style="font-size:15px;">${item.item_index}. </span>${desc}${ruleHtml}</div>
+      </div>`;
+    });
+
+    const bodyHtml = `
+      <p style="margin:0;font-size:15px;">Правильный ответ: <strong style="color:var(--brand);">${escHtml(correctStr)}</strong></p>
+      <div class="t4-result-block">${itemsHtml}</div>`;
+
+    TaskCardShell.showResult(UID, allOk, bodyHtml);
+  }
+}
+
+async function maybeStartTutorial(task) {
+  try {
+    if (window.__t4TutorialStarted) return;
+
+    const meRes = await fetch('/api/auth/me');
+    if (!meRes.ok) return;
+    const me = await meRes.json();
+    if (!me?.success) return;
+    if (me.user?.task4_mechanics_done) return;
+
+    window.__t4TutorialStarted = true;
+    startTutorial(task);
+  } catch {
+    // silently ignore
+  }
+}
+
+function startTutorial(task) {
+  if (!task?.items?.length) return;
+
+  const grid = document.getElementById('t4-items-' + TASK_ID);
+  if (!grid) return;
+
+  let step = 1;
+  const firstItem = task.items[0];
+  const stressIndex = stressIdx(firstItem.word, firstItem.word_stressed);
+  if (stressIndex < 0) return;
+
+  const firstLetters = grid.querySelectorAll(`.t4-ch[data-item="${firstItem.item_index}"]`);
+  const correctLetter = grid.querySelector(
+    `.t4-ch[data-item="${firstItem.item_index}"][data-pos="${stressIndex}"]`
+  );
+  if (!correctLetter) return;
+
+  // Overlay
+  const overlay = document.createElement('div');
+  overlay.className = 't4-tut-overlay';
+  overlay.innerHTML = `
+    <div class="t4-tut-card">
+      <div class="t4-tut-title" id="t4-tut-title"></div>
+      <p class="t4-tut-text" id="t4-tut-text"></p>
+      <div class="t4-tut-actions">
+        <button type="button" class="t4-tut-btn t4-tut-btn--primary" id="t4-tut-done" style="display:none;">Понятно</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const cardEl = overlay.querySelector('.t4-tut-card');
+  const titleEl = overlay.querySelector('#t4-tut-title');
+  const textEl = overlay.querySelector('#t4-tut-text');
+  const doneBtn = overlay.querySelector('#t4-tut-done');
+
+  let markingDone = false;
+  async function markDone() {
+    if (markingDone) return;
+    markingDone = true;
+    try {
+      await fetch('/api/auth/onboarding/task-mechanics/done', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+    } catch {
+      // ignore
+    }
+    grid.querySelectorAll('.t4-tut-highlight, .t4-tut-blink').forEach(el => {
+      el.classList.remove('t4-tut-highlight', 't4-tut-blink');
+    });
+    overlay.remove();
+  }
+
+  doneBtn.addEventListener('click', markDone);
+
+  function clearHighlights() {
+    grid.querySelectorAll('.t4-tut-highlight, .t4-tut-blink').forEach(el => {
+      el.classList.remove('t4-tut-highlight', 't4-tut-blink');
+    });
+  }
+
+  function positionOverlayToElement(targetEl) {
+    if (!cardEl || !targetEl) return;
+    const rect = targetEl.getBoundingClientRect();
+    const cardW = cardEl.offsetWidth || 560;
+    const padding = 12;
+
+    let left = rect.left + rect.width / 2;
+    left = Math.max(padding + cardW / 2, Math.min(window.innerWidth - padding - cardW / 2, left));
+
+    const topAbove = rect.top - padding;
+    const shouldPlaceAbove = rect.top > 160;
+    const top = shouldPlaceAbove ? topAbove : rect.bottom + padding;
+
+    cardEl.style.position = 'fixed';
+    cardEl.style.left = left + 'px';
+    cardEl.style.top = top + 'px';
+    cardEl.style.transform = shouldPlaceAbove ? 'translate(-50%, -100%)' : 'translate(-50%, 0)';
+  }
+
+  function renderStep() {
+    if (step === 1) {
+      doneBtn.style.display = 'none';
+      titleEl.textContent = 'Шаг 1 из 3';
+      textEl.textContent = 'Нажмите на букву, чтобы выделить ударную в слове.';
+
+      clearHighlights();
+      correctLetter.classList.add('t4-tut-highlight', 't4-tut-blink');
+      requestAnimationFrame(() => positionOverlayToElement(correctLetter));
+    }
+
+    if (step === 2) {
+      doneBtn.style.display = 'none';
+      titleEl.textContent = 'Шаг 2 из 3';
+      textEl.textContent = 'Ответ выбирается по номерам: нажмите числа слева у вариантов, где ударение выделено верно.';
+
+      clearHighlights();
+      const nums = grid.querySelectorAll('.t4-num');
+      nums.forEach(btn => btn.classList.add('t4-tut-highlight', 't4-tut-blink'));
+      const anchor = nums[0] || correctLetter;
+      requestAnimationFrame(() => positionOverlayToElement(anchor));
+    }
+
+    if (step === 3) {
+      titleEl.textContent = 'Шаг 3 из 3';
+      textEl.textContent = 'Готово. Нажмите «Понятно», чтобы больше не показывать обучение.';
+      clearHighlights();
+      doneBtn.style.display = 'inline-block';
+      const anchor = document.getElementById('t4-check-' + TASK_ID) || correctLetter;
+      requestAnimationFrame(() => positionOverlayToElement(anchor));
+    }
+  }
+
+  function goNext(n) {
+    step = n;
+    renderStep();
+  }
+
+  renderStep();
+
+  function onGridClick(e) {
+    if (step === 1) {
+      const ch = e.target.closest('.t4-ch');
+      if (!ch) return;
+      // существующий обработчик переключает `.marked`, поэтому проверяем состояние после клика
+      if (correctLetter.classList.contains('marked')) {
+        goNext(2);
+      }
+      return;
+    }
+
+    if (step === 2) {
+      const numBtn = e.target.closest('.t4-num');
+      if (!numBtn) return;
+      if (grid.querySelectorAll('.t4-num.selected').length > 0) {
+        goNext(3);
+      }
+    }
+  }
+
+  grid.addEventListener('click', onGridClick);
+}
+
+async function loadTask() {
+  const container = document.getElementById('task4-container');
+  const res = await fetch('/api/task4/tasks/' + TASK_ID + '/play');
+  if (!res.ok) {
+    container.innerHTML =
+      '<div class="task-card task17-card"><div class="task-content"><p style="color:#D69295;margin:0;">Задание не найдено.</p></div></div>';
+    return;
+  }
+  const task = await res.json();
+  container.innerHTML = renderPlayCard(TASK_ID, task);
+  initPlayCard(TASK_ID, task);
+  maybeStartTutorial(task);
+  // Сохраняем задание для ручного повтора обучения
+  window.__t4LastTaskPlay = task;
+}
+
+loadTask();
+
+// Ручной запуск обучения для play-страницы
+window.t4ShowTutorial = function () {
+  if (window.__t4LastTaskPlay) {
+    startTutorial(window.__t4LastTaskPlay);
+  }
+};
+</script>
+
+<button
+  type="button"
+  class="t4-help-fab"
+  aria-label="Показать обучение"
+  title="Показать обучение"
+  onclick="window.t4ShowTutorial && window.t4ShowTutorial()"
+>?</button>

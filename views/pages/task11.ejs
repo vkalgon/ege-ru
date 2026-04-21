@@ -1,0 +1,204 @@
+<div class="task-page">
+  <h2 class="task-page__title">Задание №11 — Правописание суффиксов</h2>
+
+  <div class="task17-wrapper">
+    <div class="task9-column">
+
+  <h3 class="task10-section-title">Сгенерировать задание</h3>
+  <div class="task10-generate-wrap" style="margin-bottom:32px;">
+    <div class="task10-generate-grid">
+      <div class="form-group" style="margin:0;min-width:320px;">
+        <label>Правила</label>
+        <div class="task10-check-grid">
+          <label><input type="checkbox" class="t11-rule-cb" value="ова/ыва"> -ова-/-ева- vs -ыва-/-ива-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="перед_вш"> гласная перед -вш-/-л-/-в-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="обес/обез"> обес-/обез-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="лив/чив"> -лив-/-чив-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="еньк/оньк"> -еньк-/-оньк-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="еват/оват"> -еват-/-оват-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="ист"> -ист-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="ев/ив"> -ев-/-ив-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="к/ск"> -к-/-ск-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="инк/енк"> -инк-/-ичк- vs -енк-/-ечк-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="ик/ек"> -ик- vs -ек-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="ец/иц"> -ец- vs -иц-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="изн/от/ин"> -изн-/-от-/-ин-</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="о/ё_шип"> о/ё после шипящей</label>
+          <label><input type="checkbox" class="t11-rule-cb" value="о/а_нар"> о/а в наречиях</label>
+        </div>
+        <div style="margin-top:8px;color:var(--text-secondary);font-size:12px;">Если ничего не выбрать, будут использованы любые правила.</div>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Правильных строк</label>
+        <div class="task10-check-grid task10-count-grid">
+          <label><input type="checkbox" class="t11-count-cb" value="any_2_4" checked> любое от 2 до 4</label>
+          <label><input type="checkbox" class="t11-count-cb" value="2"> 2</label>
+          <label><input type="checkbox" class="t11-count-cb" value="3"> 3</label>
+          <label><input type="checkbox" class="t11-count-cb" value="4"> 4</label>
+        </div>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Количество заданий</label>
+        <input type="number" id="filter-tasks-count" min="1" max="20" value="1">
+      </div>
+    </div>
+    <div class="task10-generate-actions">
+      <button class="btn" id="btn-generate">Сгенерировать</button>
+    </div>
+  </div>
+
+  <div>
+    <h3 class="task10-section-title">Все задания</h3>
+    <div id="tasks-list" class="task10-task-feed">
+      <p style="color:var(--text-secondary);">Загрузка...</p>
+    </div>
+  </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.task10-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px 12px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-sizing: border-box;
+  flex: 1;
+}
+.task10-check-grid label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}
+.task10-check-grid input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  margin: 0;
+  padding: 0;
+  border: initial;
+  border-radius: 3px;
+  background: initial;
+  box-shadow: none;
+  accent-color: var(--brand);
+}
+.task10-count-grid {
+  min-width: 200px;
+  grid-template-columns: 1fr;
+}
+.task10-generate-grid > .form-group {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.task10-task-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.task10-generate-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(200px, 260px);
+  gap: 12px;
+  align-items: stretch;
+}
+.task10-generate-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.task10-section-title {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+@media (max-width: 700px) {
+  .task10-generate-grid { grid-template-columns: 1fr; }
+  .task10-generate-actions { justify-content: flex-start; }
+}
+</style>
+
+<script src="/js/task-play-card.js"></script>
+<script>
+async function loadTasks() {
+  const res = await fetch('/api/task11/tasks');
+  const tasks = await res.json();
+  const list = document.getElementById('tasks-list');
+  if (!tasks.length) {
+    list.innerHTML = '<p style="color:var(--text-secondary);">Пока нет заданий.</p>';
+    return;
+  }
+  const plays = await Promise.all(
+    tasks.map(t => fetch('/api/task11/tasks/' + t.id + '/play').then(r => r.ok ? r.json() : null))
+  );
+  const blocks = [];
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    const play = plays[i];
+    if (!play) continue;
+    blocks.push(
+      '<div class="task10-feed-item" id="task11-feed-' + t.id + '">' +
+        renderTask11CardHTML(t.id, play, { standalone: false }) +
+      '</div>'
+    );
+  }
+  if (!blocks.length) {
+    list.innerHTML = '<p style="color:var(--text-secondary);">Не удалось загрузить содержимое заданий.</p>';
+    return;
+  }
+  list.innerHTML = blocks.join('');
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    const play = plays[i];
+    if (!play) continue;
+    const root = document.getElementById('task11-feed-' + t.id);
+    if (root) initTask11Card(root, t.id, play, { standalone: false });
+  }
+}
+
+document.getElementById('btn-generate').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  btn.textContent = 'Генерируем...';
+  try {
+    const body = {};
+    const rules = Array.from(document.querySelectorAll('.t11-rule-cb:checked')).map(el => el.value);
+    const correctCounts = Array.from(document.querySelectorAll('.t11-count-cb:checked')).map(el => el.value);
+    if (rules.length) body.rules = rules;
+    if (!correctCounts.length) { alert('Выберите количество правильных строк'); return; }
+    body.correct_counts = correctCounts;
+    body.tasks_count = +document.getElementById('filter-tasks-count').value || 1;
+    const res = await fetch('/api/task11/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    await loadTasks();
+    location.href = '/task11/' + data.id;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Сгенерировать';
+  }
+});
+
+document.querySelectorAll('.t11-count-cb').forEach(cb => {
+  cb.addEventListener('change', () => {
+    if (!cb.checked) return;
+    document.querySelectorAll('.t11-count-cb').forEach(other => {
+      if (other !== cb) other.checked = false;
+    });
+  });
+});
+
+loadTasks();
+</script>

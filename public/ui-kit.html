@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Kit — ЕГЭ Русский</title>
+  <link rel="icon" type="image/svg+xml" href="/images/logo.svg">
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    (function() {
+      const t = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <style>
+    /* ── UI Kit–specific overrides ── */
+    .uik-page { max-width: 900px; margin: 0 auto; padding: 48px 32px 96px; }
+
+    .uik-section {
+      margin-bottom: 64px;
+    }
+    .uik-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin: 0 0 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .uik-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .uik-col { display: flex; flex-direction: column; gap: 12px; }
+    .uik-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      font-family: monospace;
+      letter-spacing: 0.02em;
+    }
+    .uik-item { display: flex; flex-direction: column; }
+
+    /* Color swatches */
+    .uik-swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 12px;
+    }
+    .uik-swatch {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .uik-swatch__color {
+      width: 100%;
+      height: 48px;
+      border-radius: 8px;
+      border: 1px solid var(--glass-border);
+    }
+    .uik-swatch__name {
+      font-size: 10px;
+      color: var(--text-secondary);
+      line-height: 1.3;
+      font-family: monospace;
+    }
+
+    /* Type scale */
+    .uik-type-row {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .uik-type-item {
+      display: flex;
+      align-items: baseline;
+      gap: 20px;
+    }
+    .uik-type-meta {
+      font-size: 10px;
+      color: var(--text-disabled);
+      white-space: nowrap;
+      font-family: monospace;
+      min-width: 100px;
+    }
+
+    /* Spacer/divider inside section */
+    .uik-divider {
+      border: none;
+      border-top: 1px solid var(--glass-border);
+      margin: 28px 0;
+    }
+
+    /* Demo block with dark bg for contrast */
+    .uik-on-dark {
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    /* Page title */
+    .uik-hero {
+      margin-bottom: 56px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .uik-hero__title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 8px;
+      line-height: 1.15;
+    }
+    .uik-hero__sub {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    /* Grid for cards */
+    .uik-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    /* demo feedback wrapper */
+    .uik-feedback-row { display: flex; flex-direction: column; gap: 12px; }
+
+    .uik-theme-toggle {
+      flex-shrink: 0;
+    }
+
+    .nav-demo {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+<div class="uik-page">
+
+  <!-- ── Hero ── -->
+  <div class="uik-hero">
+    <div>
+      <h1 class="uik-hero__title">UI Kit</h1>
+      <p class="uik-hero__sub">Компоненты и токены дизайн-системы сайта ЕГЭ Русский</p>
+    </div>
+    <button class="theme-toggle uik-theme-toggle" id="theme-toggle" aria-label="Переключить тему">
+      <span class="theme-toggle__icon theme-toggle__icon--light">☀️</span>
+      <span class="theme-toggle__icon theme-toggle__icon--dark">🌙</span>
+    </button>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       1. ЦВЕТА
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Цвета</h2>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 20px">Бренд</p>
+    <div class="uik-swatch-grid" style="margin-bottom:28px">
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:#A4BEE2"></div>
+        <div class="uik-swatch__name">--brand<br>#A4BEE2</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:#C3D4F0"></div>
+        <div class="uik-swatch__name">--brand-light<br>#C3D4F0</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:#7a9dc6"></div>
+        <div class="uik-swatch__name">--brand-dark<br>#7a9dc6</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:#4d6e96"></div>
+        <div class="uik-swatch__name">--brand-subtle<br>#4d6e96</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:rgba(164,190,226,0.5)"></div>
+        <div class="uik-swatch__name">--brand-dim<br>50% opacity</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:rgba(164,190,226,0.12)"></div>
+        <div class="uik-swatch__name">--brand-muted<br>12% opacity</div>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 20px">Фоны</p>
+    <div class="uik-swatch-grid" style="margin-bottom:28px">
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--bg-primary)"></div>
+        <div class="uik-swatch__name">--bg-primary</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--bg-secondary)"></div>
+        <div class="uik-swatch__name">--bg-secondary</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--bg-tertiary)"></div>
+        <div class="uik-swatch__name">--bg-tertiary</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--glass-bg);border:1px solid var(--glass-border)"></div>
+        <div class="uik-swatch__name">--glass-bg</div>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 20px">Текст</p>
+    <div class="uik-swatch-grid" style="margin-bottom:28px">
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--text-primary)"></div>
+        <div class="uik-swatch__name">--text-primary</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--text-secondary)"></div>
+        <div class="uik-swatch__name">--text-secondary</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--text-disabled)"></div>
+        <div class="uik-swatch__name">--text-disabled</div>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 20px">Семантические</p>
+    <div class="uik-swatch-grid">
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--color-success)"></div>
+        <div class="uik-swatch__name">--color-success</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--color-warning)"></div>
+        <div class="uik-swatch__name">--color-warning</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--color-error)"></div>
+        <div class="uik-swatch__name">--color-error</div>
+      </div>
+      <div class="uik-swatch">
+        <div class="uik-swatch__color" style="background:var(--color-purple)"></div>
+        <div class="uik-swatch__name">--color-purple</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       2. ТИПОГРАФИКА
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Типографика</h2>
+    <div class="uik-type-row">
+      <div class="uik-type-item">
+        <span class="uik-type-meta">72px / 400 / lh 1.0</span>
+        <span style="font:400 72px/1 'Inter',sans-serif;color:var(--text-primary)">Заголовок</span>
+      </div>
+      <div class="uik-type-item">
+        <span class="uik-type-meta">36px / 400 / lh 1.25</span>
+        <span style="font:400 36px/1.25 'Inter',sans-serif;color:var(--text-primary)">Секция</span>
+      </div>
+      <div class="uik-type-item">
+        <span class="uik-type-meta">24px / 700 / lh 1.33</span>
+        <span style="font:700 24px/1.33 'Inter',sans-serif;color:var(--text-primary)">Карточка</span>
+      </div>
+      <div class="uik-type-item">
+        <span class="uik-type-meta">18px / 400 / lh 1.56</span>
+        <span style="font:400 18px/1.56 'Inter',sans-serif;color:var(--text-primary)">Подзаголовок</span>
+      </div>
+      <div class="uik-type-item">
+        <span class="uik-type-meta">16px / 400 / lh 1.5</span>
+        <span style="font:400 16px/1.5 'Inter',sans-serif;color:var(--text-primary)">Основной текст. Пример содержимого задания.</span>
+      </div>
+      <div class="uik-type-item">
+        <span class="uik-type-meta">14px / 500 / lh 1.43</span>
+        <span style="font:500 14px/1.43 'Inter',sans-serif;color:var(--text-secondary)">Навигация · Кнопки · Подписи</span>
+      </div>
+      <div class="uik-type-item">
+        <span class="uik-type-meta">12px / 400 / lh 1.33</span>
+        <span style="font:400 12px/1.33 'Inter',sans-serif;color:var(--text-secondary)">Мелкий текст, сноски, лейблы</span>
+      </div>
+      <div class="uik-type-item">
+        <span class="uik-type-meta">monospace / 12px / uppercase</span>
+        <span style="font:400 12px/1.33 'Courier New',monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-secondary)">Code Label · Task 17</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       3. КНОПКИ
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Кнопки</h2>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px">Основные (.btn)</p>
+    <div class="uik-row" style="margin-bottom:28px">
+      <div class="uik-item">
+        <button class="btn">Обычная</button>
+        <span class="uik-label">.btn</span>
+      </div>
+      <div class="uik-item">
+        <button class="btn btn-secondary">Вторичная</button>
+        <span class="uik-label">.btn.btn-secondary</span>
+      </div>
+      <div class="uik-item">
+        <button class="btn btn-danger">Удалить</button>
+        <span class="uik-label">.btn.btn-danger</span>
+      </div>
+      <div class="uik-item">
+        <button class="btn btn-ghost">Ghost</button>
+        <span class="uik-label">.btn.btn-ghost</span>
+      </div>
+      <div class="uik-item">
+        <button class="btn btn-sm">Маленькая</button>
+        <span class="uik-label">.btn.btn-sm</span>
+      </div>
+      <div class="uik-item">
+        <button class="btn" disabled style="opacity:0.4;cursor:default">Disabled</button>
+        <span class="uik-label">disabled</span>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px">Задания (.task-send / .task-solution / .task-like)</p>
+    <div class="uik-row" style="margin-bottom:28px">
+      <div class="uik-item">
+        <button class="task-send">Проверить →</button>
+        <span class="uik-label">.task-send</span>
+      </div>
+      <div class="uik-item">
+        <button class="task-solution">Показать решение</button>
+        <span class="uik-label">.task-solution</span>
+      </div>
+      <div class="uik-item">
+        <button class="task-like">♡</button>
+        <span class="uik-label">.task-like</span>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px">Иконка (.btn-icon)</p>
+    <div class="uik-row" style="margin-bottom:28px">
+      <div class="uik-item">
+        <button class="btn-icon">
+          <img src="/images/type=edit, size=16.svg" width="16" height="16" alt="edit">
+        </button>
+        <span class="uik-label">.btn-icon</span>
+      </div>
+      <div class="uik-item">
+        <button class="btn-icon">
+          <img src="/images/type=delete, size=16.svg" width="16" height="16" alt="delete">
+        </button>
+        <span class="uik-label">.btn-icon (delete)</span>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px">Лендинг (.lp-btn)</p>
+    <div class="uik-row">
+      <div class="uik-item">
+        <a href="#" class="lp-btn lp-btn--primary">Начать подготовку</a>
+        <span class="uik-label">.lp-btn--primary</span>
+      </div>
+      <div class="uik-item">
+        <a href="#" class="lp-btn lp-btn--ghost">Все задания</a>
+        <span class="uik-label">.lp-btn--ghost</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       4. ПОЛЯ ВВОДА
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Поля ввода</h2>
+
+    <div style="max-width:480px;display:flex;flex-direction:column;gap:20px">
+
+      <div class="uik-item">
+        <div class="form-group">
+          <label>Логин</label>
+          <input type="text" class="form-input" placeholder="Введите логин">
+        </div>
+        <span class="uik-label">.form-input в .form-group</span>
+      </div>
+
+      <div class="uik-item">
+        <div class="form-group">
+          <label>Ответ (task-input)</label>
+          <input type="text" class="task-input" placeholder="Введите ответ...">
+        </div>
+        <span class="uik-label">.task-input</span>
+      </div>
+
+      <div class="uik-item">
+        <div class="form-group">
+          <label>Пример ошибки</label>
+          <input type="text" class="form-input" value="Неверный ответ" style="border-color:var(--color-error)!important">
+          <span style="font-size:12px;color:var(--color-error)">Ошибка: неправильный ответ</span>
+        </div>
+      </div>
+
+      <div class="uik-item">
+        <div class="form-group">
+          <label>Выбор (select)</label>
+          <select>
+            <option value="">— выберите —</option>
+            <option>Задание 17</option>
+            <option>Задание 9</option>
+            <option>Задание 12</option>
+          </select>
+        </div>
+        <span class="uik-label">form-group select</span>
+      </div>
+
+      <div class="uik-item">
+        <div class="form-group">
+          <label>Многострочный текст</label>
+          <textarea rows="3" placeholder="Пример текста задания..."></textarea>
+        </div>
+        <span class="uik-label">form-group textarea</span>
+      </div>
+
+      <div class="uik-item">
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" checked>
+            Чекбокс
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox">
+            Ещё один
+          </label>
+        </div>
+        <span class="uik-label">.checkbox-label</span>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       5. КАРТОЧКИ
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Карточки</h2>
+
+    <div class="uik-cards-grid">
+
+      <!-- task-card -->
+      <div class="uik-item">
+        <div class="task-card">
+          <div class="task-meta">
+            <span class="task-meta__number">№ 17</span>
+          </div>
+          <div class="task-content">
+            <p class="task-prompt">Расставьте все знаки препинания: укажите цифры, на месте которых в предложении должны стоять запятые.</p>
+            <div class="task-controls">
+              <input type="text" class="task-input" placeholder="Введите ответ...">
+              <button class="task-send">Проверить →</button>
+            </div>
+          </div>
+        </div>
+        <span class="uik-label">.task-card</span>
+      </div>
+
+      <!-- subtopic-card -->
+      <div class="uik-item">
+        <div class="subtopic-card">
+          <div class="subtopic-card__title">Деепричастные обороты</div>
+          <div class="subtopic-card__count">12 заданий</div>
+        </div>
+        <span class="uik-label">.subtopic-card</span>
+      </div>
+
+      <!-- summary-card -->
+      <div class="uik-item">
+        <div class="summary-card">
+          <div class="summary-card-title">Задание 17</div>
+          <div class="summary-card-stats">
+            <div class="stat-item">
+              <span class="stat-value">24</span>
+              <span class="stat-label">всего</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value text-success">18</span>
+              <span class="stat-label">верно</span>
+            </div>
+          </div>
+          <div class="accuracy-bar">
+            <div class="accuracy-fill" style="width:75%"></div>
+          </div>
+        </div>
+        <span class="uik-label">.summary-card</span>
+      </div>
+
+      <!-- admin-section -->
+      <div class="uik-item">
+        <div class="admin-section">
+          <h3>Панель управления</h3>
+          <p style="font-size:14px;color:var(--text-secondary);margin:0">Пример секции в admin-панели</p>
+        </div>
+        <span class="uik-label">.admin-section</span>
+      </div>
+
+      <!-- task-review-card -->
+      <div class="uik-item">
+        <div class="task-review-card task-review-needs-work">
+          <div class="task-review-head">
+            <span class="task-review-num">№ 9</span>
+            <span class="task-review-name">Правописание корней</span>
+          </div>
+          <div class="task-review-badge-row">
+            <span class="task-review-badge task-review-badge-warn">Нужна работа</span>
+            <span class="task-review-date">сегодня</span>
+          </div>
+          <div class="task-review-stats">
+            <div class="task-review-stat">
+              <span class="task-review-stat-val">12</span>
+              <span class="task-review-stat-lbl">попыток</span>
+            </div>
+            <div class="task-review-stat">
+              <span class="task-review-stat-val text-success">8</span>
+              <span class="task-review-stat-lbl">верно</span>
+            </div>
+            <div class="task-review-stat">
+              <span class="task-review-stat-val" style="color:var(--color-error)">4</span>
+              <span class="task-review-stat-lbl">неверно</span>
+            </div>
+          </div>
+          <div class="task-review-actions">
+            <button class="btn btn-sm">Тренировать</button>
+          </div>
+        </div>
+        <span class="uik-label">.task-review-card</span>
+      </div>
+
+      <!-- practice-card -->
+      <div class="uik-item">
+        <button class="practice-card">
+          <span class="practice-card-icon">📝</span>
+          <span class="practice-card-body">
+            <strong>Быстрая практика</strong>
+            <small>Случайные задания по теме</small>
+          </span>
+        </button>
+        <span class="uik-label">.practice-card</span>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       6. БЕЙДЖИ И ЧИПЫ
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Бейджи и чипы</h2>
+
+    <div class="uik-row" style="margin-bottom:24px;flex-wrap:wrap">
+      <div class="uik-item">
+        <span class="primary-badge">Основной</span>
+        <span class="uik-label">.primary-badge</span>
+      </div>
+      <div class="uik-item">
+        <span class="profile-role-badge badge-student">Ученик</span>
+        <span class="uik-label">.badge-student</span>
+      </div>
+      <div class="uik-item">
+        <span class="profile-role-badge badge-teacher">Учитель</span>
+        <span class="uik-label">.badge-teacher</span>
+      </div>
+      <div class="uik-item">
+        <span class="task-review-badge task-review-badge-ok">Отлично</span>
+        <span class="uik-label">.task-review-badge-ok</span>
+      </div>
+      <div class="uik-item">
+        <span class="task-review-badge task-review-badge-warn">Ошибка</span>
+        <span class="uik-label">.task-review-badge-warn</span>
+      </div>
+      <div class="uik-item">
+        <span class="practice-step-badge">5 из 10</span>
+        <span class="uik-label">.practice-step-badge</span>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px">Чипы заданий (.lp-task-chip)</p>
+    <div class="uik-row">
+      <a href="#" class="lp-task-chip lp-task-chip--punct">
+        <span class="lp-task-chip__num">17</span>
+        <span class="lp-task-chip__pill"><span class="lp-task-chip__label">Запятые в тексте</span></span>
+      </a>
+      <a href="#" class="lp-task-chip lp-task-chip--orth">
+        <span class="lp-task-chip__num">9</span>
+        <span class="lp-task-chip__pill"><span class="lp-task-chip__label">Правописание корней</span></span>
+      </a>
+    </div>
+
+    <hr class="uik-divider">
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px">Статусы ДЗ (.hw-status-*)</p>
+    <div class="uik-row">
+      <div class="uik-item hw-status-pending">
+        <span class="hw-status-badge">В ожидании</span>
+        <span class="uik-label">.hw-status-pending</span>
+      </div>
+      <div class="uik-item hw-status-submitted">
+        <span class="hw-status-badge">Сдано</span>
+        <span class="uik-label">.hw-status-submitted</span>
+      </div>
+      <div class="uik-item hw-status-reviewed">
+        <span class="hw-status-badge">Проверено</span>
+        <span class="uik-label">.hw-status-reviewed</span>
+      </div>
+    </div>
+
+    <hr class="uik-divider">
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px">Паронимы для повторения (.pf-chip)</p>
+    <div class="paronym-favs-grid">
+      <span class="pf-chip">надевать</span>
+      <span class="pf-chip">одевать</span>
+      <span class="pf-chip">эффектный</span>
+      <span class="pf-chip">эффективный</span>
+      <span class="pf-chip">экономный</span>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       7. ОБРАТНАЯ СВЯЗЬ
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Обратная связь</h2>
+
+    <div class="uik-feedback-row" style="max-width:560px">
+      <div class="uik-item">
+        <div class="feedback feedback--ok">Верно! Ответ: 1, 3, 5</div>
+        <span class="uik-label">.feedback--ok</span>
+      </div>
+      <div class="uik-item">
+        <div class="feedback feedback--bad">Неверно. Попробуйте ещё раз.</div>
+        <span class="uik-label">.feedback--bad</span>
+      </div>
+    </div>
+
+    <hr class="uik-divider">
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px">Предупреждение (.task9-validation-warn)</p>
+    <div class="task9-validation-warn visible" style="max-width:400px">
+      Выберите хотя бы одну строку с ответом
+    </div>
+
+    <hr class="uik-divider">
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px">Прогресс-бар (.practice-progress-bar)</p>
+    <div class="practice-progress-wrap" style="max-width:400px">
+      <div class="practice-progress-bar">
+        <div class="practice-progress-fill" style="width:60%"></div>
+      </div>
+      <span class="practice-progress-text">6 / 10</span>
+    </div>
+
+    <hr class="uik-divider">
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px">Полоса мастерства (.mastery-bar)</p>
+    <div class="mastery-bar-wrap" style="max-width:320px">
+      <div class="mastery-bar">
+        <div class="mastery-fill" style="width:72%"></div>
+      </div>
+      <span class="mastery-label">72%</span>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       8. НАВИГАЦИЯ И ВКЛАДКИ
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Навигация и вкладки</h2>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px">Хедер (.site-header)</p>
+    <div class="nav-demo" style="margin-bottom:28px">
+      <a href="#" class="site-nav__link">Главная</a>
+      <a href="#" class="site-nav__link">Задания</a>
+      <a href="#" class="site-nav__link">Теория</a>
+      <a href="#" class="site-nav__link">Прогресс</a>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px">Admin tabs (.admin-tabs)</p>
+    <div class="admin-tabs" style="margin-bottom:28px">
+      <button class="admin-tab active">Задания</button>
+      <button class="admin-tab">Темы</button>
+      <button class="admin-tab">Типы</button>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px">Вкладки профиля (.weak-tabs-bar)</p>
+    <div class="weak-tabs-bar" style="margin-bottom:28px">
+      <button class="weak-tab active">Орфография <span class="weak-tab-count">12</span></button>
+      <button class="weak-tab">Пунктуация <span class="weak-tab-count">5</span></button>
+      <button class="weak-tab">Всё <span class="weak-tab-count">17</span></button>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px">Login tabs (.login-tabs)</p>
+    <div class="login-tabs" style="max-width:320px;margin-bottom:28px">
+      <button class="login-tab active">Вход</button>
+      <button class="login-tab">Регистрация</button>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px">Хлебные крошки (.breadcrumbs)</p>
+    <nav class="breadcrumbs">
+      <ul class="breadcrumbs__list">
+        <li class="breadcrumbs__item">
+          <a href="#" class="breadcrumbs__link">Главная</a>
+          <span class="breadcrumbs__separator">/</span>
+        </li>
+        <li class="breadcrumbs__item">
+          <a href="#" class="breadcrumbs__link">Задания</a>
+          <span class="breadcrumbs__separator">/</span>
+        </li>
+        <li class="breadcrumbs__item">
+          <span class="breadcrumbs__current">Задание 17</span>
+        </li>
+      </ul>
+    </nav>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       9. МОДАЛКИ
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Модалки (inline-пример)</h2>
+
+    <div style="position:relative;max-width:560px">
+      <div style="background:rgba(10,14,39,0.6);border-radius:16px;padding:16px;pointer-events:none">
+        <div class="modal-content" style="position:relative;max-width:100%;animation:none">
+          <div class="modal-header">
+            <h3>Заголовок модалки</h3>
+            <button class="modal-close">×</button>
+          </div>
+          <div style="padding:24px">
+            <p style="margin:0;font-size:14px;color:var(--text-secondary)">Содержимое модального окна. Можно разместить форму или подтверждение действия.</p>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary">Отмена</button>
+            <button class="btn">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       10. СОСТОЯНИЯ СТРОК ОТВЕТА
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Ответы и результаты (задание 9)</h2>
+
+    <div class="task-card" style="max-width:520px">
+      <div class="task9-all-rows">
+        <div class="task9-line">
+          <button class="task9-num-square">1</button>
+          <div class="task9-words-row">
+            <span class="task9-word">пр<input type="text" placeholder="_" maxlength="1">дложение</span>
+            <span class="task9-word">з<input type="text" placeholder="_" maxlength="1">рница</span>
+          </div>
+        </div>
+        <div class="task9-line result-correct">
+          <button class="task9-num-square result-num-correct selected">2</button>
+          <div class="task9-words-row">
+            <span class="task9-word">к<input class="letter-correct" type="text" value="о" maxlength="1">сить</span>
+          </div>
+        </div>
+        <div class="task9-line result-incorrect">
+          <button class="task9-num-square result-num-incorrect">3</button>
+          <div class="task9-words-row">
+            <span class="task9-word">г<input class="letter-incorrect" type="text" value="а" maxlength="1">реть</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       11. СТИЛИ ТЕКСТА (editor-content)
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Рендер контента (.editor-content)</h2>
+
+    <div class="task-card" style="max-width:600px">
+      <div class="editor-content">
+        <h3>Пример заголовка задания</h3>
+        <p>Основной текст задания. <strong>Жирное</strong> слово и <em>курсивное</em> слово. <mark>Выделенный</mark> фрагмент.</p>
+        <blockquote>
+          Цитата из литературного произведения. <cite>— А.С. Пушкин</cite>
+        </blockquote>
+        <ul>
+          <li>Первый пункт списка</li>
+          <li>Второй пункт списка</li>
+        </ul>
+        <hr>
+        <p style="font-size:14px;color:var(--text-secondary)">Примечание: подсказка или пояснение к заданию.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       12. МЕТКА ЗАДАНИЯ
+  ═══════════════════════════════════════ -->
+  <section class="uik-section">
+    <h2 class="uik-section-title">Мета-информация задания</h2>
+    <div class="task-meta">
+      <span class="task-meta__number">№ 17</span>
+      <span class="task-meta__source" style="font-size:14px;color:var(--text-secondary)">Вариант 2024 · ЕГЭ</span>
+    </div>
+  </section>
+
+</div><!-- /uik-page -->
+
+<script src="/js/app.js"></script>
+<script>
+  // Simple tab switching demo
+  document.querySelectorAll('.admin-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.admin-tabs').querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.login-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.login-tabs').querySelectorAll('.login-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.weak-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.weak-tabs-bar').querySelectorAll('.weak-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

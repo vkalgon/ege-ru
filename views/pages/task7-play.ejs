@@ -1,0 +1,164 @@
+<div class="task-page" id="task7-play">
+  <h2 class="task-page__title">Задание №7 — Морфологические нормы</h2>
+  <div class="task17-wrapper">
+    <div class="task9-column">
+      <div id="task7-container">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.t7-phrases-wrap { display: flex; flex-direction: column; gap: 10px; }
+
+.t7-phrase-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  transition: border-color .25s, background .25s;
+}
+.t7-phrase-num {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--glass-border);
+  color: var(--text-secondary);
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.t7-phrase-text { flex: 1; }
+.t7-hl {
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.t7-phrase-item.state-error  { border-color: #D69295; }
+.t7-phrase-item.state-ok     { border-color: var(--brand); }
+.t7-phrase-item.state-error .t7-phrase-num { background: rgba(214,146,149,.2); color: #D69295; }
+.t7-phrase-item.state-ok    .t7-phrase-num { background: var(--brand-muted); color: var(--brand); }
+</style>
+
+<script src="/js/task-card-shell.js"></script>
+<script>
+const TASK_ID = <%- taskId %>;
+const UID = 't7-' + TASK_ID;
+let taskData = null;
+
+const escHtml = TaskCardShell.escHtml;
+
+function highlightCaps(phrase) {
+  return escHtml(phrase).replace(/\b([А-ЯЁA-Z]{2,})\b/g, '<span class="t7-hl">$1</span>');
+}
+
+function renderPhrasesHtml(items, resultItems) {
+  return items.map(it => {
+    let stateClass = '';
+    let extraHtml = '';
+
+    if (resultItems) {
+      const ri = resultItems.find(r => r.item_index === it.item_index);
+      if (ri && ri.is_error) {
+        stateClass = 'state-error';
+        extraHtml = `<div style="margin-top:8px;font-size:13px;color:#D69295;">
+          Ошибка → правильная форма: <strong style="color:var(--brand)">${escHtml(ri.correct_form)}</strong>
+        </div>`;
+      } else {
+        stateClass = 'state-ok';
+      }
+    }
+
+    return `<div class="t7-phrase-item ${stateClass}" data-index="${it.item_index}">
+      <div class="t7-phrase-num">${it.item_index}</div>
+      <div class="t7-phrase-text">${highlightCaps(it.display_phrase)}${extraHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCard(task) {
+  const bodyHtml = `
+    <p class="task-prompt" style="margin:0;">
+      В одном из выделенных ниже слов допущена ошибка в образовании формы слова.
+      Исправьте ошибку и запишите слово правильно.
+    </p>
+    <div class="t7-phrases-wrap" id="t7-phrases-${TASK_ID}">
+      ${renderPhrasesHtml(task.items)}
+    </div>`;
+
+  const controlsHtml = `
+    <input id="t7-input-${TASK_ID}" class="task-input" type="text"
+           placeholder="Введите правильную форму слова…"
+           autocomplete="off" autocorrect="off" spellcheck="false">
+    <button id="t7-check-${TASK_ID}" class="task-send">Проверить</button>
+    <a href="/task7" class="btn btn-secondary task9-back-btn">← К списку</a>`;
+
+  return TaskCardShell.buildCardShell({ taskNum: 7, taskId: TASK_ID, bodyHtml, controlsHtml, uid: UID });
+}
+
+async function loadTask() {
+  const container = document.getElementById('task7-container');
+  try {
+    const res = await fetch(`/api/task7/tasks/${TASK_ID}/play`);
+    if (!res.ok) throw new Error('Задание не найдено');
+    taskData = await res.json();
+    container.innerHTML = renderCard(taskData);
+    initCard();
+  } catch (e) {
+    container.innerHTML = `<div class="task-card task17-card"><div class="task-content">
+      <p style="color:#D69295;margin:0;">${escHtml(e.message)}</p>
+    </div></div>`;
+  }
+}
+
+function initCard() {
+  const input = document.getElementById('t7-input-' + TASK_ID);
+  const btn   = document.getElementById('t7-check-' + TASK_ID);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); btn.click(); }
+  });
+  btn.addEventListener('click', checkAnswer);
+}
+
+async function checkAnswer() {
+  const input = document.getElementById('t7-input-' + TASK_ID);
+  const btn   = document.getElementById('t7-check-' + TASK_ID);
+  const answer = input.value.trim();
+  if (!answer) { input.focus(); return; }
+
+  btn.disabled = true;
+  try {
+    const resp = await fetch(`/api/task7/tasks/${TASK_ID}/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer }),
+    }).then(r => r.json());
+
+    const phrasesWrap = document.getElementById('t7-phrases-' + TASK_ID);
+    if (phrasesWrap) phrasesWrap.innerHTML = renderPhrasesHtml(taskData.items, resp.items);
+
+    TaskCardShell.lockCard(UID);
+
+    const answerLine = `<p style="margin:0;font-size:15px;">Правильная форма: <strong style="color:var(--brand);">${escHtml(resp.correct_answer)}</strong></p>`;
+    const errorLine = resp.is_correct
+      ? ''
+      : `<p style="margin:0;font-size:14px;color:var(--text-secondary);">Ошибка в словосочетании №${resp.error_item_index}.</p>`;
+    const navHtml = `<div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="/task7" class="btn btn-secondary">← Другое задание</a>
+      <button class="btn btn-secondary" onclick="location.reload()">Попробовать ещё раз</button>
+    </div>`;
+
+    TaskCardShell.showResult(UID, resp.is_correct, answerLine + errorLine + navHtml);
+  } catch (e) {
+    btn.disabled = false;
+    alert('Ошибка при проверке. Попробуйте ещё раз.');
+  }
+}
+
+loadTask();
+</script>

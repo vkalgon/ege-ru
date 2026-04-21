@@ -1,0 +1,837 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Задание №12 — Управление</h2>
+
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('words',this)">Словарь слов</button>
+    <button class="tab-btn" onclick="switchTab('tasks',this)">Готовые задания</button>
+    <button class="tab-btn" onclick="switchTab('generate',this)">Генерация</button>
+    <button class="tab-btn" onclick="switchTab('groups',this)">Группы вариантов</button>
+  </div>
+
+  <!-- ══ ВКЛАДКА: СЛОВАРЬ ══════════════════════════════════ -->
+  <div id="tab-words">
+    <div class="admin-section">
+      <h3>Добавить слово</h3>
+
+      <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:1.6;">
+        <strong>Пары букв:</strong><br>
+        <b>е/и</b> — окончания 1/2 л. ед.ч. (пиш<b>..</b>шь / стро<b>..</b>шь) и суффиксы страд. причастий (-ем- / -им-)<br>
+        <b>у/а</b> — 3 л. мн.ч. с твёрд. согл. (они пиш<b>..</b>т / дыш<b>..</b>т) и действит. причастия (пиш<b>..</b>щий / дыш<b>..</b>щий)<br>
+        <b>ю/я</b> — 3 л. мн.ч. с мягк. согл. (они бор<b>..</b>тся / стро<b>..</b>т) и действит. причастия (бор<b>..</b>щийся / стро<b>..</b>щий)<br>
+        <b>Тип «ВШ — отвлекатель»</b> — действит. прич. прош. вр.: переносим <em>любую</em> букву из н.ф. (написАть → написАвший, построИть → построИвший)<br>
+        <b>Тип «НН — отвлекатель»</b> — страдат. прич. прош. вр.: -ать/-ять → -анн-/-янн-, иначе → -енн- (написАнный, построЕнный)
+      </div>
+
+      <form id="word-form" class="admin-form">
+        <input type="hidden" id="word-id">
+        <div class="word-form-grid">
+          <div class="form-group">
+            <label>Слово с пропуском</label>
+            <input type="text" id="word-display" placeholder="пиш..т" required oninput="onWordDisplayInput()">
+            <div style="color:var(--text-secondary);font-size:12px;margin-top:4px;">Используйте <code>..</code> для пропуска</div>
+            <div id="dup-warning" style="display:none;margin-top:4px;font-size:12px;color:#f59e0b;"></div>
+          </div>
+          <div class="form-group">
+            <label>Правильная буква
+              <span id="letter-auto-badge" style="display:none;margin-left:6px;font-size:11px;font-weight:400;color:var(--text-secondary);background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:4px;padding:1px 6px;">авто</span>
+              <button type="button" id="letter-reset-btn" onclick="resetLetterManual()" style="display:none;margin-left:6px;font-size:11px;font-weight:400;background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:0;text-decoration:underline;">сбросить</button>
+            </label>
+            <select id="word-letter" required onchange="onLetterManual()">
+              <option value="">—</option>
+              <option value="е">е</option>
+              <option value="и">и</option>
+              <option value="у">у</option>
+              <option value="ю">ю</option>
+              <option value="а">а</option>
+              <option value="я">я</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Пара букв</label>
+            <select id="word-pair" required onchange="autoFillRule()">
+              <option value="">—</option>
+              <option value="е/и">е / и</option>
+              <option value="у/а">у / а</option>
+              <option value="ю/я">ю / я</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Тип формы</label>
+            <select id="word-form-type" required onchange="onFormTypeManual()">
+              <option value="">—</option>
+              <option value="verb">Глагол (личное окончание)</option>
+              <option value="active_part">Действит. причастие (-ущ/-ющ/-ащ/-ящ-)</option>
+              <option value="passive_part">Страдат. причастие (-ем-/-им-)</option>
+              <option value="wsh">ВШ — отвлекатель (переносим букву н.ф.)</option>
+              <option value="nn">НН — отвлекатель (-анн-/-янн-/-енн-)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Спряжение
+              <span id="conj-auto-badge" style="display:none;margin-left:6px;font-size:11px;font-weight:400;color:var(--text-secondary);background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:4px;padding:1px 6px;">авто</span>
+              <button type="button" id="conj-reset-btn" onclick="resetConjManual()" style="display:none;margin-left:6px;font-size:11px;font-weight:400;background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:0;text-decoration:underline;">сбросить</button>
+            </label>
+            <select id="word-conjugation" onchange="onConjChange()">
+              <option value="">— (для ВШ/НН не нужно)</option>
+              <option value="1">I спряжение</option>
+              <option value="2">II спряжение</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Инфинитив</label>
+            <input type="text" id="word-base-verb" placeholder="писать" oninput="onBaseVerbInput()">
+          </div>
+          <div class="form-group">
+            <label>Правило / пояснение
+              <span id="rule-auto-badge" style="display:none;margin-left:6px;font-size:11px;font-weight:400;color:var(--text-secondary);background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:4px;padding:1px 6px;">авто</span>
+            </label>
+            <input type="text" id="word-rule" placeholder="заполнится автоматически" oninput="onRuleInput()">
+          </div>
+        </div>
+
+        <div id="extra-group" style="margin-top:12px;">
+          <div class="form-group" style="max-width:320px;">
+            <label>Группа вариантов <span style="color:var(--text-secondary);font-weight:400;">(ID или пусто)</span></label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="number" id="word-group-id" placeholder="—" min="1" style="width:80px;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-new-group" style="display:none;" onclick="createNewGroup12()">Новая группа</button>
+              <span id="group-hint" style="font-size:13px;color:var(--text-secondary);"></span>
+            </div>
+            <div id="group-auto-hint" style="font-size:12px;margin-top:4px;"></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button type="submit" class="btn" id="word-submit-btn">Добавить</button>
+          <button type="button" class="btn btn-secondary" id="word-cancel-btn" style="display:none;" onclick="cancelWordEdit12()">Отмена</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Фильтры -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:720px;margin-bottom:16px;">
+      <div class="form-group">
+        <label>Фильтр: пара букв</label>
+        <select id="filter-pair" onchange="loadWords12()">
+          <option value="">Все</option>
+          <option value="е/и">е / и</option>
+          <option value="у/а">у / а</option>
+          <option value="ю/я">ю / я</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Фильтр: тип формы</label>
+        <select id="filter-form-type" onchange="loadWords12()">
+          <option value="">Все</option>
+          <option value="verb">Глаголы</option>
+          <option value="active_part">Действит. причастия</option>
+          <option value="passive_part">Страдат. причастия</option>
+          <option value="wsh">ВШ (отвлекатели)</option>
+          <option value="nn">НН (отвлекатели)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Сортировка</label>
+        <select id="filter-sort" onchange="loadWords12()">
+          <option value="">По алфавиту</option>
+          <option value="recent">Сначала новые</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="admin-section" style="overflow-x:auto;">
+      <table class="admin-table" id="words-table" style="table-layout:auto;width:100%;">
+        <thead>
+          <tr>
+            <th>Слово</th><th>Буква</th><th>Правило</th>
+            <th>Спр.</th><th>Инфинитив</th><th>Группа</th><th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="words-tbody">
+          <tr><td colspan="7" style="color:var(--text-secondary);">Загрузка...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ЗАДАНИЯ ══════════════════════════════════ -->
+  <div id="tab-tasks" style="display:none;">
+    <div class="admin-section">
+      <h3>Список заданий</h3>
+      <div id="tasks-list" style="display:flex;flex-direction:column;gap:8px;">
+        <p style="color:var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ГЕНЕРАЦИЯ ════════════════════════════════ -->
+  <div id="tab-generate" style="display:none;">
+    <div class="admin-section">
+      <h3>Сгенерировать задание</h3>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">
+        Задание создаётся автоматически из словаря. Правильные строки — два слова с одной буквой и одним спряжением; в неправильных — разные буквы в паре.
+      </p>
+      <div style="display:grid;grid-template-columns:minmax(320px,1fr) minmax(200px,260px);gap:12px;max-width:900px;margin-bottom:16px;align-items:start;">
+        <div class="form-group">
+          <label>Пары букв</label>
+          <div class="task10-check-grid" style="margin-bottom:12px;">
+            <label><input type="checkbox" class="task12-gen-pair-cb" value="е/и"> е / и</label>
+            <label><input type="checkbox" class="task12-gen-pair-cb" value="у/а"> у / а</label>
+            <label><input type="checkbox" class="task12-gen-pair-cb" value="ю/я"> ю / я</label>
+          </div>
+          <label>Тип формы</label>
+          <div class="task10-check-grid">
+            <label><input type="checkbox" class="task12-gen-form-cb" value="verb"> глаголы</label>
+            <label><input type="checkbox" class="task12-gen-form-cb" value="active_part"> действит. причастия</label>
+            <label><input type="checkbox" class="task12-gen-form-cb" value="passive_part"> страдат. причастия</label>
+            <label><input type="checkbox" class="task12-gen-form-cb" value="wsh"> ВШ отвлекатели</label>
+            <label><input type="checkbox" class="task12-gen-form-cb" value="nn"> НН отвлекатели</label>
+          </div>
+          <div style="margin-top:8px;color:var(--text-secondary);font-size:12px;">Если ничего не отмечено в блоках выше — используются все пары и все типы.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="form-group">
+            <label>Правильных строк</label>
+            <div class="task10-check-grid task10-count-grid">
+              <label><input type="checkbox" class="task10-count-checkbox" value="any_2_4" checked> любое от 2 до 4</label>
+              <label><input type="checkbox" class="task10-count-checkbox" value="2"> 2</label>
+              <label><input type="checkbox" class="task10-count-checkbox" value="3"> 3</label>
+              <label><input type="checkbox" class="task10-count-checkbox" value="4"> 4</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Количество заданий</label>
+            <input type="number" id="gen-tasks-count" min="1" max="20" value="1">
+          </div>
+        </div>
+      </div>
+      <button class="btn" id="btn-generate-task" type="button">Сгенерировать и сохранить</button>
+      <div id="gen-result" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="admin-section" style="margin-top:32px;">
+      <h3>Сгенерированные задания</h3>
+      <div id="gen-tasks-list" style="display:flex;flex-direction:column;gap:8px;">
+        <p style="color:var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ГРУППЫ ════════════════════════════════════ -->
+  <div id="tab-groups" style="display:none;">
+    <div class="admin-section">
+      <h3>Группы вариантов одного глагола</h3>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">
+        Все формы одного глагола объединяются в группу. В одном задании из группы используется только одно слово.
+      </p>
+      <div id="groups-list" style="display:flex;flex-direction:column;gap:12px;">
+        <p style="color:var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.admin-table th, .admin-table td {
+  padding: 10px 12px; text-align: left;
+  border-bottom: 1px solid var(--glass-border);
+}
+.admin-table th { color: var(--text-secondary); font-weight: 600; }
+.admin-table td { word-break: break-word; }
+.word-form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 2fr;
+  gap: 12px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .word-form-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+
+<script src="/js/admin-task-shared.js"></script>
+<script>
+const escHtml = (s) => AdminTasks.escHtml(s);
+
+const FORM_LABELS = {
+  verb: 'глагол', active_part: 'действит. прич.',
+  passive_part: 'страдат. прич.', wsh: 'ВШ', nn: 'НН'
+};
+
+function formRuleLabel(w) {
+  if (w.form_type === 'wsh') return 'ВШ';
+  if (w.form_type === 'nn')  return 'НН';
+  if (w.form_type === 'passive_part') {
+    return w.conjugation === '1' ? '-ем-' : w.conjugation === '2' ? '-им-' : '-ем-/-им-';
+  }
+  if (w.form_type === 'active_part') {
+    const m = { '1': { 'у/а': '-ущ-', 'ю/я': '-ющ-' }, '2': { 'у/а': '-ащ-', 'ю/я': '-ящ-' } };
+    return (w.conjugation && w.vowel_pair && m[w.conjugation]?.[w.vowel_pair])
+      ? m[w.conjugation][w.vowel_pair]
+      : '-ущ/-ющ/-ащ/-ящ-';
+  }
+  if (w.form_type === 'verb') {
+    if (w.vowel_pair === 'е/и') return w.conjugation === '1' ? '-е-' : w.conjugation === '2' ? '-и-' : '-е-/-и-';
+    const m3 = { '1': { 'у/а': '-ут', 'ю/я': '-ют' }, '2': { 'у/а': '-ат', 'ю/я': '-ят' } };
+    return (w.conjugation && w.vowel_pair && m3[w.conjugation]?.[w.vowel_pair])
+      ? m3[w.conjugation][w.vowel_pair]
+      : '-ут/-ют/-ат/-ят';
+  }
+  return '—';
+}
+
+/* ── вкладки ────────────────────────────────────────────── */
+const switchTab = AdminTasks.createSwitchTab({
+  tabIds: ['words', 'tasks', 'generate', 'groups'],
+  onShow: {
+    words() { loadWords12(); },
+    tasks() { loadTasks12(); },
+    generate() { loadGenTasks12(); },
+    groups() { loadGroups12(); },
+  },
+});
+
+/* ── исключения ─────────────────────────────────────────── */
+const II_EXCEPTIONS = new Set([
+  'гнать','держать','дышать','вертеть','слышать','видеть',
+  'ненавидеть','зависеть','терпеть','смотреть','обидеть'
+]);
+const I_EXCEPTIONS = new Set(['брить','стелить','зиждиться','зыбиться']);
+
+function detectConjugation(verb) {
+  if (!verb) return null;
+  const v = verb.toLowerCase().trim();
+  if (II_EXCEPTIONS.has(v)) return '2';
+  if (I_EXCEPTIONS.has(v))  return '1';
+  if (v.endsWith('ить'))    return '2';
+  return '1';
+}
+
+/* ── проверка дублей при вводе слова ───────────────────── */
+let _dupCheckTimer = null;
+function onWordDisplayInput() {
+  autoDetectFormType();
+  clearTimeout(_dupCheckTimer);
+  const display = document.getElementById('word-display').value.trim();
+  const warn    = document.getElementById('dup-warning');
+  if (!display || !display.includes('..')) { warn.style.display = 'none'; return; }
+  _dupCheckTimer = setTimeout(async () => {
+    try {
+      const res = await fetch('/api/task12/words?word_display=' + encodeURIComponent(display));
+      const found = await res.json();
+      const editId = document.getElementById('word-id').value;
+      const dups = found.filter(w => String(w.id) !== String(editId));
+      if (dups.length) {
+        const info = dups.map(w => '«' + (w.base_verb || '?') + '», группа ' + (w.word_group_id || '—')).join('; ');
+        warn.textContent = '⚠ Уже есть: ' + info;
+        warn.style.display = '';
+      } else {
+        warn.style.display = 'none';
+      }
+    } catch { warn.style.display = 'none'; }
+  }, 400);
+}
+
+/* ── авто-определение типа по суффиксу после .. ─────────── */
+function autoDetectFormType() {
+  const display  = document.getElementById('word-display').value;
+  const formEl   = document.getElementById('word-form-type');
+  if (formEl.dataset.manual === '1') return;
+
+  const idx = display.indexOf('..');
+  if (idx === -1) return;
+
+  const after = display.slice(idx + 2).toLowerCase().trim();
+
+  let detected = '';
+  if (/^вш/.test(after))                    detected = 'wsh';
+  else if (/^нн/.test(after))               detected = 'nn';
+  else if (/^[ую]щ/.test(after))            detected = 'active_part'; // -ущ-/-ющ-
+  else if (/^[аяА-Я]щ/.test(after))         detected = 'active_part'; // -ащ-/-ящ-
+  else if (/^щ/.test(after))                detected = 'active_part';
+  else if (/^(ем|им|м[ыаоуё])/.test(after)) detected = 'passive_part';
+  else if (/^[тшмшьете]/.test(after) || /^[а-я]{1,3}$/.test(after)) detected = 'verb';
+
+  if (detected && detected !== formEl.value) {
+    formEl.value = detected;
+    autoFillRule();
+  }
+}
+
+function onFormTypeManual() {
+  document.getElementById('word-form-type').dataset.manual = '1';
+  autoFillRule();
+}
+
+/* ── авто-выбор пары по букве ───────────────────────────── */
+function autoSelectPair() {
+  const letter = document.getElementById('word-letter').value;
+  const pairEl = document.getElementById('word-pair');
+  const auto = { е:'е/и', и:'е/и', у:'у/а', а:'у/а', ю:'ю/я', я:'ю/я' };
+  if (auto[letter]) pairEl.value = auto[letter];
+  autoFillRule();
+}
+
+/* ── авто-формирование правила ──────────────────────────── */
+function autoFillRule() {
+  const formType = document.getElementById('word-form-type').value;
+  const pair     = document.getElementById('word-pair').value;
+  const baseVerb = document.getElementById('word-base-verb').value.trim();
+  const ruleEl   = document.getElementById('word-rule');
+  const badge    = document.getElementById('rule-auto-badge');
+  const conjEl   = document.getElementById('word-conjugation');
+
+  // Для ВШ/НН спряжение не нужно — скрываем поле
+  const conjGroup = conjEl.closest('.form-group');
+  if (formType === 'wsh' || formType === 'nn') {
+    conjEl.value = '';
+    conjEl.dataset.manual = '0';
+    conjGroup.style.display = 'none';
+  } else {
+    conjGroup.style.display = '';
+  }
+
+  if (ruleEl.dataset.manual === '1') return;
+
+  // Автоопределяем спряжение только если не выбрано вручную
+  const detectedConj = detectConjugation(baseVerb);
+  if (detectedConj && conjEl.dataset.manual !== '1') {
+    setConjAuto(detectedConj);
+  }
+  const conj = conjEl.value || detectedConj || '';
+
+  const vLower = baseVerb.toLowerCase();
+  const isException = II_EXCEPTIONS.has(vLower) || I_EXCEPTIONS.has(vLower);
+  const exceptPart  = isException ? ' (исключение)' : '';
+  const verbPart    = baseVerb ? ' «' + baseVerb + '»' + exceptPart : '';
+
+  let rule = '';
+  if (formType === 'verb') {
+    if (pair === 'е/и') {
+      if (conj === '1')      rule = 'I спр.' + verbPart + ': личное окончание -е-';
+      else if (conj === '2') rule = 'II спр.' + verbPart + ': личное окончание -и-';
+      else                   rule = 'личное окончание (е/и)' + verbPart;
+    } else if (pair === 'у/а' || pair === 'ю/я') {
+      const suf1 = pair === 'у/а' ? '-ут' : '-ют';
+      const suf2 = pair === 'у/а' ? '-ат' : '-ят';
+      if (conj === '1')      rule = 'I спр.' + verbPart + ': 3 л. мн.ч. ' + suf1;
+      else if (conj === '2') rule = 'II спр.' + verbPart + ': 3 л. мн.ч. ' + suf2;
+      else                   rule = '3 л. мн.ч.' + verbPart;
+    }
+  } else if (formType === 'active_part') {
+    const suffMap = { '1':{'у/а':'-ущ-','ю/я':'-ющ-'}, '2':{'у/а':'-ащ-','ю/я':'-ящ-'} };
+    const suf = conj && pair ? (suffMap[conj]?.[pair] || '') : '';
+    const cl  = conj === '1' ? 'I спр.' : conj === '2' ? 'II спр.' : '';
+    if (cl) rule = cl + verbPart + ': суффикс ' + (suf || '(-ущ/-ющ/-ащ/-ящ-)') + ' действит. прич.';
+    else    rule = 'действит. причастие' + verbPart;
+  } else if (formType === 'passive_part') {
+    if (conj === '1')      rule = 'I спр.' + verbPart + ': суффикс -ем- страдат. прич.';
+    else if (conj === '2') rule = 'II спр.' + verbPart + ': суффикс -им- страдат. прич.';
+    else                   rule = 'страдат. причастие' + verbPart;
+  } else if (formType === 'wsh') {
+    // переносим букву из н.ф. как есть
+    rule = baseVerb
+      ? '«' + baseVerb + '» → переносим букву н.ф. перед -вш-'
+      : 'переносим букву н.ф. перед -вш-';
+  } else if (formType === 'nn') {
+    if (baseVerb) {
+      if (vLower.endsWith('ать'))      rule = '«' + baseVerb + '» на -ать → суффикс -анн-';
+      else if (vLower.endsWith('ять')) rule = '«' + baseVerb + '» на -ять → суффикс -янн-';
+      else                             rule = '«' + baseVerb + '» не на -ать/-ять → суффикс -енн-';
+    } else rule = 'перед -нн-: -ать/-ять → -анн-/-янн-, иначе → -енн-';
+  }
+
+  ruleEl.value = rule;
+  badge.style.display = rule ? '' : 'none';
+  autoFillLetter();
+}
+
+/* ── авто-группировка по инфинитиву ─────────────────────── */
+let _groupLookupTimer = null;
+async function onBaseVerbInput() {
+  autoFillRule();
+  clearTimeout(_groupLookupTimer);
+  const baseVerb = document.getElementById('word-base-verb').value.trim();
+  const groupEl  = document.getElementById('word-group-id');
+  const hint     = document.getElementById('group-auto-hint');
+  if (!baseVerb) { hint.textContent = ''; return; }
+
+  _groupLookupTimer = setTimeout(async () => {
+    try {
+      const res = await fetch('/api/task12/words?base_verb=' + encodeURIComponent(baseVerb));
+      const words = await res.json();
+      const withGroup = words.filter(w => w.word_group_id);
+      if (withGroup.length) {
+        const gid = withGroup[0].word_group_id;
+        if (!groupEl.value) groupEl.value = gid;
+        hint.textContent = '→ группа ' + gid + ' (' + withGroup.length + ' слов с «' + baseVerb + '»)';
+        hint.style.color = 'var(--text-secondary)';
+      } else if (words.length) {
+        hint.textContent = '→ есть слова с «' + baseVerb + '», но без группы — создайте группу';
+        hint.style.color = '#f59e0b';
+      } else {
+        // Новый инфинитив — назначаем следующую свободную группу
+        try {
+          const ngRes = await fetch('/api/task12/words/next-group-id');
+          const { next_id } = await ngRes.json();
+          if (!groupEl.value) groupEl.value = next_id;
+          hint.textContent = '→ новый инфинитив, назначена группа ' + next_id;
+        } catch {
+          hint.textContent = '→ новый инфинитив';
+        }
+        hint.style.color = 'var(--text-secondary)';
+      }
+    } catch {}
+  }, 400);
+}
+
+function onRuleInput() {
+  const ruleEl = document.getElementById('word-rule');
+  const badge  = document.getElementById('rule-auto-badge');
+  if (ruleEl.value === '') {
+    ruleEl.dataset.manual = '0';
+    badge.style.display = 'none';
+  } else {
+    ruleEl.dataset.manual = '1';
+    badge.style.display = 'none';
+  }
+}
+
+/* ── спряжение: авто / ручное ───────────────────────────── */
+function setConjAuto(value) {
+  const conjEl    = document.getElementById('word-conjugation');
+  const badge     = document.getElementById('conj-auto-badge');
+  const resetBtn  = document.getElementById('conj-reset-btn');
+  conjEl.value = value;
+  conjEl.dataset.manual = '0';
+  badge.style.display = value ? '' : 'none';
+  resetBtn.style.display = 'none';
+}
+
+function onConjChange() {
+  const conjEl   = document.getElementById('word-conjugation');
+  const badge    = document.getElementById('conj-auto-badge');
+  const resetBtn = document.getElementById('conj-reset-btn');
+  conjEl.dataset.manual = '1';
+  badge.style.display = 'none';
+  resetBtn.style.display = conjEl.value ? '' : 'none';
+  autoFillRule();
+}
+
+function resetConjManual() {
+  const conjEl  = document.getElementById('word-conjugation');
+  const baseVerb = document.getElementById('word-base-verb').value.trim();
+  conjEl.dataset.manual = '0';
+  document.getElementById('conj-reset-btn').style.display = 'none';
+  const detected = detectConjugation(baseVerb);
+  if (detected) setConjAuto(detected);
+  autoFillRule();
+}
+
+/* ── буква: авто / ручное ───────────────────────────────── */
+function detectLetter(formType, conj, pair, baseVerb) {
+  const v = (baseVerb || '').toLowerCase().trim();
+  if (formType === 'wsh') {
+    // переносим последнюю гласную н.ф. перед -ть/-ться
+    const m = v.replace(/(ть|ться)$/, '').match(/[аеёиоуыяю](?=[^аеёиоуыяю]*$)/);
+    return m ? m[0] : null;
+  }
+  if (formType === 'nn') {
+    if (v.endsWith('ать')) return 'а';
+    if (v.endsWith('ять')) return 'я';
+    return 'е';
+  }
+  // verb / active_part / passive_part — зависит от спряжения и пары
+  const LETTER = {
+    '1': { 'е/и': 'е', 'ю/я': 'ю', 'у/а': 'у' },
+    '2': { 'е/и': 'и', 'ю/я': 'я', 'у/а': 'а' },
+  };
+  if (conj && pair) return LETTER[conj]?.[pair] || null;
+  return null;
+}
+
+function setLetterAuto(value) {
+  const el    = document.getElementById('word-letter');
+  const badge = document.getElementById('letter-auto-badge');
+  const btn   = document.getElementById('letter-reset-btn');
+  el.value = value || '';
+  el.dataset.manual = '0';
+  badge.style.display = value ? '' : 'none';
+  btn.style.display   = 'none';
+  // Обновляем пару напрямую, без вызова autoSelectPair → autoFillRule (рекурсия)
+  if (value) {
+    const pairMap = { е:'е/и', и:'е/и', у:'у/а', а:'у/а', ю:'ю/я', я:'ю/я' };
+    const pair = pairMap[value];
+    if (pair) document.getElementById('word-pair').value = pair;
+  }
+}
+
+function onLetterManual() {
+  const el    = document.getElementById('word-letter');
+  const badge = document.getElementById('letter-auto-badge');
+  const btn   = document.getElementById('letter-reset-btn');
+  el.dataset.manual = '1';
+  badge.style.display = 'none';
+  btn.style.display   = el.value ? '' : 'none';
+  autoSelectPair();
+}
+
+function resetLetterManual() {
+  document.getElementById('word-letter').dataset.manual = '0';
+  document.getElementById('letter-reset-btn').style.display = 'none';
+  autoFillLetter();
+}
+
+function autoFillLetter() {
+  const el       = document.getElementById('word-letter');
+  if (el.dataset.manual === '1') return;
+  const formType = document.getElementById('word-form-type').value;
+  const conj     = document.getElementById('word-conjugation').value;
+  const pair     = document.getElementById('word-pair').value;
+  const baseVerb = document.getElementById('word-base-verb').value.trim();
+  const letter   = detectLetter(formType, conj, pair, baseVerb);
+  if (letter) setLetterAuto(letter);
+}
+
+/* ── СЛОВАРЬ ────────────────────────────────────────────── */
+async function loadWords12() {
+  const pair     = document.getElementById('filter-pair').value;
+  const formType = document.getElementById('filter-form-type').value;
+  const sort     = document.getElementById('filter-sort').value;
+  let url = '/api/task12/words?';
+  if (pair)     url += 'vowel_pair=' + encodeURIComponent(pair) + '&';
+  if (formType) url += 'form_type=' + formType + '&';
+  if (sort)     url += 'sort=' + sort;
+
+  const res   = await fetch(url);
+  const words = await res.json();
+  const tbody = document.getElementById('words-tbody');
+
+  if (!words.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--text-secondary);">Слов нет</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = words.map(w => `
+    <tr>
+      <td style="font-size:15px;">${escHtml(w.word_display)}</td>
+      <td><strong>${escHtml(w.correct_letter)}</strong></td>
+      <td><code>${formRuleLabel(w)}</code></td>
+      <td>${w.conjugation ? w.conjugation + ' спр.' : '—'}</td>
+      <td style="color:var(--text-secondary);font-size:13px;">${escHtml(w.base_verb || '—')}</td>
+      <td style="font-size:13px;">
+        ${w.word_group_id
+          ? `<span style="background:var(--brand-muted);border:1px solid var(--glass-border);border-radius:4px;padding:2px 6px;color:var(--brand);">G${w.word_group_id}</span>`
+          : '<span style="color:var(--text-secondary);">—</span>'}
+      </td>
+      <td>
+        <button class="btn-icon" onclick="editWord12(${w.id})" title="Редактировать"><img src="/images/type=edit, size=16.svg" width="16" height="16"></button>
+        <button class="btn-icon btn-icon--delete" onclick="deleteWord12(${w.id})" title="Удалить"><img src="/images/type=delete, size=16.svg" width="16" height="16"></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+let _wordsCache = [];
+
+document.getElementById('word-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('word-id').value;
+  // Проверка дублей перед сохранением
+  const displayVal = document.getElementById('word-display').value.trim();
+  if (displayVal.includes('..')) {
+    const dupRes = await fetch('/api/task12/words?word_display=' + encodeURIComponent(displayVal));
+    const dupFound = await dupRes.json();
+    const dups = dupFound.filter(w => String(w.id) !== String(id));
+    if (dups.length) {
+      const info = dups.map(w => '«' + (w.base_verb || '?') + '», группа ' + (w.word_group_id || '—')).join('; ');
+      if (!confirm('Такое слово уже есть (' + info + ').\nВсё равно сохранить?')) return;
+    }
+  }
+  const body = {
+    word_display:   document.getElementById('word-display').value.trim(),
+    correct_letter: document.getElementById('word-letter').value,
+    vowel_pair:     document.getElementById('word-pair').value,
+    form_type:      document.getElementById('word-form-type').value,
+    conjugation:    document.getElementById('word-conjugation').value || null,
+    base_verb:      document.getElementById('word-base-verb').value.trim() || null,
+    rule:           document.getElementById('word-rule').value.trim() || null,
+    word_group_id:  document.getElementById('word-group-id').value || null,
+  };
+  const url    = id ? '/api/task12/words/' + id : '/api/task12/words';
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (data.error) { alert('Ошибка: ' + data.error); return; }
+  cancelWordEdit12();
+  document.getElementById('filter-sort').value = 'recent';
+  loadWords12();
+});
+
+async function editWord12(id) {
+  const res = await fetch('/api/task12/words?');
+  _wordsCache = await res.json();
+  const w = _wordsCache.find(x => x.id === id);
+  if (!w) return;
+  document.getElementById('word-id').value          = w.id;
+  document.getElementById('word-display').value     = w.word_display;
+  const letterEl = document.getElementById('word-letter');
+  letterEl.value = w.correct_letter;
+  letterEl.dataset.manual = '1';
+  document.getElementById('letter-auto-badge').style.display = 'none';
+  document.getElementById('letter-reset-btn').style.display = w.correct_letter ? '' : 'none';
+  document.getElementById('word-pair').value        = w.vowel_pair || '';
+  const formTypeEl = document.getElementById('word-form-type');
+  formTypeEl.value = w.form_type || '';
+  formTypeEl.dataset.manual = w.form_type ? '1' : '0';
+  const conjEl = document.getElementById('word-conjugation');
+  conjEl.value = w.conjugation || '';
+  conjEl.dataset.manual = w.conjugation ? '1' : '0';
+  document.getElementById('conj-auto-badge').style.display = 'none';
+  document.getElementById('conj-reset-btn').style.display = w.conjugation ? '' : 'none';
+  document.getElementById('word-base-verb').value   = w.base_verb || '';
+  const ruleEl = document.getElementById('word-rule');
+  ruleEl.dataset.manual = '0';
+  ruleEl.value = w.rule || '';
+  document.getElementById('rule-auto-badge').style.display = w.rule ? '' : 'none';
+  document.getElementById('word-group-id').value    = w.word_group_id || '';
+  document.getElementById('group-auto-hint').textContent = '';
+  document.getElementById('btn-new-group').style.display = '';
+  document.getElementById('word-submit-btn').textContent = 'Сохранить';
+  // Обновляем видимость полей под выбранный тип
+  autoFillRule();
+  document.getElementById('word-cancel-btn').style.display = '';
+  document.getElementById('word-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function cancelWordEdit12() {
+  document.getElementById('word-form').reset();
+  document.getElementById('word-id').value = '';
+  document.getElementById('word-rule').dataset.manual = '0';
+  document.getElementById('word-form-type').dataset.manual = '0';
+  // Возвращаем поле спряжения
+  const conjEl2 = document.getElementById('word-conjugation');
+  conjEl2.dataset.manual = '0';
+  conjEl2.closest('.form-group').style.display = '';
+  document.getElementById('conj-auto-badge').style.display = 'none';
+  document.getElementById('conj-reset-btn').style.display = 'none';
+  document.getElementById('rule-auto-badge').style.display = 'none';
+  document.getElementById('word-letter').dataset.manual = '0';
+  document.getElementById('letter-auto-badge').style.display = 'none';
+  document.getElementById('letter-reset-btn').style.display = 'none';
+  document.getElementById('group-auto-hint').textContent = '';
+  document.getElementById('btn-new-group').style.display = 'none';
+  document.getElementById('word-submit-btn').textContent = 'Добавить';
+  document.getElementById('word-cancel-btn').style.display = 'none';
+}
+
+async function deleteWord12(id) {
+  if (!confirm('Удалить слово?')) return;
+  await fetch('/api/task12/words/' + id, { method: 'DELETE' });
+  loadWords12();
+}
+
+async function createNewGroup12() {
+  const wordId = document.getElementById('word-id').value;
+  if (!wordId) { alert('Сначала выберите слово для редактирования'); return; }
+  const res = await fetch('/api/task12/words/new-group', {
+    method: 'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ word_id: Number(wordId) })
+  });
+  const data = await res.json();
+  if (data.word_group_id) {
+    document.getElementById('word-group-id').value = data.word_group_id;
+    document.getElementById('group-auto-hint').textContent = '→ создана группа ' + data.word_group_id;
+  }
+}
+
+/* ── ГОТОВЫЕ ЗАДАНИЯ ────────────────────────────────────── */
+async function loadTasks12() {
+  const res   = await fetch('/api/task12/tasks');
+  const tasks = await res.json();
+  const list  = document.getElementById('tasks-list');
+  if (!tasks.length) { list.innerHTML = '<p style="color:var(--text-secondary);">Нет заданий.</p>'; return; }
+  list.innerHTML = tasks.map(t =>
+    `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--glass-border);">
+      <span style="font-size:14px;">#${t.id} — ${t.is_generated ? 'сгенерировано' : 'ручное'} — ${t.created_at || ''}</span>
+      <a href="/task12/${t.id}" class="btn btn-secondary btn-sm" target="_blank">Открыть</a>
+      <button class="btn-icon btn-icon--delete" onclick="deleteTask12(${t.id})" title="Удалить"><img src="/images/type=delete, size=16.svg" width="16" height="16"></button>
+    </div>`
+  ).join('');
+}
+
+async function deleteTask12(id) {
+  if (!confirm('Удалить задание #' + id + '?')) return;
+  await fetch('/api/task12/tasks/' + id, { method: 'DELETE' });
+  loadTasks12();
+}
+
+/* ── ГЕНЕРАЦИЯ ──────────────────────────────────────────── */
+AdminTasks.bindGenerateButton({
+  generateUrl: '/api/task12/generate',
+  buildBody() {
+    const pairs = Array.from(document.querySelectorAll('#tab-generate .task12-gen-pair-cb:checked')).map((el) => el.value);
+    const forms = Array.from(document.querySelectorAll('#tab-generate .task12-gen-form-cb:checked')).map((el) => el.value);
+    const correctCounts = Array.from(document.querySelectorAll('#tab-generate .task10-count-checkbox:checked')).map((el) => el.value);
+    if (!correctCounts.length) return { error: 'Выберите количество правильных строк.' };
+    const body = {
+      correct_counts: correctCounts,
+      tasks_count: +document.getElementById('gen-tasks-count').value || 1,
+    };
+    if (pairs.length) body.vowel_pairs = pairs;
+    if (forms.length) body.form_types = forms;
+    return body;
+  },
+  formatSuccess(data) {
+    const n = data.count != null ? data.count : 1;
+    return (
+      '<span style="color:#A4E2D0;">✓ Создано заданий: ' +
+      n +
+      '.</span> ' +
+      '<a href="/task12/' +
+      data.id +
+      '" target="_blank" class="btn btn-sm btn-secondary" style="margin-left:12px;">Открыть первое</a>'
+    );
+  },
+  afterSuccess() { loadGenTasks12(); },
+});
+
+AdminTasks.bindExclusiveCheckboxes('#tab-generate', '.task10-count-checkbox');
+
+function loadGenTasks12() {
+  AdminTasks.renderGeneratedTasksList({
+    apiBase: '/api/task12',
+    playPath: '/task12',
+    deleteFnName: 'deleteGenTask12',
+  });
+}
+
+async function deleteGenTask12(id) {
+  const ok = await AdminTasks.deleteGeneratedTask('/api/task12', id);
+  if (ok) loadGenTasks12();
+}
+
+/* ── ГРУППЫ ─────────────────────────────────────────────── */
+async function loadGroups12() {
+  const res    = await fetch('/api/task12/words/groups');
+  const groups = await res.json();
+  const list   = document.getElementById('groups-list');
+  if (!groups.length) { list.innerHTML = '<p style="color:var(--text-secondary);">Групп нет.</p>'; return; }
+  list.innerHTML = groups.map(g =>
+    `<div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:6px;">Группа ${g.id}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${g.words.map(w =>
+          `<span style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:6px;padding:4px 10px;font-size:13px;">
+            ${escHtml(w.word_display)} <span style="color:var(--text-secondary);">«${escHtml(w.correct_letter)}» ${escHtml(w.vowel_pair)}</span>
+          </span>`
+        ).join('')}
+      </div>
+    </div>`
+  ).join('');
+}
+
+/* ── init ───────────────────────────────────────────────── */
+loadWords12();
+</script>

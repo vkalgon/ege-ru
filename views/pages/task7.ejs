@@ -1,0 +1,83 @@
+<div class="task7-page">
+  <div class="task-page-header">
+    <h2 class="task-page-title">Задание №7 — Морфологические нормы</h2>
+    <p class="task-page-desc">
+      В одном из пяти словосочетаний допущена ошибка в образовании формы слова.
+      Найдите ошибку и запишите слово правильно.
+    </p>
+  </div>
+
+  <div id="task7-list" class="task-cards-grid">
+    <div class="loading-stub">Загрузка заданий…</div>
+  </div>
+</div>
+
+<style>
+.task7-page { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+.task-page-header { margin-bottom: 28px; }
+.task-page-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.task-page-desc  { color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+.task-cards-grid { display: flex; flex-direction: column; gap: 16px; }
+.t7-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: border-color .2s;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.t7-card:hover { border-color: var(--brand); }
+.t7-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.t7-card-id { font-size: 13px; color: var(--text-secondary); }
+.t7-phrases { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+.t7-phrases li {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.45;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.t7-phrases li .hl { color: var(--text-primary); font-weight: 600; }
+.loading-stub { color: var(--text-secondary); padding: 32px 0; text-align: center; }
+</style>
+
+<script>
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function highlightCaps(phrase) {
+  // Выделяем слова в ВЕРХНЕМ регистре
+  return esc(phrase).replace(/\b([А-ЯЁA-Z]{2,})\b/g, '<span class="hl">$1</span>');
+}
+
+(async () => {
+  const list = document.getElementById('task7-list');
+  try {
+    const tasks = await fetch('/api/task7/tasks').then(r => r.json());
+    if (!tasks.length) {
+      list.innerHTML = '<div class="loading-stub">Заданий пока нет.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    for (const t of tasks) {
+      const task = await fetch(`/api/task7/tasks/${t.id}/play`).then(r => r.json());
+      const card = document.createElement('a');
+      card.href = `/task7/${t.id}`;
+      card.className = 't7-card';
+
+      const preview = task.items.slice(0, 5).map((it, i) =>
+        `<li>${i + 1}) ${highlightCaps(it.display_phrase)}</li>`
+      ).join('');
+
+      card.innerHTML = `
+        <div class="t7-card-header">
+          <span class="t7-card-id">Задание #${t.id}</span>
+        </div>
+        <ul class="t7-phrases">${preview}</ul>`;
+      list.appendChild(card);
+    }
+  } catch (e) {
+    list.innerHTML = '<div class="loading-stub">Ошибка загрузки заданий.</div>';
+    console.error(e);
+  }
+})();
+</script>

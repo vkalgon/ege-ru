@@ -1,0 +1,405 @@
+<div class="task-page" id="task18App">
+  <h2 class="task-page__title">Задание №18: Вводные слова</h2>
+  <div id="task18Container">
+    <div style="padding: 20px;">
+      <p>Загрузка заданий...</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .task17-digit {
+    cursor: pointer;
+    padding: 1px 4px;
+    margin: 0 1px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-block;
+    position: relative;
+  }
+  .task17-digit:hover:not(.selected):not(.correct-selected):not(.extra-selected):not(.correct) {
+    background-color: var(--brand-muted);
+    border-color: var(--brand);
+  }
+  .task17-digit.selected {
+    background-color: rgba(164, 190, 226, 0.2);
+    color: var(--brand);
+    outline: 1.5px solid var(--brand-dim);
+    outline-offset: -1px;
+  }
+  .task17-digit.correct {
+    background-color: transparent !important;
+    color: #A4E2D0 !important;
+    outline: 1.5px solid #A4E2D0 !important;
+    outline-offset: -1px;
+  }
+  .task17-digit.correct-selected {
+    background-color: rgba(164, 226, 208, 0.12) !important;
+    color: #A4E2D0 !important;
+    outline: 1.5px solid #A4E2D0 !important;
+    outline-offset: -1px;
+    font-weight: bold;
+  }
+  .task17-digit.extra-selected {
+    background-color: #D69295 !important;
+    color: #0f1117 !important;
+    font-weight: bold;
+  }
+  .task18-word-card {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  .task18-word-card.ok  { border-color: rgba(164,226,208,0.5);  background: rgba(164,226,208,0.07); }
+  .task18-word-card.err { border-color: rgba(214,146,149,0.5);  background: rgba(214,146,149,0.07); }
+  .task18-word-card__phrase { font-weight: 700; font-size: 1rem; }
+  .task18-word-card__type   { font-size: 0.8rem; color: var(--text-secondary); margin-left: 6px; }
+  .task18-word-card__rule   { margin-top: 4px; color: var(--text-secondary); font-size: 0.88rem; }
+</style>
+
+<!-- React через CDN -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+  const { useState, useEffect, useRef } = React;
+
+  function parseTextWithDigits(text) {
+    const parts = [];
+    const regex = /\((\d+)\)/g;
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex)
+        parts.push({ text: text.substring(lastIndex, match.index), digit: null });
+      parts.push({ text: match[0], digit: parseInt(match[1], 10) });
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length)
+      parts.push({ text: text.substring(lastIndex), digit: null });
+    return parts;
+  }
+
+  const INTRO_TYPE_LABELS = {
+    always:  'всегда вводное',
+    never:   'никогда не вводное',
+    context: 'зависит от контекста',
+  };
+
+  function Task18Item({ task, index }) {
+    const [taskData,      setTaskData]      = useState(null);
+    const [selectedDigits,setSelectedDigits]= useState(new Set());
+    const [answerInput,   setAnswerInput]   = useState('');
+    const [checkResult,   setCheckResult]   = useState(null);
+    const [correctDigits, setCorrectDigits] = useState(new Set());
+    const [extraDigits,   setExtraDigits]   = useState(new Set());
+    const [loading,       setLoading]       = useState(false);
+    const [error,         setError]         = useState(null);
+    const [isLiked,       setIsLiked]       = useState(false);
+    const [showSolution,  setShowSolution]  = useState(false);
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+      (async () => {
+        try {
+          setLoading(true);
+          setCorrectDigits(new Set());
+          setExtraDigits(new Set());
+          setCheckResult(null);
+          const r = await fetch(`/api/task18/tasks/${task.id}/play`);
+          if (!r.ok) throw new Error('Не удалось загрузить задание');
+          setTaskData(await r.json());
+          setError(null);
+        } catch (e) {
+          setError(e.message);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }, [task.id]);
+
+    const handleDigitClick = (digit) => {
+      if (checkResult) return;
+      setSelectedDigits(prev => {
+        const s = new Set(prev);
+        s.has(digit) ? s.delete(digit) : s.add(digit);
+        return s;
+      });
+    };
+
+    useEffect(() => {
+      setAnswerInput(Array.from(selectedDigits).sort((a,b)=>a-b).join(''));
+    }, [selectedDigits]);
+
+    const handleInputChange = (e) => {
+      const val = e.target.value;
+      setAnswerInput(val);
+      setSelectedDigits(new Set(val.split('').map(c=>parseInt(c,10)).filter(n=>!isNaN(n)&&n>0)));
+    };
+
+    const handleCheck = async () => {
+      if (!taskData || checkResult) return;
+      const digits = Array.from(selectedDigits).sort((a,b)=>a-b);
+      if (digits.length === 0) {
+        alert('Выберите цифры в тексте или введите ответ вручную');
+        inputRef.current?.focus();
+        return;
+      }
+      try {
+        setLoading(true);
+        const r = await fetch(`/api/task18/tasks/${task.id}/check`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ selected: digits }),
+        });
+        if (!r.ok) throw new Error('Ошибка проверки');
+        const result = await r.json();
+        setCheckResult(result);
+        const correct = new Set(result.comma_positions);
+        setCorrectDigits(correct);
+        const extra = new Set(digits.filter(d => !correct.has(d)));
+        setExtraDigits(extra);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (loading && !taskData) return (
+      <div className="task-card"><div className="task-content"><p>Загрузка задания {index + 1}...</p></div></div>
+    );
+    if (error) return (
+      <div className="task-card"><div className="task-content"><p style={{color:'red'}}>Ошибка: {error}</p></div></div>
+    );
+    if (!taskData) return null;
+
+    const hasChecked = !!checkResult;
+
+    return (
+      <div className="task-card">
+        <div className="task-meta">
+          <span className="task-meta__number">№ {index + 1}</span>
+          {task.source && <span className="task-meta__source">{task.source}</span>}
+        </div>
+
+        <div className="task-content">
+          <div className="task-prompt">
+            <div
+              className="task17-text-editable"
+              style={{
+                padding: '16px',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '8px',
+                background: 'var(--bg-secondary)',
+              }}
+            >
+              <div style={{
+                paddingBottom: '12px',
+                marginBottom: '12px',
+                borderBottom: '1px solid var(--glass-border)',
+                fontSize: '16px',
+                lineHeight: '1.6',
+                color: 'var(--text-primary)',
+                fontWeight: '500',
+              }}>
+                Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).
+              </div>
+              {parseTextWithDigits(taskData.source_text).map((part, idx) => {
+                if (part.digit !== null) {
+                  const isSel   = selectedDigits.has(part.digit);
+                  const isCorr  = correctDigits.has(part.digit);
+                  const isExtra = extraDigits.has(part.digit);
+                  let cls = 'task17-digit';
+                  if (hasChecked) {
+                    if (isExtra && isSel)       cls += ' extra-selected';
+                    else if (isCorr && isSel)   cls += ' correct-selected';
+                    else if (isCorr)            cls += ' correct';
+                  } else if (isSel) {
+                    cls += ' selected';
+                  }
+                  return (
+                    <span
+                      key={`d-${task.id}-${part.digit}-${idx}`}
+                      className={cls}
+                      onClick={() => handleDigitClick(part.digit)}
+                      style={{ userSelect: 'none', cursor: hasChecked ? 'default' : 'pointer' }}
+                    >
+                      {part.text}
+                    </span>
+                  );
+                }
+                return <span key={`t-${task.id}-${idx}`}>{part.text}</span>;
+              })}
+            </div>
+          </div>
+
+          <div className="task-controls">
+            <input
+              ref={inputRef}
+              className="task-input"
+              type="text"
+              value={answerInput}
+              onChange={handleInputChange}
+              placeholder="Введите свой ответ"
+              inputMode="numeric"
+              disabled={hasChecked}
+              onKeyPress={e => { if (e.key === 'Enter') handleCheck(); }}
+            />
+            <button className="task-send" onClick={handleCheck} disabled={loading || hasChecked}>
+              <span>{loading ? 'Проверка...' : 'Отправить'}</span>
+            </button>
+            <button className="task-solution" onClick={() => setShowSolution(s => !s)}>
+              <span>Решение</span>
+              <img src={showSolution ? '/images/eye on.svg' : '/images/eye off.svg'} alt="Глаз" width="16" height="16"/>
+            </button>
+            <button className="task-like" onClick={() => setIsLiked(l => !l)}>
+              <img src={isLiked ? '/images/heart on.svg' : '/images/heart off.svg'} alt="Лайк" width="16" height="16"/>
+            </button>
+          </div>
+
+          {/* ── Решение ─────────────────────────── */}
+          {showSolution && (
+            <div style={{ marginTop: '24px' }}>
+              {taskData.explanation && (
+                <div style={{ marginBottom: '12px' }}>
+                  <div dangerouslySetInnerHTML={{
+                    __html: taskData.explanation.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  }} style={{ fontSize: '16px', lineHeight: '1.7' }} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Результат проверки ───────────────── */}
+          {checkResult && (
+            <div className="task-solution-block" style={{ marginTop: '24px' }}>
+              <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Результат проверки</h3>
+
+              {checkResult.is_correct ? (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '16px',
+                  background: 'rgba(164, 226, 208, 0.07)',
+                  border: '1px solid rgba(164, 226, 208, 0.4)',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                }}>
+                  <div style={{ fontSize: '32px', color: '#A4E2D0', lineHeight: 1 }}>✓</div>
+                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#A4E2D0' }}>Всё верно!</div>
+                </div>
+              ) : (
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontWeight: 'bold', color: '#f6b462', marginBottom: '12px', fontSize: '16px' }}>
+                    Ответ неверный
+                  </div>
+                  <div style={{
+                    padding: '12px',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '8px',
+                    marginBottom: '12px',
+                  }}>
+                    <div style={{ color: 'var(--text-secondary)', marginBottom: '4px', fontSize: '14px' }}>
+                      Правильный ответ:
+                    </div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#A4E2D0' }}>
+                      {checkResult.comma_positions.join(', ') || '(нет запятых)'}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Текст с запятыми */}
+              {checkResult.base_text && (
+                <div style={{
+                  padding: '12px 14px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  lineHeight: '1.7',
+                  marginBottom: '16px',
+                }}>
+                  {checkResult.base_text}
+                </div>
+              )}
+
+              {/* Пояснение по словам */}
+              {checkResult.word_results && checkResult.word_results.length > 0 && (
+                <div>
+                  <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                    Разбор слов:
+                  </div>
+                  {checkResult.word_results.map(wr => (
+                    <div key={wr.word_id} className={`task18-word-card ${wr.word_correct ? 'ok' : 'err'}`}>
+                      <span className="task18-word-card__phrase">«{wr.phrase}»</span>
+                      <span className="task18-word-card__type">{INTRO_TYPE_LABELS[wr.intro_type] || ''}</span>
+                      <div className="task18-word-card__rule">
+                        {wr.is_intro_in_task
+                          ? (wr.rule_intro  || 'Является вводным словом — выделяется запятыми.')
+                          : (wr.rule_not_intro || 'Не является вводным словом — запятыми не выделяется.')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Пояснение из задания */}
+              {checkResult.explanation_md && (
+                <div style={{
+                  marginTop: '12px',
+                  padding: '12px 14px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  lineHeight: '1.6',
+                }}
+                  dangerouslySetInnerHTML={{
+                    __html: checkResult.explanation_md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  }}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  function Task18List() {
+    const [allTasks, setAllTasks] = useState([]);
+    const [loading,  setLoading]  = useState(true);
+
+    useEffect(() => {
+      (async () => {
+        try {
+          const r = await fetch('/api/task18/tasks');
+          if (!r.ok) throw new Error('Не удалось загрузить список заданий');
+          setAllTasks(await r.json());
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }, []);
+
+    if (loading) return <div style={{padding:'20px'}}><p>Загрузка заданий...</p></div>;
+    if (!allTasks.length) return <div style={{padding:'20px'}}><p>Заданий №18 пока нет.</p></div>;
+
+    return (
+      <div style={{ maxWidth: '800px' }}>
+        {allTasks.map((task, index) => (
+          <Task18Item key={task.id} task={task} index={index} />
+        ))}
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('task18Container')).render(<Task18List />);
+</script>

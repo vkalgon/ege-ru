@@ -1,0 +1,513 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Задание №5 — Паронимы</h2>
+
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('sentences',this)">Банк предложений</button>
+    <button class="tab-btn" onclick="switchTab('tasks',this)">Готовые задания</button>
+    <button class="tab-btn" onclick="switchTab('generate',this)">Генерация</button>
+  </div>
+
+  <!-- ══ ВКЛАДКА: БАНК ПРЕДЛОЖЕНИЙ ══════════════════════════ -->
+  <div id="tab-sentences">
+
+    <!-- Управление группами паронимов -->
+    <div class="admin-section">
+      <h3>Группы паронимов</h3>
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <label style="font-size:12px;display:block;margin-bottom:4px;">Название группы (напр. КРАСОЧНЫЙ – КРАСЯЩИЙ – КРАШЕНЫЙ)</label>
+          <input id="group-title-input" type="text" placeholder="АБОНЕМЕНТ — АБОНЕНТ"
+                 style="width:380px;" autocomplete="off">
+        </div>
+        <button class="btn btn-secondary" onclick="saveGroup()">Добавить группу</button>
+      </div>
+      <div id="groups-list" class="admin-chip-list"></div>
+    </div>
+
+    <!-- Форма добавления предложения -->
+    <div class="admin-section">
+      <h3 id="sent-form-title">Добавить предложение</h3>
+      <form id="sent-form" class="admin-form" onsubmit="return false;">
+        <input type="hidden" id="sent-id">
+
+        <div class="form-group">
+          <label>Группа паронимов</label>
+          <select id="sent-group">
+            <option value="">— выберите группу —</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Текст предложения
+            <span style="font-size:12px;color:var(--text-secondary);margin-left:6px;">
+              Используйте <code>{{СЛОВО}}</code> для обозначения выделенного слова
+            </span>
+          </label>
+          <textarea id="sent-text" rows="3" placeholder="Хром и марганец являются {{КРАСОЧНЫМИ}} веществами, компонентами многих красок."
+                    style="resize:vertical;width:100%;" oninput="updateSentPreview()"></textarea>
+        </div>
+
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+          <div class="form-group" style="flex:1;min-width:200px;">
+            <label>Выделенное слово (как написано в предложении)</label>
+            <input id="sent-hl" type="text" placeholder="КРАСОЧНЫМИ" autocomplete="off"
+                   oninput="updateSentPreview()">
+          </div>
+          <div class="form-group" style="flex:1;min-width:200px;">
+            <label>Правильный пароним</label>
+            <input id="sent-correct" type="text" placeholder="КРАСЯЩИМИ" autocomplete="off"
+                   oninput="updateSentPreview()">
+          </div>
+          <div class="form-group" style="flex:0;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:22px;">
+              <input type="checkbox" id="sent-is-error" style="width:16px;height:16px;" onchange="updateSentPreview()">
+              <span>Это предложение с ошибкой</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="sent-preview-wrap" class="t5-sent-preview" style="display:none;"></div>
+
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn" onclick="saveSentence()">Сохранить</button>
+          <button class="btn btn-secondary" onclick="resetSentForm()">Сбросить</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Фильтр и список предложений -->
+    <div class="admin-section">
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <label style="font-size:13px;color:var(--text-secondary);">Фильтр по группе:</label>
+        <select id="filter-group" onchange="loadSentences()" style="min-width:200px;">
+          <option value="">Все группы</option>
+        </select>
+        <label style="font-size:13px;color:var(--text-secondary);margin-left:8px;">
+          <input type="checkbox" id="filter-errors-only" onchange="loadSentences()">
+          Только с ошибкой
+        </label>
+      </div>
+      <div id="sentences-table-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ГОТОВЫЕ ЗАДАНИЯ ════════════════════════════ -->
+  <div id="tab-tasks" style="display:none;">
+    <div class="admin-section">
+      <h3 id="task-form-title">Создать задание</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+        Выберите 5 предложений: ровно одно должно быть с ошибкой, остальные — верные.
+      </p>
+      <input type="hidden" id="edit-task-id">
+      <div id="task-slots" class="t5-task-slots"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button class="btn" onclick="saveTask()">Сохранить задание</button>
+        <button class="btn btn-secondary" onclick="resetTaskForm()">Сбросить</button>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <h3>Список заданий</h3>
+      <div id="tasks-table-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ГЕНЕРАЦИЯ ══════════════════════════════════ -->
+  <div id="tab-generate" style="display:none;">
+    <div class="admin-section">
+      <h3>Автоматическая генерация заданий</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+        Система случайным образом выберет 1 предложение с ошибкой и 4 верных из банка.
+      </p>
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+        <div class="form-group">
+          <label>Количество заданий</label>
+          <input id="gen-count" type="number" min="1" max="20" value="1" style="width:100px;">
+        </div>
+        <button class="btn" onclick="generateTasks()">Сгенерировать</button>
+      </div>
+      <div id="gen-result" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="admin-section">
+      <h3>Последние задания</h3>
+      <div id="gen-tasks-list"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Специфичные стили задания 5 — общие классы приходят из styles.css */
+.admin-chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.group-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-secondary); border: 1px solid var(--glass-border);
+  border-radius: 20px; padding: 5px 10px 5px 14px; font-size: 13px;
+  cursor: pointer; transition: border-color 0.2s;
+}
+.group-chip:hover { border-color: var(--brand); }
+.group-chip.active { border-color: var(--brand); background: var(--brand-muted); }
+.group-chip__del { font-size: 16px; color: var(--text-secondary); cursor: pointer; line-height: 1; transition: color 0.15s; padding: 0 2px; }
+.group-chip__del:hover { color: #D69295; }
+
+.t5-sent-preview {
+  background: var(--bg-secondary); border: 1px solid var(--glass-border);
+  border-radius: 8px; padding: 12px 16px; font-size: 14px; line-height: 1.6;
+}
+.t5-hl { font-weight: 700; color: var(--brand); }
+.t5-hl-err { font-weight: 700; color: #f59e0b; }
+
+.sent-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sent-table th { text-align: left; padding: 8px 10px; color: var(--text-secondary); font-weight: 500; border-bottom: 1px solid var(--glass-border); }
+.sent-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+.sent-table tr:last-child td { border-bottom: none; }
+.sent-table tr:hover td { background: var(--bg-tertiary); }
+.badge-error { background: rgba(214,146,149,.15); color: #D69295; border-radius: 4px; padding: 2px 6px; font-size: 11px; }
+.badge-ok    { background: var(--brand-muted); color: var(--brand); border-radius: 4px; padding: 2px 6px; font-size: 11px; }
+
+.t5-task-slots { display: flex; flex-direction: column; gap: 10px; }
+.t5-task-slot { display: flex; gap: 10px; align-items: center; }
+.t5-task-slot-num { width: 22px; text-align: right; color: var(--text-secondary); font-size: 13px; flex-shrink: 0; }
+.t5-task-slot select { flex: 1; }
+.t5-slot-badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; min-width: 60px; text-align: center; }
+</style>
+
+<script>
+let groups = [];
+let allSentences = [];
+let sentenceMap = {};
+
+// ── Вкладки ──────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['sentences','tasks','generate'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === name ? '' : 'none';
+  });
+  if (name === 'tasks') { loadTasks(); buildTaskSlots(); }
+  if (name === 'generate') loadGenTasks();
+}
+
+// ── Группы ──────────────────────────────────────────────────
+async function loadGroups() {
+  groups = await fetch('/api/task5/groups').then(r => r.json());
+  renderGroupChips();
+  updateGroupSelects();
+}
+
+function renderGroupChips() {
+  const wrap = document.getElementById('groups-list');
+  if (!groups.length) { wrap.innerHTML = '<span style="color:var(--text-secondary);font-size:13px;">Групп нет.</span>'; return; }
+  wrap.innerHTML = groups.map(g =>
+    `<span class="group-chip" onclick="filterByGroup(${g.id},this)">
+      ${esc(g.title)} <span style="color:var(--text-secondary);font-size:11px;margin-left:4px;">(${g.sentence_count})</span>
+      <span class="group-chip__del" onclick="event.stopPropagation();deleteGroup(${g.id})" title="Удалить">×</span>
+    </span>`
+  ).join('');
+}
+
+function updateGroupSelects() {
+  const opts = groups.map(g => `<option value="${g.id}">${esc(g.title)}</option>`).join('');
+  document.getElementById('sent-group').innerHTML = '<option value="">— выберите группу —</option>' + opts;
+  document.getElementById('filter-group').innerHTML = '<option value="">Все группы</option>' + opts;
+}
+
+async function saveGroup() {
+  const title = document.getElementById('group-title-input').value.trim();
+  if (!title) { alert('Введите название группы'); return; }
+  await fetch('/api/task5/groups', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title}) });
+  document.getElementById('group-title-input').value = '';
+  await loadGroups();
+}
+
+async function deleteGroup(id) {
+  if (!confirm('Удалить группу и все её предложения?')) return;
+  await fetch(`/api/task5/groups/${id}`, { method:'DELETE' });
+  await loadGroups();
+  loadSentences();
+}
+
+function filterByGroup(id, chip) {
+  document.getElementById('filter-group').value = id;
+  loadSentences();
+}
+
+// ── Предложения ──────────────────────────────────────────────
+async function loadSentences() {
+  const gid = document.getElementById('filter-group').value;
+  const errOnly = document.getElementById('filter-errors-only').checked;
+  let url = '/api/task5/sentences';
+  if (gid) url += `?group_id=${gid}`;
+  allSentences = await fetch(url).then(r => r.json());
+  sentenceMap = {};
+  allSentences.forEach(s => sentenceMap[s.id] = s);
+
+  let rows = allSentences;
+  if (errOnly) rows = rows.filter(s => s.is_error);
+
+  const wrap = document.getElementById('sentences-table-wrap');
+  if (!rows.length) { wrap.innerHTML = '<p style="color:var(--text-secondary);font-size:13px;">Предложений нет.</p>'; return; }
+
+  wrap.innerHTML = `<table class="sent-table">
+    <thead><tr>
+      <th style="width:50px;">ID</th>
+      <th>Группа</th>
+      <th>Предложение</th>
+      <th style="width:100px;">Выделено</th>
+      <th style="width:100px;">Верный пароним</th>
+      <th style="width:80px;">Тип</th>
+      <th style="width:100px;">Действия</th>
+    </tr></thead>
+    <tbody>
+    ${rows.map(s => `<tr>
+      <td style="color:var(--text-secondary);">${s.id}</td>
+      <td style="max-width:160px;word-break:break-word;">${esc(s.group_title)}</td>
+      <td style="max-width:300px;word-break:break-word;">${renderSentPreview(s)}</td>
+      <td>${esc(s.highlighted_word)}</td>
+      <td style="color:var(--brand)">${esc(s.correct_word)}</td>
+      <td>${s.is_error ? '<span class="badge-error">Ошибка</span>' : '<span class="badge-ok">Верное</span>'}</td>
+      <td>
+        <button class="btn btn-sm btn-secondary" onclick="editSent(${s.id})">Ред.</button>
+        <button class="btn btn-sm btn-danger" style="margin-top:4px;" onclick="deleteSent(${s.id})">Удалить</button>
+      </td>
+    </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderSentPreview(s) {
+  const safe = esc(s.sentence);
+  const escaped_hw = escRegex(s.highlighted_word);
+  const cls = s.is_error ? 't5-hl-err' : 't5-hl';
+  return safe.replace(new RegExp('\\{\\{' + escaped_hw + '\\}\\}', 'i'),
+    `<span class="${cls}">${esc(s.highlighted_word)}</span>`);
+}
+
+function updateSentPreview() {
+  const txt = document.getElementById('sent-text').value;
+  const hl  = document.getElementById('sent-hl').value.trim();
+  const cor = document.getElementById('sent-correct').value.trim();
+  const isErr = document.getElementById('sent-is-error').checked;
+  const wrap = document.getElementById('sent-preview-wrap');
+
+  if (!txt || !hl) { wrap.style.display = 'none'; return; }
+
+  const safe = esc(txt);
+  const cls  = isErr ? 't5-hl-err' : 't5-hl';
+  const rendered = safe.replace(new RegExp('\\{\\{' + escRegex(hl) + '\\}\\}', 'i'),
+    `<span class="${cls}">${esc(hl)}</span>`);
+  wrap.style.display = 'block';
+  wrap.innerHTML = rendered + (cor ? ` <span style="color:var(--text-secondary);font-size:12px;margin-left:8px;">→ верно: <strong style="color:var(--brand)">${esc(cor)}</strong></span>` : '');
+}
+
+async function saveSentence() {
+  const id      = document.getElementById('sent-id').value;
+  const group_id = document.getElementById('sent-group').value;
+  const sentence = document.getElementById('sent-text').value.trim();
+  const highlighted_word = document.getElementById('sent-hl').value.trim();
+  const correct_word = document.getElementById('sent-correct').value.trim();
+  const is_error = document.getElementById('sent-is-error').checked ? 1 : 0;
+
+  if (!group_id) { alert('Выберите группу паронимов'); return; }
+  if (!sentence) { alert('Введите текст предложения'); return; }
+  if (!highlighted_word) { alert('Введите выделенное слово'); return; }
+  if (!correct_word) { alert('Введите правильный пароним'); return; }
+  if (!sentence.includes('{{' + highlighted_word + '}}')) {
+    alert(`Предложение должно содержать {{${highlighted_word}}} — именно так будет выделено слово.`);
+    return;
+  }
+
+  const body = { group_id, sentence, highlighted_word, correct_word, is_error };
+  const url  = id ? `/api/task5/sentences/${id}` : '/api/task5/sentences';
+  const method = id ? 'PUT' : 'POST';
+  await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  resetSentForm();
+  await loadGroups();
+  await loadSentences();
+}
+
+function editSent(id) {
+  const s = allSentences.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('sent-form-title').textContent = `Редактировать предложение #${id}`;
+  document.getElementById('sent-id').value = id;
+  document.getElementById('sent-group').value = s.group_id;
+  document.getElementById('sent-text').value = s.sentence;
+  document.getElementById('sent-hl').value = s.highlighted_word;
+  document.getElementById('sent-correct').value = s.correct_word;
+  document.getElementById('sent-is-error').checked = !!s.is_error;
+  updateSentPreview();
+  document.getElementById('sent-form').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function deleteSent(id) {
+  if (!confirm('Удалить это предложение?')) return;
+  await fetch(`/api/task5/sentences/${id}`, { method:'DELETE' });
+  await loadGroups();
+  loadSentences();
+}
+
+function resetSentForm() {
+  document.getElementById('sent-form-title').textContent = 'Добавить предложение';
+  document.getElementById('sent-id').value = '';
+  document.getElementById('sent-group').value = '';
+  document.getElementById('sent-text').value = '';
+  document.getElementById('sent-hl').value = '';
+  document.getElementById('sent-correct').value = '';
+  document.getElementById('sent-is-error').checked = false;
+  document.getElementById('sent-preview-wrap').style.display = 'none';
+}
+
+// ── Задания ──────────────────────────────────────────────────
+async function buildTaskSlots() {
+  // Загружаем все предложения для выпадающих списков
+  if (!allSentences.length) allSentences = await fetch('/api/task5/sentences').then(r => r.json());
+  sentenceMap = {};
+  allSentences.forEach(s => sentenceMap[s.id] = s);
+
+  const wrap = document.getElementById('task-slots');
+  wrap.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const row = document.createElement('div');
+    row.className = 't5-task-slot';
+    const opts = allSentences.map(s =>
+      `<option value="${s.id}" data-err="${s.is_error}">[${esc(s.group_title)}] ${s.is_error ? '❌ ' : '✓ '} ${esc(s.highlighted_word)} — ${esc(s.sentence.replace(/\{\{|\}\}/g,'').slice(0,60))}...</option>`
+    ).join('');
+    row.innerHTML = `
+      <span class="t5-task-slot-num">${i})</span>
+      <select class="slot-select" onchange="updateSlotBadge(this)">
+        <option value="">— выберите предложение —</option>
+        ${opts}
+      </select>
+      <span class="t5-slot-badge" style="background:var(--glass-border);color:var(--text-secondary);">—</span>`;
+    wrap.appendChild(row);
+  }
+}
+
+function updateSlotBadge(sel) {
+  const badge = sel.nextElementSibling;
+  const opt = sel.selectedOptions[0];
+  if (!opt || !opt.value) {
+    badge.style.background = 'var(--glass-border)';
+    badge.style.color = 'var(--text-secondary)';
+    badge.textContent = '—';
+    return;
+  }
+  const isErr = opt.dataset.err === '1';
+  badge.style.background = isErr ? 'rgba(214,146,149,.15)' : 'var(--brand-muted)';
+  badge.style.color = isErr ? '#D69295' : 'var(--brand)';
+  badge.textContent = isErr ? 'Ошибка' : 'Верное';
+}
+
+async function saveTask() {
+  const editId = document.getElementById('edit-task-id').value;
+  const selects = document.querySelectorAll('.slot-select');
+  const sentence_ids = [...selects].map(s => parseInt(s.value)).filter(Boolean);
+  if (sentence_ids.length !== 5) { alert('Выберите 5 предложений'); return; }
+
+  const errorCount = sentence_ids.filter(id => sentenceMap[id]?.is_error).length;
+  if (errorCount !== 1) { alert(`Нужно ровно одно предложение с ошибкой. Сейчас выбрано: ${errorCount}`); return; }
+
+  const url    = editId ? `/api/task5/tasks/${editId}` : '/api/task5/tasks';
+  const method = editId ? 'PUT' : 'POST';
+  const resp   = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify({sentence_ids}) }).then(r => r.json());
+  if (resp.error) { alert('Ошибка: ' + resp.error); return; }
+  resetTaskForm();
+  loadTasks();
+}
+
+async function loadTasks() {
+  const tasks = await fetch('/api/task5/tasks').then(r => r.json());
+  const wrap = document.getElementById('tasks-table-wrap');
+  if (!tasks.length) { wrap.innerHTML = '<p style="color:var(--text-secondary);font-size:13px;">Заданий нет.</p>'; return; }
+  wrap.innerHTML = `<table class="sent-table">
+    <thead><tr><th>ID</th><th>Ошибочное слово</th><th>Правильный пароним</th><th>Создано</th><th>Действия</th></tr></thead>
+    <tbody>
+    ${tasks.map(t => `<tr>
+      <td>${t.id}</td>
+      <td style="color:#f59e0b;">${esc(t.error_word || '—')}</td>
+      <td style="color:var(--brand)">${esc(t.correct_word || '—')}</td>
+      <td style="color:var(--text-secondary);font-size:12px;">${t.created_at?.slice(0,16) || ''}</td>
+      <td>
+        <a href="/task5/${t.id}" target="_blank" class="btn btn-sm">Открыть</a>
+        <button class="btn btn-sm btn-secondary" style="margin-left:4px;" onclick="editTask(${t.id})">Ред.</button>
+        <button class="btn btn-sm btn-danger" style="margin-left:4px;" onclick="deleteTask(${t.id})">Удалить</button>
+      </td>
+    </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function editTask(id) {
+  const task = await fetch(`/api/task5/tasks/${id}`).then(r => r.json());
+  document.getElementById('task-form-title').textContent = `Редактировать задание #${id}`;
+  document.getElementById('edit-task-id').value = id;
+  await buildTaskSlots();
+  const selects = document.querySelectorAll('.slot-select');
+  task.items.forEach((item, i) => {
+    if (selects[i]) {
+      selects[i].value = item.sentence_id;
+      updateSlotBadge(selects[i]);
+    }
+  });
+  document.getElementById('tab-tasks').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function deleteTask(id) {
+  if (!confirm('Удалить задание?')) return;
+  await fetch(`/api/task5/tasks/${id}`, { method:'DELETE' });
+  loadTasks();
+}
+
+function resetTaskForm() {
+  document.getElementById('task-form-title').textContent = 'Создать задание';
+  document.getElementById('edit-task-id').value = '';
+  document.querySelectorAll('.slot-select').forEach(s => { s.value = ''; updateSlotBadge(s); });
+}
+
+// ── Генерация ─────────────────────────────────────────────────
+async function generateTasks() {
+  const count = parseInt(document.getElementById('gen-count').value) || 1;
+  const resultDiv = document.getElementById('gen-result');
+  resultDiv.innerHTML = 'Генерация…';
+  const resp = await fetch('/api/task5/generate', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ count })
+  }).then(r => r.json());
+
+  if (resp.error) { resultDiv.innerHTML = `<span style="color:#D69295;">Ошибка: ${esc(resp.error)}</span>`; return; }
+  resultDiv.innerHTML = `<span style="color:var(--brand)">✓ Создано заданий: ${resp.count}</span>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+      ${resp.ids.map(id => `<a href="/task5/${id}" target="_blank" class="btn btn-sm">Задание #${id}</a>`).join('')}
+    </div>`;
+  loadGenTasks();
+}
+
+async function loadGenTasks() {
+  const tasks = await fetch('/api/task5/tasks').then(r => r.json());
+  const generated = tasks.filter(t => t.is_generated);
+  const wrap = document.getElementById('gen-tasks-list');
+  if (!generated.length) { wrap.innerHTML = '<p style="color:var(--text-secondary);font-size:13px;">Сгенерированных заданий нет.</p>'; return; }
+  wrap.innerHTML = generated.slice(0, 20).map(t =>
+    `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+      <span style="color:var(--text-secondary);font-size:13px;">Задание #${t.id}</span>
+      <span style="color:#f59e0b;font-size:13px;">${esc(t.error_word || '—')}</span>
+      <span style="color:var(--text-secondary);font-size:12px;">→</span>
+      <span style="color:var(--brand);font-size:13px;">${esc(t.correct_word || '—')}</span>
+      <a href="/task5/${t.id}" target="_blank" class="btn btn-sm" style="margin-left:auto;">Открыть</a>
+      <button class="btn btn-sm btn-danger" onclick="deleteTask(${t.id})">Удалить</button>
+    </div>`
+  ).join('');
+}
+
+// ── Утилиты ───────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escRegex(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+// ── Init ─────────────────────────────────────────────────────
+(async () => {
+  await loadGroups();
+  await loadSentences();
+})();
+</script>

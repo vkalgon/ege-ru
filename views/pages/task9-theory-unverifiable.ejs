@@ -1,0 +1,279 @@
+<div class="t9unv-page">
+
+  <div class="t9unv-header">
+    <div class="t9unv-header-top">
+      <a href="/task9/theory" class="t9unv-back">← Теория задания №9</a>
+      <h2 class="t9unv-title">Непроверяемые гласные — словарные слова</h2>
+    </div>
+    <p class="t9unv-desc">
+      Гласную в этих словах нельзя объяснить правилом — её нужно запомнить.
+      Из каждой группы вариантов показано одно слово.
+    </p>
+    <div class="t9unv-controls">
+      <div class="t9unv-search-wrap">
+        <svg class="t9unv-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="t9unv-search" class="t9unv-search-input" type="search"
+               placeholder="Найти слово…" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="t9unv-count" id="t9unv-count"></div>
+    </div>
+  </div>
+
+  <div id="t9unv-state" class="t9unv-state">Загрузка...</div>
+  <div id="t9unv-grid" class="t9unv-grid" hidden></div>
+  <div id="t9unv-empty" class="t9unv-empty" hidden>Ничего не найдено</div>
+
+</div>
+
+<style>
+.t9unv-page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 28px 16px 64px;
+}
+
+/* ── Шапка ── */
+.t9unv-header { margin-bottom: 28px; }
+.t9unv-header-top { display: flex; align-items: baseline; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
+.t9unv-back {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color .18s;
+  white-space: nowrap;
+}
+.t9unv-back:hover { color: var(--brand); }
+.t9unv-title { font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.t9unv-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 640px;
+  margin: 0 0 14px;
+}
+
+.t9unv-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.t9unv-search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 320px;
+}
+.t9unv-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.t9unv-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .18s;
+  box-sizing: border-box;
+}
+.t9unv-search-input:focus { border-color: var(--brand); }
+
+.t9unv-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ── Состояние ── */
+.t9unv-state { font-size: 14px; color: var(--text-secondary); padding: 24px 0; }
+.t9unv-empty { font-size: 14px; color: var(--text-secondary); padding: 24px 0; }
+
+/* ── Буквенные секции ── */
+.t9unv-grid { }
+
+.t9unv-letter-section { margin-bottom: 28px; }
+.t9unv-letter-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.t9unv-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.t9unv-word {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: border-color .15s, background .15s;
+}
+.t9unv-word:hover {
+  border-color: var(--brand);
+  background: var(--brand-muted);
+}
+.t9unv-word em {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--brand);
+}
+.t9unv-word--hidden { display: none; }
+</style>
+
+<script>
+(async function () {
+  const grid   = document.getElementById('t9unv-grid');
+  const state  = document.getElementById('t9unv-state');
+  const empty  = document.getElementById('t9unv-empty');
+  const count  = document.getElementById('t9unv-count');
+  const search = document.getElementById('t9unv-search');
+
+  let allWords = []; // {word_display, correct_vowel}
+
+  // Загрузка
+  try {
+    const data = await fetch('/api/task9/words?category=unverifiable').then(r => r.json());
+
+    // Дедупликация по word_group_id: из каждой группы берём первое слово
+    const seen = new Set();
+    const deduped = [];
+    for (const w of data) {
+      const key = w.word_group_id != null ? 'g' + w.word_group_id : 'w' + w.id;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(w);
+      }
+    }
+
+    // Сортируем по алфавиту (игнорируем пунктуацию в word_display)
+    deduped.sort((a, b) => {
+      const clean = s => s.replace(/[^а-яёa-z]/gi, '').toLowerCase();
+      return clean(a.word_display).localeCompare(clean(b.word_display), 'ru');
+    });
+
+    allWords = deduped;
+  } catch (e) {
+    state.textContent = 'Не удалось загрузить слова.';
+    return;
+  }
+
+  if (!allWords.length) {
+    state.textContent = 'Словарные слова пока не добавлены.';
+    return;
+  }
+
+  state.hidden = true;
+  grid.hidden = false;
+
+  // Группируем по первой букве
+  function buildSections(words) {
+    const byLetter = {};
+    for (const w of words) {
+      const letter = w.word_display.replace(/[^а-яёa-zA-Z]/gi, '')[0]?.toUpperCase() || '?';
+      byLetter[letter] ??= [];
+      byLetter[letter].push(w);
+    }
+
+    // Подсвечиваем правильную гласную в word_display
+    function highlight(display, vowel) {
+      if (!vowel) return display;
+      const v = vowel.toLowerCase();
+      // Заменяем первое вхождение нужной гласной (без учёта регистра) на <em>
+      let replaced = false;
+      return display.replace(/[аеёиоуыэюя]/gi, ch => {
+        if (!replaced && ch.toLowerCase() === v) {
+          replaced = true;
+          return `<em>${ch}</em>`;
+        }
+        return ch;
+      });
+    }
+
+    grid.innerHTML = '';
+    const letters = Object.keys(byLetter).sort((a, b) => a.localeCompare(b, 'ru'));
+    for (const letter of letters) {
+      const sec = document.createElement('div');
+      sec.className = 't9unv-letter-section';
+      sec.dataset.letter = letter;
+
+      const heading = document.createElement('div');
+      heading.className = 't9unv-letter-heading';
+      heading.textContent = letter;
+
+      const wordsDiv = document.createElement('div');
+      wordsDiv.className = 't9unv-words';
+
+      for (const w of byLetter[letter]) {
+        const span = document.createElement('span');
+        span.className = 't9unv-word';
+        span.dataset.word = w.word_display.toLowerCase();
+        span.innerHTML = highlight(w.word_display, w.correct_vowel);
+        wordsDiv.appendChild(span);
+      }
+
+      sec.appendChild(heading);
+      sec.appendChild(wordsDiv);
+      grid.appendChild(sec);
+    }
+
+    updateCount(words.length);
+  }
+
+  function updateCount(n) {
+    count.textContent = n + ' ' + plural(n, 'слово', 'слова', 'слов');
+  }
+
+  function plural(n, one, few, many) {
+    const mod10 = n % 10, mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 19) return many;
+    if (mod10 === 1) return one;
+    if (mod10 >= 2 && mod10 <= 4) return few;
+    return many;
+  }
+
+  buildSections(allWords);
+
+  // Поиск
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    if (!q) {
+      buildSections(allWords);
+      empty.hidden = true;
+      grid.hidden = false;
+      return;
+    }
+
+    const filtered = allWords.filter(w => w.word_display.toLowerCase().includes(q));
+    if (!filtered.length) {
+      grid.hidden = true;
+      empty.hidden = false;
+      count.textContent = '0 слов';
+    } else {
+      empty.hidden = true;
+      grid.hidden = false;
+      buildSections(filtered);
+    }
+  });
+})();
+</script>

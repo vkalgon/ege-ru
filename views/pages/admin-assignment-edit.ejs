@@ -422,98 +422,144 @@
     });
   }
 
+  // Извлекаем читаемый текст из Editor.js JSON (для fallback-режима)
+  function extractPlainText(data) {
+    if (!data) return '';
+    if (typeof data === 'string') {
+      if (data.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed && parsed.blocks) {
+            return parsed.blocks.map(b => {
+              const t = (b.data && b.data.text) ? b.data.text : '';
+              return t.replace(/<[^>]+>/g, '');
+            }).filter(Boolean).join('\n');
+          }
+        } catch(e) {}
+      }
+      return data;
+    }
+    return '';
+  }
+
   // Загрузка задания
   async function loadAssignment() {
     try {
       const response = await fetch(`/api/admin/assignments/${assignmentId}`);
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${response.status}`);
+      }
       const assignment = await response.json();
-      
-      // Загружаем тип задания для хлебных крошек
-      const typeResponse = await fetch(`/api/admin/task-types`);
-      const taskTypes = await typeResponse.json();
-      const taskType = taskTypes.find(t => t.id === assignment.type_id);
-      
-      if (taskType) {
-        // Обновляем хлебные крошки
+
+      // Загружаем тип задания и темы
+      if (assignment.type_id) {
+        const typeResponse = await fetch(`/api/admin/task-types`);
+        const taskTypes = await typeResponse.json();
+        const taskType = taskTypes.find(t => t.id === assignment.type_id);
+
         const breadcrumb = document.getElementById('breadcrumb-current');
         if (breadcrumb) {
-          breadcrumb.textContent = `Тип ${taskType.id}: ${taskType.title} › Редактирование #${assignment.id}`;
+          const typeLabel = taskType ? `Тип ${taskType.id}: ${taskType.title} › ` : '';
+          breadcrumb.textContent = `${typeLabel}Редактирование #${assignment.id}`;
         }
-        
-        // Устанавливаем ссылку на редактирование тем
-        const subtopicsLink = document.getElementById('subtopics-link');
-        if (subtopicsLink) {
-          subtopicsLink.href = `/admin/subtopics/${taskType.id}`;
-          subtopicsLink.target = '_blank';
-          subtopicsLink.style.display = 'block';
+
+        if (taskType) {
+          const subtopicsLink = document.getElementById('subtopics-link');
+          if (subtopicsLink) {
+            subtopicsLink.href = `/admin/subtopics/${taskType.id}`;
+            subtopicsLink.target = '_blank';
+            subtopicsLink.style.display = 'block';
+          }
         }
-        
-        // Загружаем темы для селекта
         await loadSubtopicsForSelect('#assignment-subtopic', assignment.type_id);
       }
-      
-      // Заполняем форму
+
+      // Сразу заполняем простые поля
       document.getElementById('assignment-id').value = assignment.id;
-      document.getElementById('assignment-subtopic').value = assignment.subtopic_id;
+      document.getElementById('assignment-subtopic').value = assignment.subtopic_id || '';
       document.getElementById('assignment-fipi-number').value = assignment.fipi_number || '';
       document.getElementById('assignment-source').value = assignment.source || '';
-      document.getElementById('assignment-answer').value = assignment.answer;
+      document.getElementById('assignment-answer').value = assignment.answer || '';
       document.getElementById('assignment-rule-ref').value = assignment.rule_ref || '';
       document.getElementById('assignment-alt-answers').value = assignment.alt_answers ? assignment.alt_answers.join(', ') : '';
-      
-      // Ждем инициализации редакторов
-      let attempts = 0;
-      while (attempts < 20 && (!editorPrompt || !editorContext || !editorExplanation)) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-      }
-      
-      if (!editorPrompt || !editorContext || !editorExplanation) {
-        console.error('Редакторы не инициализированы после ожидания!');
+
+      // Загружаем текст в редакторы или textarea
+      if (editorPrompt && editorContext && editorExplanation) {
+        // Ждём полной готовности Editor.js через isReady
+        try {
+          await Promise.all([editorPrompt.isReady, editorContext.isReady, editorExplanation.isReady]);
+        } catch(e) {
+          console.warn('Ошибка готовности редактора, переходим в fallback:', e);
+          enableFallbackMode();
+          fillTextareas(assignment);
+          return;
+        }
+        await loadEditorData(assignment.prompt, assignment.context, assignment.explanation);
+      } else {
+        // Редакторы не загружены — показываем textarea с текстом
         enableFallbackMode();
-        return;
+        fillTextareas(assignment);
       }
-      
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Загружаем данные в редакторы
-      await loadEditorData(assignment.prompt, assignment.context, assignment.explanation);
-      
+
     } catch (error) {
       console.error('Ошибка загрузки задания:', error);
-      alert('Ошибка загрузки задания');
+      alert('Ошибка загрузки задания: ' + error.message);
     }
+  }
+
+  function fillTextareas(assignment) {
+    const promptEl = document.getElementById('assignment-prompt');
+    const contextEl = document.getElementById('assignment-context');
+    const explanationEl = document.getElementById('assignment-explanation');
+    if (promptEl) promptEl.value = extractPlainText(assignment.prompt);
+    if (contextEl) contextEl.value = extractPlainText(assignment.context);
+    if (explanationEl) explanationEl.value = extractPlainText(assignment.explanation);
   }
 
   // Обработчик формы
   document.getElementById('edit-assignment-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     await saveEditorData();
-    
+
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
-    
+
+    if (!data.subtopic_id) {
+      alert('Выберите тему задания');
+      return;
+    }
+    if (!data.prompt || data.prompt.trim() === '') {
+      alert('Введите условие задания');
+      return;
+    }
+    if (!data.answer || data.answer.trim() === '') {
+      alert('Введите правильный ответ');
+      return;
+    }
+
     if (data.alt_answers) {
       data.alt_answers = data.alt_answers.split(',').map(s => s.trim()).filter(s => s);
     }
-    
+
     try {
       const response = await fetch(`/api/admin/assignments/${data.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      
+
       if (response.ok) {
         alert('Задание обновлено!');
-        window.close();
+        history.back();
       } else {
-        alert('Ошибка сохранения задания');
+        const err = await response.json().catch(() => ({}));
+        alert('Ошибка сохранения: ' + (err.error || response.status));
       }
     } catch (error) {
       console.error('Ошибка:', error);
-      alert('Ошибка сохранения задания');
+      alert('Ошибка сохранения задания: ' + error.message);
     }
   });
 
@@ -529,37 +575,23 @@
            typeof InlineCode !== 'undefined';
   };
 
-  // Загрузка при готовности
-  const checkAndInit = () => {
-    if (allPluginsLoaded()) {
-      setTimeout(() => {
-        initializeEditors();
-        setTimeout(() => {
-          loadAssignment();
-        }, 500);
-      }, 300);
-    } else {
-      setTimeout(checkAndInit, 100);
+  // Инициализация при загрузке страницы
+  window.addEventListener('load', async () => {
+    // Ждём загрузки плагинов Editor.js (максимум 6 секунд)
+    let waited = 0;
+    while (!allPluginsLoaded() && waited < 60) {
+      await new Promise(r => setTimeout(r, 100));
+      waited++;
     }
-  };
 
-  window.addEventListener('load', () => {
-    if (window.editorJSReady) {
-      checkAndInit();
+    if (allPluginsLoaded()) {
+      initializeEditors();
     } else {
-      let checkCount = 0;
-      const checkInterval = setInterval(() => {
-        checkCount++;
-        if (window.editorJSReady || allPluginsLoaded()) {
-          clearInterval(checkInterval);
-          checkAndInit();
-        } else if (checkCount > 50) {
-          clearInterval(checkInterval);
-          enableFallbackMode();
-          loadAssignment();
-        }
-      }, 100);
+      enableFallbackMode();
     }
+
+    // Загружаем данные задания (независимо от наличия редактора)
+    await loadAssignment();
   });
 </script>
 

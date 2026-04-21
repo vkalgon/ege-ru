@@ -1,0 +1,695 @@
+<div class="task-page">
+  <h2 class="task-page__title">Администрирование · Задание №19</h2>
+  <div id="adminTask19Container" style="max-width: 900px;">
+    <p>Загрузка...</p>
+  </div>
+</div>
+
+<style>
+  .t19-admin-form {
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .t19-admin-form h3 { margin-top: 0; margin-bottom: 16px; font-size: 1.1rem; }
+  .t19-field { margin-bottom: 14px; }
+  .t19-field label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+  .t19-field input, .t19-field textarea, .t19-field select {
+    width: 100%; box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+  }
+  .t19-field textarea { min-height: 80px; resize: vertical; }
+  .t19-btn {
+    padding: 8px 16px; border-radius: 7px; border: none; cursor: pointer;
+    font-size: 14px; font-family: inherit; transition: opacity 0.15s;
+  }
+  .t19-btn:hover { opacity: 0.85; }
+  .t19-btn-primary { background: var(--brand); color: var(--bg-primary); }
+  .t19-btn-danger  { background: #D69295; color: #fff; padding: 5px 10px; font-size: 12px; }
+  .t19-btn-edit    { background: var(--bg-secondary); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 5px 10px; font-size: 12px; }
+  .t19-task-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--bg-secondary);
+  }
+  .t19-task-row__text { flex: 1; font-size: 14px; line-height: 1.5; }
+  .t19-task-row__meta { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  .t19-task-row__actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .t19-preview-link { font-size: 12px; color: var(--brand); text-decoration: none; }
+  .t19-preview-link:hover { text-decoration: underline; }
+  .t19-empty { padding: 20px; color: var(--text-secondary); font-style: italic; }
+
+  /* Разметка объяснения */
+  #task19-expl-editor .span-subject   { text-decoration: underline; text-decoration-thickness:2px; text-underline-offset:3px; }
+  #task19-expl-editor .span-predicate { text-decoration: underline double; text-decoration-thickness:2px; text-underline-offset:3px; }
+  #task19-expl-editor .span-main-word { border-bottom: 2px solid #f6b462; }
+  #task19-expl-editor:empty::before {
+    content: attr(placeholder);
+    color: var(--text-secondary);
+    pointer-events: none;
+  }
+
+  /* Перетаскиваемые маркеры скобок */
+  .bracket-handle {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 1.15em;
+    line-height: 1;
+    padding: 0 2px;
+    border-radius: 3px;
+    cursor: grab;
+    user-select: none;
+    transition: background 0.15s, transform 0.1s;
+    position: relative;
+  }
+  .bracket-handle:hover { transform: scale(1.2); }
+  .bracket-handle:active { cursor: grabbing; }
+  .bracket-handle.bh-main { color: #4a9eff; }
+  .bracket-handle.bh-main:hover { background: rgba(74,158,255,0.18); }
+  .bracket-handle.bh-sub  { color: #ff8c42; }
+  .bracket-handle.bh-sub:hover  { background: rgba(255,140,66,0.18); }
+  .bracket-handle[data-dragging="true"] { opacity: 0.3; }
+  /* Подсветка зоны дропа */
+  #task19-expl-editor.bh-drag-over { background: var(--bg-secondary); outline: 2px dashed var(--glass-border); }
+  @keyframes bhBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+</style>
+
+<!-- Плавающая панель для разметки объяснения -->
+<div id="task19-admin-toolbar" class="task17-floating-toolbar"></div>
+
+<script src="/js/text-selection-toolbar.js"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+  const { useState, useEffect, useRef } = React;
+
+  const RULE_TYPES = [
+    { value: 'kotory',         label: 'Союзное слово КОТОРЫЙ',    color: '#4a9eff' },
+    { value: 'double_conj',    label: 'Два союза рядом',          color: '#ff8c42' },
+    { value: 'i_junction',     label: 'Союз И на стыке частей',   color: '#A4E2D0' },
+    { value: 'homogeneous_sub',label: 'Однородные придаточные',   color: '#c084fc' },
+  ];
+
+  const RULE_LABELS = Object.fromEntries(RULE_TYPES.map(r => [r.value, r.label]));
+  const RULE_COLORS = Object.fromEntries(RULE_TYPES.map(r => [r.value, r.color]));
+
+  const EMPTY_FORM = { source_text: '', source: '', rule_types: [], explanation_md: '', comma_positions_str: '' };
+
+  function parsePositions(str) {
+    return str.trim().split(/[\s,]+/).map(Number).filter(n => Number.isFinite(n) && n > 0);
+  }
+
+  // Генерирует предложение с расставленными запятыми из source_text + positions
+  function generateBaseText(sourceText, positions) {
+    if (!sourceText.trim() || !positions.length) return '';
+    const posSet = new Set(positions.map(Number));
+    let result = sourceText.replace(/\s*\((\d+)\)\s*/g, (match, num) => {
+      return posSet.has(Number(num)) ? ', ' : ' ';
+    });
+    // Чистим: двойные пробелы, пробел перед точкой/запятой
+    result = result
+      .replace(/\s{2,}/g, ' ')
+      .replace(/\s+([.,;:!?])/g, '$1')
+      .replace(/,\s*,/g, ',')
+      .trim();
+    return result;
+  }
+
+  function AdminTask19() {
+    const [tasks,        setTasks]        = useState([]);
+    const [loading,      setLoading]      = useState(true);
+    const [form,         setForm]         = useState(EMPTY_FORM);
+    const [editId,       setEditId]       = useState(null);
+    const [saving,       setSaving]       = useState(false);
+    const [msg,          setMsg]          = useState(null);
+    const [autoExpl,     setAutoExpl]     = useState(true); // флаг: объяснение авто-сгенерировано
+    const formRef    = useRef(null);
+    const explRef    = useRef(null); // ref на contentEditable div объяснения
+
+    const loadTasks = async () => {
+      try {
+        const r = await fetch('/api/task19/tasks');
+        setTasks(await r.json());
+      } finally { setLoading(false); }
+    };
+    useEffect(() => { loadTasks(); }, []);
+
+    // Авто-генерация объяснения при изменении текста или позиций
+    useEffect(() => {
+      if (!autoExpl) return;
+      const positions = parsePositions(form.comma_positions_str);
+      const generated = generateBaseText(form.source_text, positions);
+      if (generated) {
+        setForm(f => ({ ...f, explanation_md: generated }));
+        if (explRef.current) explRef.current.innerText = generated;
+      }
+    }, [form.source_text, form.comma_positions_str, autoExpl]);
+
+    // Синхронизировать div объяснения при внешнем изменении (загрузка задания для редактирования)
+    const prevExplRef = useRef('');
+    useEffect(() => {
+      if (explRef.current && form.explanation_md !== prevExplRef.current) {
+        const sel = window.getSelection();
+        const hasFocus = document.activeElement === explRef.current;
+        if (!hasFocus) {
+          explRef.current.innerText = form.explanation_md || '';
+        }
+        prevExplRef.current = form.explanation_md;
+      }
+    }, [form.explanation_md]);
+
+    const showMsg = (text, ok = true) => {
+      setMsg({ text, ok });
+      setTimeout(() => setMsg(null), 3000);
+    };
+
+    const handleField = (key, val) => {
+      if (key === 'explanation_md') setAutoExpl(false);
+      setForm(f => ({ ...f, [key]: val }));
+    };
+
+    const toggleRuleType = (value) => {
+      setForm(f => {
+        const cur = f.rule_types || [];
+        const next = cur.includes(value) ? cur.filter(v => v !== value) : [...cur, value];
+        return { ...f, rule_types: next };
+      });
+    };
+
+    const handleSubmit = async () => {
+      const positions = parsePositions(form.comma_positions_str);
+      if (!form.source_text.trim()) { showMsg('Введите текст задания', false); return; }
+      if (!positions.length)        { showMsg('Введите позиции запятых', false); return; }
+
+      // Берём HTML из contentEditable (с разметкой span), если есть
+      const explHtml = explRef.current ? explRef.current.innerHTML.trim() : form.explanation_md.trim();
+
+      const body = {
+        source_text:    form.source_text.trim(),
+        source:         form.source.trim() || null,
+        rule_types:     form.rule_types || [],
+        explanation_md: explHtml || null,
+        comma_positions: positions,
+      };
+
+      try {
+        setSaving(true);
+        const url    = editId ? `/api/task19/tasks/${editId}` : '/api/task19/tasks';
+        const method = editId ? 'PUT' : 'POST';
+        const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!r.ok) { const e = await r.json(); showMsg(e.error || 'Ошибка', false); return; }
+        showMsg(editId ? 'Сохранено!' : 'Добавлено!');
+        setForm(EMPTY_FORM); setEditId(null);
+        if (explRef.current) explRef.current.innerHTML = '';
+        await loadTasks();
+      } finally { setSaving(false); }
+    };
+
+    const handleEdit = (task) => {
+      setForm({
+        source_text:         task.source_text,
+        source:              task.source || '',
+        rule_types:          task.rule_types || [],
+        explanation_md:      task.explanation_md || '',
+        comma_positions_str: task.comma_positions.join(', '),
+      });
+      setEditId(task.id);
+      // Если объяснение уже есть — не перезаписываем авто
+      setAutoExpl(!task.explanation_md);
+      if (explRef.current) explRef.current.innerHTML = task.explanation_md || '';
+      formRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleDelete = async (id) => {
+      if (!confirm('Удалить задание?')) return;
+      const r = await fetch(`/api/task19/tasks/${id}`, { method: 'DELETE' });
+      if (r.ok) { showMsg('Удалено'); await loadTasks(); }
+      else showMsg('Ошибка удаления', false);
+    };
+
+    const handleCancel = () => {
+      setForm(EMPTY_FORM); setEditId(null); setAutoExpl(true);
+      if (explRef.current) explRef.current.innerHTML = '';
+    };
+
+    return (
+      <div>
+        {msg && (
+          <div style={{ padding:'10px 14px', borderRadius:'8px', marginBottom:'16px', background: msg.ok ? 'rgba(164,226,208,0.15)' : 'rgba(214,146,149,0.15)', color: msg.ok ? '#A4E2D0' : '#D69295', border: `1px solid ${msg.ok ? 'rgba(164,226,208,0.4)' : 'rgba(214,146,149,0.4)'}` }}>
+            {msg.text}
+          </div>
+        )}
+
+        {/* ── Форма добавления/редактирования ── */}
+        <div className="t19-admin-form" ref={formRef}>
+          <h3>{editId ? `Редактировать задание #${editId}` : 'Добавить задание'}</h3>
+
+          <div className="t19-field">
+            <label>Текст задания с маркерами (1)(2)... *</label>
+            <textarea value={form.source_text} onChange={e => handleField('source_text', e.target.value)}
+              placeholder="В девять часов, (1) когда в конторе гасили свет (2) и люди расходились (3) он ставил на стол штоф (4) и ломоть хлеба." />
+          </div>
+
+          <div className="t19-field">
+            <label>Источник</label>
+            <input value={form.source} onChange={e => handleField('source', e.target.value)} placeholder="А. П. Чехов" />
+          </div>
+
+          <div className="t19-field">
+            <label>Тип(ы) правила <span style={{ fontWeight:400, color:'var(--text-secondary)' }}>(можно несколько)</span></label>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:'8px', marginTop:'4px' }}>
+              {RULE_TYPES.map(r => {
+                const checked = (form.rule_types || []).includes(r.value);
+                return (
+                  <label key={r.value} style={{
+                    display:'flex', alignItems:'center', gap:'6px', cursor:'pointer',
+                    padding:'5px 12px', borderRadius:'20px', fontSize:'13px',
+                    border: `1.5px solid ${checked ? r.color : 'var(--glass-border)'}`,
+                    background: checked ? `${r.color}20` : 'var(--bg-primary)',
+                    color: checked ? r.color : 'var(--text-primary)',
+                    transition:'all 0.15s',
+                  }}>
+                    <input type="checkbox" checked={checked} onChange={() => toggleRuleType(r.value)}
+                      style={{ display:'none' }} />
+                    {checked ? '✓ ' : ''}{r.label}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="t19-field">
+            <label>Позиции запятых * (цифры через пробел или запятую, например: 1 3)</label>
+            <input value={form.comma_positions_str} onChange={e => handleField('comma_positions_str', e.target.value)} placeholder="1 3" />
+          </div>
+
+          <div className="t19-field">
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px' }}>
+              <label style={{ margin:0 }}>Объяснение</label>
+              {autoExpl
+                ? <span style={{ fontSize:'11px', color:'#A4E2D0', background:'rgba(164,226,208,0.1)', border:'1px solid rgba(164,226,208,0.3)', borderRadius:'4px', padding:'1px 6px' }}>авто</span>
+                : <button className="t19-btn t19-btn-edit" style={{ padding:'2px 8px', fontSize:'11px' }}
+                    onClick={() => setAutoExpl(true)}
+                    title="Пересоздать объяснение из текста и позиций">↺ Пересоздать</button>
+              }
+              <span style={{ fontSize:'11px', color:'var(--text-secondary)' }}>— выделите текст для разметки</span>
+            </div>
+            <div
+              id="task19-expl-editor"
+              ref={explRef}
+              contentEditable={true}
+              suppressContentEditableWarning={true}
+              onInput={e => {
+                setAutoExpl(false);
+                const val = e.currentTarget.innerText;
+                prevExplRef.current = val;
+                setForm(f => ({ ...f, explanation_md: val }));
+              }}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                padding: '8px 10px', minHeight: '80px',
+                border: '1px solid var(--glass-border)', borderRadius: '6px',
+                background: 'var(--bg-primary)', color: 'var(--text-primary)',
+                fontFamily: 'inherit', fontSize: '14px', lineHeight: '1.6',
+                outline: 'none', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+              }}
+              placeholder="Будет заполнено автоматически после ввода текста и позиций запятых."
+            />
+            {form.explanation_md && autoExpl && (
+              <div style={{ fontSize:'12px', color:'var(--text-secondary)', marginTop:'4px' }}>
+                Редактируйте вручную, чтобы добавить объяснение. Авто-режим отключится.
+              </div>
+            )}
+          </div>
+
+          <div style={{ display:'flex', gap:'10px' }}>
+            <button className="t19-btn t19-btn-primary" onClick={handleSubmit} disabled={saving}>
+              {saving ? 'Сохранение...' : (editId ? 'Сохранить изменения' : 'Добавить задание')}
+            </button>
+            {editId && <button className="t19-btn t19-btn-edit" onClick={handleCancel}>Отмена</button>}
+          </div>
+        </div>
+
+        {/* ── Список заданий ── */}
+        <div>
+          <h3 style={{ marginBottom:'12px', fontSize:'1.05rem' }}>
+            Задания ({tasks.length})
+          </h3>
+          {loading ? <p>Загрузка...</p>
+          : !tasks.length ? <p className="t19-empty">Заданий пока нет.</p>
+          : tasks.map(task => (
+            <div key={task.id} className="t19-task-row">
+              <div className="t19-task-row__text">
+                <div style={{ fontFamily:'monospace', fontSize:'13px', wordBreak:'break-all' }}>
+                  {task.source_text.length > 160 ? task.source_text.slice(0, 160) + '…' : task.source_text}
+                </div>
+                <div className="t19-task-row__meta">
+                  <span>Ответ: <strong>{task.comma_positions.join(', ') || '—'}</strong></span>
+                  {(task.rule_types || []).map(rt => (
+                    <span key={rt} style={{ display:'inline-block', padding:'1px 7px', borderRadius:'12px', fontSize:'11px', marginLeft:'4px', border:`1px solid ${RULE_COLORS[rt]}40`, background:`${RULE_COLORS[rt]}15`, color: RULE_COLORS[rt] }}>
+                      {RULE_LABELS[rt]}
+                    </span>
+                  ))}
+                  {task.source && <span style={{ marginLeft:'8px' }}>· {task.source}</span>}
+                  <a className="t19-preview-link" href={`/task19/${task.id}`} target="_blank" style={{ marginLeft:'10px' }}>↗ Открыть</a>
+                </div>
+              </div>
+              <div className="t19-task-row__actions">
+                <button className="t19-btn t19-btn-edit" onClick={() => handleEdit(task)}>Изменить</button>
+                <button className="t19-btn t19-btn-danger" onClick={() => handleDelete(task.id)}>Удалить</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('adminTask19Container')).render(<AdminTask19 />);
+</script>
+
+<script>
+  /* ── Разметка объяснения ────────────────────────────────── */
+  const EXPL_MARK_CLASSES = [
+    'bracket-main', 'bracket-sub',
+    'span-subject', 'span-predicate', 'span-main-word',
+  ];
+
+  /* Расширяет range до ближайших границ слов (пробелов) */
+  function expandRangeToWords(range) {
+    const r = range.cloneRange();
+
+    // Расширяем начало влево до пробела
+    if (r.startContainer.nodeType === Node.TEXT_NODE) {
+      const txt = r.startContainer.textContent;
+      let o = r.startOffset;
+      while (o > 0 && txt[o - 1] !== ' ') o--;
+      r.setStart(r.startContainer, o);
+    }
+    // Расширяем конец вправо до пробела
+    if (r.endContainer.nodeType === Node.TEXT_NODE) {
+      const txt = r.endContainer.textContent;
+      let o = r.endOffset;
+      while (o < txt.length && txt[o] !== ' ') o++;
+      r.setEnd(r.endContainer, o);
+    }
+
+    // Идём через соседние текстовые узлы влево
+    while (true) {
+      if (r.startContainer.nodeType === Node.TEXT_NODE && r.startOffset === 0) {
+        const prev = r.startContainer.previousSibling;
+        if (prev && prev.nodeType === Node.TEXT_NODE) {
+          const txt = prev.textContent;
+          const sp = txt.lastIndexOf(' ');
+          r.setStart(prev, sp >= 0 ? sp + 1 : 0);
+          continue;
+        }
+      }
+      break;
+    }
+    // Идём через соседние текстовые узлы вправо
+    while (true) {
+      if (r.endContainer.nodeType === Node.TEXT_NODE &&
+          r.endOffset >= r.endContainer.textContent.length) {
+        const next = r.endContainer.nextSibling;
+        if (next && next.nodeType === Node.TEXT_NODE) {
+          const txt = next.textContent;
+          const sp = txt.indexOf(' ');
+          r.setEnd(next, sp >= 0 ? sp : txt.length);
+          continue;
+        }
+      }
+      break;
+    }
+    return r;
+  }
+
+  let _bhCounter = 0;
+
+  /* Создаёт перетаскиваемый маркер скобки */
+  function createBracketHandle(char, pairId, type, bhClass) {
+    const span = document.createElement('span');
+    span.className = 'bracket-handle ' + bhClass;
+    span.dataset.pairId = pairId;
+    span.dataset.type   = type;
+    span.contentEditable = 'false';
+    span.draggable = true;
+    span.textContent = char;
+    span.title = 'Перетащите, чтобы переместить. Клик — удалить пару.';
+    return span;
+  }
+
+  window.applySpanClass = function(className) {
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount) return;
+    const editor = document.getElementById('task19-expl-editor');
+    if (!editor) return;
+
+    let range = selection.getRangeAt(0);
+    let el = range.commonAncestorContainer;
+    if (el.nodeType === 3) el = el.parentElement;
+    let inside = el;
+    while (inside && inside !== editor) inside = inside.parentElement;
+    if (!inside) return;
+    if (!selection.toString().trim()) return;
+
+    // Расширяем до границ слов
+    range = expandRangeToWords(range);
+
+    if (className === 'bracket-main' || className === 'bracket-sub') {
+      const pairId  = 'bh' + (++_bhCounter);
+      const bhClass = className === 'bracket-main' ? 'bh-main' : 'bh-sub';
+      const chars   = className === 'bracket-main' ? ['[', ']'] : ['(', ')'];
+
+      const openHandle  = createBracketHandle(chars[0], pairId, 'open',  bhClass);
+      const closeHandle = createBracketHandle(chars[1], pairId, 'close', bhClass);
+
+      // Запоминаем позицию начала ДО вставки close
+      const startNode   = range.startContainer;
+      const startOffset = range.startOffset;
+
+      // Вставляем close в конец
+      const endRange = range.cloneRange();
+      endRange.collapse(false);
+      endRange.insertNode(closeHandle);
+
+      // Вставляем open в начало (позиция не сдвинулась, т.к. вставляли после)
+      const openRange = document.createRange();
+      openRange.setStart(startNode, startOffset);
+      openRange.collapse(true);
+      openRange.insertNode(openHandle);
+    } else {
+      const span = document.createElement('span');
+      span.className = className;
+      try {
+        range.surroundContents(span);
+      } catch (_) {
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+      }
+    }
+    selection.removeAllRanges();
+  };
+
+  window.removeMark = function() {
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount) return;
+    const range = selection.getRangeAt(0);
+    let el = range.commonAncestorContainer;
+    if (el.nodeType === 3) el = el.parentElement;
+
+    // Если кликнули на маркер скобки — удаляем пару
+    const handle = el.closest ? el.closest('.bracket-handle') : null;
+    if (handle) {
+      const editor = document.getElementById('task19-expl-editor');
+      if (editor) {
+        editor.querySelectorAll(`.bracket-handle[data-pair-id="${handle.dataset.pairId}"]`)
+              .forEach(h => h.remove());
+      }
+      selection.removeAllRanges();
+      return;
+    }
+
+    while (el) {
+      if (el.classList && EXPL_MARK_CLASSES.some(c => el.classList.contains(c))) {
+        const parent = el.parentNode;
+        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+        parent.removeChild(el);
+        selection.removeAllRanges();
+        return;
+      }
+      if (el.id === 'task19-expl-editor') break;
+      el = el.parentElement;
+    }
+  };
+
+  /* ── Drag-and-drop маркеров скобок ─────────────────────── */
+  function initBracketDragDrop(editor) {
+    let draggingHandle = null;
+    let dropMarker = null; // визуальный индикатор позиции дропа
+
+    function getDropMarker() {
+      if (!dropMarker) {
+        dropMarker = document.createElement('span');
+        dropMarker.id = 'bh-drop-marker';
+        dropMarker.style.cssText =
+          'display:inline-block;width:2px;height:1.2em;background:var(--brand);' +
+          'vertical-align:middle;border-radius:1px;margin:0 1px;animation:bhBlink 0.6s infinite;';
+      }
+      return dropMarker;
+    }
+
+    editor.addEventListener('dragstart', e => {
+      if (!e.target.classList.contains('bracket-handle')) return;
+      draggingHandle = e.target;
+      draggingHandle.dataset.dragging = 'true';
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', 'bracket-handle');
+    });
+
+    editor.addEventListener('dragend', e => {
+      if (draggingHandle) {
+        draggingHandle.dataset.dragging = 'false';
+        draggingHandle = null;
+      }
+      getDropMarker().remove();
+      editor.classList.remove('bh-drag-over');
+    });
+
+    editor.addEventListener('dragover', e => {
+      if (!draggingHandle) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      editor.classList.add('bh-drag-over');
+
+      // Показываем маркер в позиции дропа
+      const range = getRangeFromPoint(e.clientX, e.clientY);
+      if (range) {
+        const marker = getDropMarker();
+        range.insertNode(marker);
+        // normalize убирает артефакты разбивки текстовых узлов
+      }
+    });
+
+    editor.addEventListener('dragleave', e => {
+      if (!editor.contains(e.relatedTarget)) {
+        editor.classList.remove('bh-drag-over');
+        getDropMarker().remove();
+      }
+    });
+
+    editor.addEventListener('drop', e => {
+      if (!draggingHandle) return;
+      e.preventDefault();
+      editor.classList.remove('bh-drag-over');
+
+      const marker = getDropMarker();
+      const parent = marker.parentNode;
+      if (parent) {
+        // Вставляем handle на место маркера
+        parent.insertBefore(draggingHandle, marker);
+        marker.remove();
+      }
+
+      draggingHandle.dataset.dragging = 'false';
+      draggingHandle = null;
+      selection && selection.removeAllRanges && window.getSelection().removeAllRanges();
+    });
+
+    // Клик на маркер — удаляет пару
+    editor.addEventListener('click', e => {
+      const handle = e.target.closest ? e.target.closest('.bracket-handle') : null;
+      if (!handle) return;
+      editor.querySelectorAll(`.bracket-handle[data-pair-id="${handle.dataset.pairId}"]`)
+            .forEach(h => h.remove());
+    });
+  }
+
+  function getRangeFromPoint(x, y) {
+    // Убираем существующий маркер, чтобы не мешал
+    const existing = document.getElementById('bh-drop-marker');
+    if (existing) existing.remove();
+
+    if (document.caretRangeFromPoint) {
+      return document.caretRangeFromPoint(x, y);
+    }
+    if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(x, y);
+      if (pos) {
+        const r = document.createRange();
+        r.setStart(pos.offsetNode, pos.offset);
+        r.collapse(true);
+        return r;
+      }
+    }
+    return null;
+  }
+
+  /* ── Инициализация toolbar ─────────────────────────────── */
+  function initAdminTask19Toolbar() {
+    if (typeof TextSelectionToolbar === 'undefined') return;
+    const toolbar = new TextSelectionToolbar({
+      containerId:     'task19-admin-toolbar',
+      editorSelector:  '#task19-expl-editor',
+      ignoreSelectors: [],
+      defaultButtons:  false,
+      customButtons: [
+        {
+          class: 'bracket-main',
+          icon:  '<svg width="28" height="20" viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><text x="2" y="15" font-size="15" font-weight="bold" fill="#4a9eff" font-family="monospace">[ ]</text></svg>',
+          title: 'Главное предложение [ ]',
+        },
+        {
+          class: 'bracket-sub',
+          icon:  '<svg width="28" height="20" viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><text x="2" y="15" font-size="15" font-weight="bold" fill="#ff8c42" font-family="monospace">( )</text></svg>',
+          title: 'Придаточное предложение ( )',
+        },
+        {
+          class: 'span-subject',
+          icon:  '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="6" x2="22" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+          title: 'Подлежащее',
+        },
+        {
+          class: 'span-predicate',
+          icon:  '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="4" x2="22" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="7" x2="22" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+          title: 'Сказуемое',
+        },
+        {
+          class: 'span-main-word',
+          icon:  '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+          title: 'Главное слово',
+        },
+      ],
+      onButtonClick: (buttonConfig) => {
+        if (buttonConfig.class) window.applySpanClass(buttonConfig.class);
+      },
+      onRemoveClick: () => { window.removeMark(); },
+    });
+    toolbar.setupAutoShow();
+  }
+
+  // Ждём рендера React
+  const _t19Check = setInterval(() => {
+    const editor = document.getElementById('task19-expl-editor');
+    if (editor) {
+      clearInterval(_t19Check);
+      initAdminTask19Toolbar();
+      initBracketDragDrop(editor);
+    }
+  }, 100);
+</script>

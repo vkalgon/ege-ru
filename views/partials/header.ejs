@@ -6,7 +6,7 @@
   <nav class="site-nav" aria-label="Главная навигация">
     <a class="site-nav__link" href="/">Главная</a>
     <a class="site-nav__link" href="#">Задания</a>
-    <a class="site-nav__link" href="#">Теория</a>
+    <a class="site-nav__link" href="/theory">Теория</a>
     <a class="site-nav__link" href="#">Прогресс</a>
   </nav>
 
@@ -24,6 +24,7 @@
     <!-- Для авторизованных пользователей -->
     <div id="user-auth" style="display: none;">
       <div class="site-auth__avatar" aria-hidden="true">
+        <img id="user-avatar-img" alt="Аватар" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;" />
         <span id="user-avatar">В</span>
       </div>
       <span class="site-auth__chevron" aria-hidden="true">
@@ -35,6 +36,7 @@
           <div class="user-menu__email" id="user-contact"></div>
         </div>
         <div class="user-menu__actions">
+          <a class="user-menu__action" href="/profile" style="display:block;text-align:left;text-decoration:none;cursor:pointer">Личный кабинет</a>
           <button class="user-menu__action" onclick="logout()">Выйти</button>
         </div>
       </div>

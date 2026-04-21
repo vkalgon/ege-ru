@@ -1,0 +1,492 @@
+<div class="task-page" id="task19PlayApp">
+  <h2 class="task-page__title">Задание №19: Знаки в СПП</h2>
+
+  <!-- Плавающая панель инструментов (как в задании 17) -->
+  <div id="task19-floating-toolbar" class="task17-floating-toolbar"></div>
+
+  <div id="task19PlayContainer">
+    <div style="padding: 20px;"><p>Загрузка задания...</p></div>
+  </div>
+</div>
+
+<style>
+  /* ── Кликабельные цифры ─────────────────────────────────── */
+  .task17-digit {
+    cursor: pointer;
+    padding: 1px 5px;
+    margin: 0 1px;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+    display: inline-block;
+    user-select: none;
+  }
+  .task17-digit:hover:not(.selected):not(.correct-selected):not(.extra-selected):not(.correct) {
+    background-color: var(--brand-muted);
+  }
+  .task17-digit.selected        { background-color: rgba(164, 190, 226, 0.2); color: var(--brand); outline: 1.5px solid var(--brand-dim); outline-offset: -1px; }
+  .task17-digit.correct         { background-color: transparent !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; }
+  .task17-digit.correct-selected{ background-color: rgba(164,226,208,0.12) !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; font-weight: bold; }
+  .task17-digit.extra-selected  { background-color: #D69295 !important; color: #0f1117 !important; font-weight: bold; }
+
+  /* ── Перетаскиваемые маркеры скобок ────────────────────── */
+  .bracket-handle { display:inline-block; font-weight:bold; font-size:1.15em; line-height:1; padding:0 2px; border-radius:3px; cursor:grab; user-select:none; transition:background 0.15s, transform 0.1s; }
+  .bracket-handle:hover { transform:scale(1.2); }
+  .bracket-handle:active { cursor:grabbing; }
+  .bracket-handle.bh-main { color:#4a9eff; }
+  .bracket-handle.bh-main:hover { background:rgba(74,158,255,0.18); }
+  .bracket-handle.bh-sub  { color:#ff8c42; }
+  .bracket-handle.bh-sub:hover  { background:rgba(255,140,66,0.18); }
+  .bracket-handle[data-dragging="true"] { opacity:0.3; }
+  .task17-text-editable.bh-drag-over { outline:2px dashed var(--glass-border); }
+  @keyframes bhBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* ── Разметка частей предложения ───────────────────────── */
+
+  /* Подлежащее — одинарное подчёркивание */
+  .span-subject   { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  /* Сказуемое — двойное подчёркивание */
+  .span-predicate { text-decoration: underline double; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+</style>
+
+<script src="/js/text-selection-toolbar.js"></script>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+  const { useState, useEffect, useRef } = React;
+
+  <% if (typeof taskId !== 'undefined' && taskId !== null) { %>
+    window.task19InitialId = <%= taskId %>;
+  <% } else { %>
+    window.task19InitialId = null;
+  <% } %>
+
+  function parseTextWithDigits(text) {
+    const parts = [];
+    const regex = /\((\d+)\)/g;
+    let lastIndex = 0, match;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex)
+        parts.push({ text: text.substring(lastIndex, match.index), digit: null });
+      parts.push({ text: match[0], digit: parseInt(match[1], 10) });
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length)
+      parts.push({ text: text.substring(lastIndex), digit: null });
+    return parts;
+  }
+
+  function Task19SingleItem({ taskId }) {
+    const [taskData,       setTaskData]       = useState(null);
+    const [selectedDigits, setSelectedDigits] = useState(new Set());
+    const [answerInput,    setAnswerInput]    = useState('');
+    const [checkResult,    setCheckResult]    = useState(null);
+    const [correctDigits,  setCorrectDigits]  = useState(new Set());
+    const [extraDigits,    setExtraDigits]    = useState(new Set());
+    const [loading,        setLoading]        = useState(false);
+    const [error,          setError]          = useState(null);
+    const [isLiked,        setIsLiked]        = useState(false);
+    const [showSolution,   setShowSolution]   = useState(false);
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+      (async () => {
+        try {
+          setLoading(true);
+          setCorrectDigits(new Set()); setExtraDigits(new Set()); setCheckResult(null);
+          const r = await fetch(`/api/task19/tasks/${taskId}/play`);
+          if (!r.ok) throw new Error('Не удалось загрузить задание');
+          setTaskData(await r.json());
+          setError(null);
+        } catch (e) { setError(e.message); }
+        finally { setLoading(false); }
+      })();
+    }, [taskId]);
+
+    const handleDigitClick = (digit) => {
+      if (checkResult) return;
+      setSelectedDigits(prev => {
+        const s = new Set(prev);
+        s.has(digit) ? s.delete(digit) : s.add(digit);
+        return s;
+      });
+    };
+
+    useEffect(() => {
+      setAnswerInput(Array.from(selectedDigits).sort((a,b)=>a-b).join(''));
+    }, [selectedDigits]);
+
+    const handleInputChange = (e) => {
+      const val = e.target.value;
+      setAnswerInput(val);
+      setSelectedDigits(new Set(val.split('').map(c=>parseInt(c,10)).filter(n=>!isNaN(n)&&n>0)));
+    };
+
+    const handleCheck = async () => {
+      if (!taskData || checkResult) return;
+      const digits = Array.from(selectedDigits).sort((a,b)=>a-b);
+      if (!digits.length) {
+        alert('Выберите цифры в тексте или введите ответ вручную');
+        inputRef.current?.focus();
+        return;
+      }
+      try {
+        setLoading(true);
+        const r = await fetch(`/api/task19/tasks/${taskId}/check`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ selected: digits }),
+        });
+        if (!r.ok) throw new Error('Ошибка проверки');
+        const result = await r.json();
+        setCheckResult(result);
+        setCorrectDigits(new Set(result.comma_positions));
+        setExtraDigits(new Set(digits.filter(d => !result.comma_positions.includes(d))));
+      } catch (e) { setError(e.message); }
+      finally { setLoading(false); }
+    };
+
+    if (loading && !taskData) return (
+      <div className="task-card task17-card task-play-card">
+        <div className="task-content"><p>Загрузка задания...</p></div>
+      </div>
+    );
+    if (error) return (
+      <div className="task-card task17-card task-play-card">
+        <div className="task-content"><p style={{color:'red'}}>Ошибка: {error}</p></div>
+      </div>
+    );
+    if (!taskData) return null;
+
+    const hasChecked = !!checkResult;
+
+    return (
+      <div className="task-card task17-card task-play-card">
+        <div className="task-meta">
+          <span className="task-meta__number">№ {taskId}</span>
+          {taskData.source && <span className="task-meta__source">{taskData.source}</span>}
+        </div>
+
+        <div className="task-content">
+          <div className="task-prompt">
+            <div style={{ paddingBottom:'12px', marginBottom:'12px', fontSize:'16px', lineHeight:'1.6', color:'var(--text-primary)', fontWeight:'500' }}>
+              Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).
+            </div>
+            <div
+              className="task17-text-editable"
+              contentEditable={true}
+              suppressContentEditableWarning={true}
+              style={{
+                fontSize: '18px',
+                lineHeight: '2.0',
+                minHeight: '80px',
+                padding: '16px',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '8px',
+                background: 'var(--bg-secondary)',
+              }}
+            >
+              {parseTextWithDigits(taskData.source_text).map((part, idx) => {
+                if (part.digit !== null) {
+                  const isSel   = selectedDigits.has(part.digit);
+                  const isCorr  = correctDigits.has(part.digit);
+                  const isExtra = extraDigits.has(part.digit);
+                  let cls = 'task17-digit';
+                  if (hasChecked) {
+                    if (isExtra && isSel)     cls += ' extra-selected';
+                    else if (isCorr && isSel) cls += ' correct-selected';
+                    else if (isCorr)          cls += ' correct';
+                  } else if (isSel) cls += ' selected';
+                  return (
+                    <span key={idx} className={cls} data-digit={part.digit}
+                      contentEditable={false}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDigitClick(part.digit); }}
+                      style={{ cursor: hasChecked ? 'default' : 'pointer' }}>
+                      {part.text}
+                    </span>
+                  );
+                }
+                return <span key={idx}>{part.text}</span>;
+              })}
+            </div>
+          </div>
+
+          <div className="task-controls">
+            <input
+              ref={inputRef} className="task-input" type="text"
+              value={answerInput} onChange={handleInputChange}
+              placeholder="Введите свой ответ" inputMode="numeric"
+              disabled={hasChecked}
+              onKeyPress={e => { if (e.key==='Enter') handleCheck(); }}
+            />
+            <button className="task-send" onClick={handleCheck} disabled={loading || hasChecked}>
+              <span>{loading ? 'Проверка...' : 'Отправить'}</span>
+            </button>
+            <button className="task-solution" onClick={() => setShowSolution(s => !s)}>
+              <span>Решение</span>
+              <img src={showSolution ? '/images/eye on.svg' : '/images/eye off.svg'} alt="Глаз" width="16" height="16"/>
+            </button>
+            <button className="task-like" onClick={() => setIsLiked(l => !l)}>
+              <img src={isLiked ? '/images/heart on.svg' : '/images/heart off.svg'} alt="Лайк" width="16" height="16"/>
+            </button>
+          </div>
+
+          {showSolution && taskData.explanation_md && (
+            <div style={{ marginTop:'24px' }}>
+              <div dangerouslySetInnerHTML={{ __html: taskData.explanation_md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
+                style={{ fontSize:'16px', lineHeight:'1.7' }} />
+            </div>
+          )}
+
+          {checkResult && (
+            <div className="task-solution-block" style={{ marginTop:'24px' }}>
+              <h3 style={{ marginTop:0, marginBottom:'16px' }}>Результат проверки</h3>
+
+              {checkResult.is_correct ? (
+                <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'16px', background:'rgba(164,226,208,0.07)', border:'1px solid rgba(164,226,208,0.4)', borderRadius:'8px', marginBottom:'16px' }}>
+                  <div style={{ fontSize:'32px', color:'#A4E2D0', lineHeight:1 }}>✓</div>
+                  <div style={{ fontSize:'18px', fontWeight:'bold', color:'#A4E2D0' }}>Всё верно!</div>
+                </div>
+              ) : (
+                <div style={{ marginBottom:'16px' }}>
+                  <div style={{ fontWeight:'bold', color:'#f6b462', marginBottom:'12px', fontSize:'16px' }}>Ответ неверный</div>
+                  <div style={{ padding:'12px', background:'rgba(214,146,149,0.1)', border:'1px solid rgba(214,146,149,0.3)', borderRadius:'8px', marginBottom:'12px' }}>
+                    <div style={{ color:'var(--text-secondary)', marginBottom:'4px', fontSize:'14px' }}>Правильный ответ:</div>
+                    <div style={{ fontSize:'18px', fontWeight:'bold', color:'#A4E2D0' }}>
+                      {checkResult.comma_positions.join(', ') || '(нет запятых)'}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {checkResult.explanation_md && (
+                <div style={{ padding:'12px 14px', background:'var(--bg-secondary)', border:'1px solid var(--glass-border)', borderRadius:'8px', fontSize:'15px', lineHeight:'1.6' }}
+                  dangerouslySetInnerHTML={{ __html: checkResult.explanation_md.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>') }} />
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  function Task19PlayApp() {
+    const id = window.task19InitialId;
+    if (!id) return <div style={{padding:'20px'}}><p>Задание не найдено.</p></div>;
+    return <Task19SingleItem taskId={parseInt(id)} />;
+  }
+
+  ReactDOM.createRoot(document.getElementById('task19PlayContainer')).render(<Task19PlayApp />);
+</script>
+
+<script>
+  /* ── Undo (Ctrl+Z) ──────────────────────────────────────── */
+  const _t19UndoStack = [];
+  function _t19SaveUndo(editor) {
+    _t19UndoStack.push({ editor, html: editor.innerHTML });
+    if (_t19UndoStack.length > 50) _t19UndoStack.shift();
+  }
+  function _t19Undo() {
+    if (!_t19UndoStack.length) return;
+    const { editor, html } = _t19UndoStack.pop();
+    editor.innerHTML = html;
+  }
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      const inEditor = document.activeElement && document.activeElement.closest('.task17-text-editable');
+      if (inEditor && _t19UndoStack.length) { e.preventDefault(); _t19Undo(); }
+    }
+  });
+
+  /* ── Расширение до границ слов ──────────────────────────── */
+  function _t19ExpandToWords(range) {
+    const r = range.cloneRange();
+    if (r.startContainer.nodeType === Node.TEXT_NODE) {
+      const txt = r.startContainer.textContent; let o = r.startOffset;
+      while (o > 0 && txt[o - 1] !== ' ') o--;
+      r.setStart(r.startContainer, o);
+    }
+    if (r.endContainer.nodeType === Node.TEXT_NODE) {
+      const txt = r.endContainer.textContent; let o = r.endOffset;
+      while (o < txt.length && txt[o] !== ' ') o++;
+      r.setEnd(r.endContainer, o);
+    }
+    while (true) {
+      if (r.startContainer.nodeType === Node.TEXT_NODE && r.startOffset === 0) {
+        const prev = r.startContainer.previousSibling;
+        if (prev && prev.nodeType === Node.TEXT_NODE) { const t = prev.textContent; const sp = t.lastIndexOf(' '); r.setStart(prev, sp >= 0 ? sp + 1 : 0); continue; }
+      }
+      break;
+    }
+    while (true) {
+      if (r.endContainer.nodeType === Node.TEXT_NODE && r.endOffset >= r.endContainer.textContent.length) {
+        const next = r.endContainer.nextSibling;
+        if (next && next.nodeType === Node.TEXT_NODE) { const t = next.textContent; const sp = t.indexOf(' '); r.setEnd(next, sp >= 0 ? sp : t.length); continue; }
+      }
+      break;
+    }
+    return r;
+  }
+
+  /* ── Bracket-handle ─────────────────────────────────────── */
+  let _t19BhCounter = 0;
+  function _t19CreateHandle(char, pairId, type, bhClass) {
+    const span = document.createElement('span');
+    span.className = 'bracket-handle ' + bhClass;
+    span.dataset.pairId = pairId;
+    span.dataset.type   = type;
+    span.contentEditable = 'false';
+    span.draggable = true;
+    span.textContent = char;
+    span.title = 'Перетащите чтобы переместить • Клик — удалить пару';
+    return span;
+  }
+
+  function _t19FindEditor(el) {
+    while (el && !el.classList.contains('task17-text-editable')) el = el.parentElement;
+    return el || null;
+  }
+
+  /* ── Применение разметки ────────────────────────────────── */
+  window.applySpanClass = function(className) {
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount || !selection.toString().trim()) return;
+
+    let range = selection.getRangeAt(0);
+    const anchor = range.commonAncestorContainer.nodeType === 3
+      ? range.commonAncestorContainer.parentElement
+      : range.commonAncestorContainer;
+    const editor = _t19FindEditor(anchor);
+    if (!editor) return;
+
+    _t19SaveUndo(editor);
+    range = _t19ExpandToWords(range);
+
+    if (className === 'bracket-main' || className === 'bracket-sub') {
+      const pairId  = 'bh' + (++_t19BhCounter);
+      const bhClass = className === 'bracket-main' ? 'bh-main' : 'bh-sub';
+      const chars   = className === 'bracket-main' ? ['[', ']'] : ['(', ')'];
+      const open  = _t19CreateHandle(chars[0], pairId, 'open',  bhClass);
+      const close = _t19CreateHandle(chars[1], pairId, 'close', bhClass);
+      const startNode = range.startContainer, startOffset = range.startOffset;
+      const endRange = range.cloneRange(); endRange.collapse(false); endRange.insertNode(close);
+      const openRange = document.createRange(); openRange.setStart(startNode, startOffset); openRange.collapse(true); openRange.insertNode(open);
+    } else {
+      const span = document.createElement('span');
+      span.className = className;
+      try { range.surroundContents(span); }
+      catch (_) { const c = range.extractContents(); span.appendChild(c); range.insertNode(span); }
+    }
+    selection.removeAllRanges();
+    editor.focus();
+  };
+
+  /* ── Удаление разметки ──────────────────────────────────── */
+  const _T19_SPAN_CLASSES = ['span-subject','span-predicate','span-participle','span-gerund','span-main-word'];
+
+  window.removeMark = function() {
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount) return;
+    let el = selection.getRangeAt(0).commonAncestorContainer;
+    if (el.nodeType === 3) el = el.parentElement;
+    const handle = el.closest && el.closest('.bracket-handle');
+    if (handle) {
+      const editor = _t19FindEditor(handle);
+      if (editor) { _t19SaveUndo(editor); editor.querySelectorAll(`.bracket-handle[data-pair-id="${handle.dataset.pairId}"]`).forEach(h => h.remove()); }
+      selection.removeAllRanges();
+      return;
+    }
+    while (el) {
+      if (el.classList && _T19_SPAN_CLASSES.some(c => el.classList.contains(c))) {
+        const editor = _t19FindEditor(el);
+        if (editor) _t19SaveUndo(editor);
+        const p = el.parentNode;
+        while (el.firstChild) p.insertBefore(el.firstChild, el);
+        p.removeChild(el);
+        selection.removeAllRanges();
+        return;
+      }
+      if (el.classList && el.classList.contains('task17-text-editable')) break;
+      el = el.parentElement;
+    }
+  };
+
+  /* ── Drag-and-drop скобок ───────────────────────────────── */
+  function _t19InitDragDrop(editor) {
+    let dragging = null, dropMarker = null;
+    function getMarker() {
+      if (!dropMarker) {
+        dropMarker = document.createElement('span');
+        dropMarker.id = 'bh-drop-marker-play';
+        dropMarker.style.cssText = 'display:inline-block;width:2px;height:1.2em;background:var(--brand);vertical-align:middle;border-radius:1px;margin:0 1px;animation:bhBlink 0.6s infinite;';
+      }
+      return dropMarker;
+    }
+    function getRangeAt(x, y) {
+      const ex = document.getElementById('bh-drop-marker-play'); if (ex) ex.remove();
+      if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y);
+      if (document.caretPositionFromPoint) { const p = document.caretPositionFromPoint(x, y); if (p) { const r = document.createRange(); r.setStart(p.offsetNode, p.offset); r.collapse(true); return r; } }
+      return null;
+    }
+    editor.addEventListener('dragstart', e => {
+      if (!e.target.classList.contains('bracket-handle')) return;
+      dragging = e.target; dragging.dataset.dragging = 'true';
+      e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'bh');
+    });
+    editor.addEventListener('dragend', () => {
+      if (dragging) { dragging.dataset.dragging = 'false'; dragging = null; }
+      getMarker().remove(); editor.classList.remove('bh-drag-over');
+    });
+    editor.addEventListener('dragover', e => {
+      if (!dragging) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      editor.classList.add('bh-drag-over');
+      const r = getRangeAt(e.clientX, e.clientY); if (r) r.insertNode(getMarker());
+    });
+    editor.addEventListener('dragleave', e => {
+      if (!editor.contains(e.relatedTarget)) { editor.classList.remove('bh-drag-over'); getMarker().remove(); }
+    });
+    editor.addEventListener('drop', e => {
+      if (!dragging) return; e.preventDefault(); editor.classList.remove('bh-drag-over');
+      const m = getMarker();
+      if (m.parentNode) { m.parentNode.insertBefore(dragging, m); m.remove(); }
+      dragging.dataset.dragging = 'false'; dragging = null;
+      window.getSelection().removeAllRanges();
+    });
+    editor.addEventListener('click', e => {
+      const handle = e.target.closest && e.target.closest('.bracket-handle');
+      if (!handle) return;
+      _t19SaveUndo(editor);
+      editor.querySelectorAll(`.bracket-handle[data-pair-id="${handle.dataset.pairId}"]`).forEach(h => h.remove());
+    });
+  }
+
+  /* ── Тулбар и инициализация ─────────────────────────────── */
+  function initTask19Toolbar() {
+    if (typeof TextSelectionToolbar === 'undefined') return;
+    const toolbar = new TextSelectionToolbar({
+      containerId:     'task19-floating-toolbar',
+      editorSelector:  '.task17-text-editable',
+      ignoreSelectors: ['.task17-digit', '.bracket-handle'],
+      defaultButtons:  false,
+      customButtons: [
+        { class: 'bracket-main',  icon: '<svg width="28" height="20" viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><text x="2" y="15" font-size="15" font-weight="bold" fill="#4a9eff" font-family="monospace">[ ]</text></svg>', title: 'Главное предложение' },
+        { class: 'bracket-sub',   icon: '<svg width="28" height="20" viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><text x="2" y="15" font-size="15" font-weight="bold" fill="#ff8c42" font-family="monospace">( )</text></svg>', title: 'Придаточное предложение' },
+        { class: 'span-subject',  icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="6" x2="22" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>', title: 'Подлежащее' },
+        { class: 'span-predicate',icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="4" x2="22" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="7" x2="22" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>', title: 'Сказуемое' },
+      ],
+      onButtonClick: (cfg) => { if (cfg.class) window.applySpanClass(cfg.class); },
+      onRemoveClick: () => window.removeMark(),
+    });
+    toolbar.setupAutoShow();
+  }
+
+  const _t19PlayCheck = setInterval(() => {
+    const editor = document.querySelector('.task17-text-editable');
+    if (editor) {
+      clearInterval(_t19PlayCheck);
+      initTask19Toolbar();
+      _t19InitDragDrop(editor);
+    }
+  }, 100);
+</script>

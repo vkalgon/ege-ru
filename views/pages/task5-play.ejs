@@ -1,0 +1,173 @@
+<div class="task-page" id="task5-play">
+  <h2 class="task-page__title">Задание №5 — Паронимы</h2>
+  <div class="task17-wrapper">
+    <div class="task9-column">
+      <div id="task5-container">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.t5-sentences-wrap { display: flex; flex-direction: column; gap: 12px; }
+
+.t5-sentence-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  transition: border-color .25s, background .25s;
+}
+.t5-sentence-num {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--glass-border);
+  color: var(--text-secondary);
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.t5-sentence-text { flex: 1; }
+.t5-hl {
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.t5-sentence-item.state-error  { border-color: #D69295; }
+.t5-sentence-item.state-ok     { border-color: var(--brand); }
+.t5-sentence-item.state-error .t5-sentence-num { background: rgba(214,146,149,.2); color: #D69295; }
+.t5-sentence-item.state-ok    .t5-sentence-num { background: var(--brand-muted); color: var(--brand); }
+</style>
+
+<script src="/js/task-card-shell.js"></script>
+<script>
+const TASK_ID = <%- taskId %>;
+const UID = 't5-' + TASK_ID;
+let taskData = null;
+
+const escHtml = TaskCardShell.escHtml;
+
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function renderSentencesHtml(items, resultItems) {
+  return items.map(it => {
+    const safe = escHtml(it.sentence);
+    const escapedHw = escapeRegex(it.highlighted_word);
+    const rendered = safe.replace(
+      new RegExp('\\{\\{' + escapedHw + '\\}\\}', 'i'),
+      `<span class="t5-hl">${escHtml(it.highlighted_word)}</span>`
+    );
+
+    let stateClass = '';
+    let extraHtml = '';
+    if (resultItems) {
+      const ri = resultItems.find(r => r.item_index === it.item_index);
+      if (ri && ri.is_error) {
+        stateClass = 'state-error';
+        extraHtml = `<div style="margin-top:8px;font-size:13px;color:#D69295;">
+          Ошибка: «${escHtml(ri.highlighted_word)}» → правильно: <strong style="color:var(--brand)">${escHtml(ri.correct_word)}</strong>
+          <br><small style="color:var(--text-secondary)">Группа: ${escHtml(ri.group_title)}</small>
+        </div>`;
+      } else {
+        stateClass = 'state-ok';
+      }
+    }
+
+    return `<div class="t5-sentence-item ${stateClass}" data-index="${it.item_index}">
+      <div class="t5-sentence-num">${it.item_index}</div>
+      <div class="t5-sentence-text">${rendered}${extraHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCard(task) {
+  const bodyHtml = `
+    <p class="task-prompt" style="margin:0;">
+      В одном из приведённых ниже предложений <strong>НЕВЕРНО</strong> употреблено выделенное слово.
+      Исправьте лексическую ошибку, подобрав к выделенному слову пароним. Запишите подобранное слово.
+    </p>
+    <div class="t5-sentences-wrap" id="t5-sentences-${TASK_ID}">
+      ${renderSentencesHtml(task.items)}
+    </div>`;
+
+  const controlsHtml = `
+    <input id="t5-input-${TASK_ID}" class="task-input" type="text"
+           placeholder="Введите правильное слово…" autocomplete="off" autocorrect="off" spellcheck="false">
+    <button id="t5-check-${TASK_ID}" class="task-send">Проверить</button>
+    <a href="/task5" class="btn btn-secondary task9-back-btn">← К списку</a>`;
+
+  return TaskCardShell.buildCardShell({ taskNum: 5, taskId: TASK_ID, bodyHtml, controlsHtml, uid: UID });
+}
+
+async function loadTask() {
+  const container = document.getElementById('task5-container');
+  try {
+    const res = await fetch(`/api/task5/tasks/${TASK_ID}/play`);
+    if (!res.ok) throw new Error('Задание не найдено');
+    taskData = await res.json();
+    container.innerHTML = renderCard(taskData);
+    initCard();
+  } catch (e) {
+    container.innerHTML = `<div class="task-card task17-card"><div class="task-content">
+      <p style="color:#D69295;margin:0;">${escHtml(e.message)}</p>
+    </div></div>`;
+  }
+}
+
+function initCard() {
+  const input = document.getElementById('t5-input-' + TASK_ID);
+  const btn   = document.getElementById('t5-check-' + TASK_ID);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); btn.click(); }
+  });
+  btn.addEventListener('click', checkAnswer);
+}
+
+async function checkAnswer() {
+  const input = document.getElementById('t5-input-' + TASK_ID);
+  const btn   = document.getElementById('t5-check-' + TASK_ID);
+  const answer = input.value.trim();
+  if (!answer) { input.focus(); return; }
+
+  btn.disabled = true;
+  try {
+    const resp = await fetch(`/api/task5/tasks/${TASK_ID}/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer })
+    }).then(r => r.json());
+
+    const sentencesWrap = document.getElementById('t5-sentences-' + TASK_ID);
+    if (sentencesWrap) sentencesWrap.innerHTML = renderSentencesHtml(taskData.items, resp.items);
+
+    TaskCardShell.lockCard(UID);
+
+    const answerLine = `<p style="margin:0;font-size:15px;">Правильный ответ: <strong style="color:var(--brand);">${escHtml(resp.correct_answer)}</strong></p>`;
+    const errorLine = resp.is_correct
+      ? ''
+      : `<p style="margin:0;font-size:14px;color:var(--text-secondary);">Ошибка в предложении №${resp.error_item_index}.</p>`;
+    const navHtml = `<div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="/task5" class="btn btn-secondary">← Другое задание</a>
+      <button class="btn btn-secondary" onclick="location.reload()">Попробовать ещё раз</button>
+    </div>`;
+
+    TaskCardShell.showResult(UID, resp.is_correct, answerLine + errorLine + navHtml);
+  } catch (e) {
+    btn.disabled = false;
+    alert('Ошибка при проверке. Попробуйте ещё раз.');
+  }
+}
+
+loadTask();
+</script>

@@ -1,3 +1,4 @@
+        <script>window.__adminInitialSection = '<%= typeof initialSection === "string" ? initialSection : "" %>';</script>
         <div class="admin-page">
           <h2 class="admin-page__title">Администрирование</h2>
           
@@ -59,6 +60,42 @@
               <h3>Существующие темы</h3>
               <div id="subtopics-list" class="admin-list">
                 <!-- Темы будут загружены через JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Ссылки на отдельные админки заданий -->
+          <div id="special-tasks-tab" class="admin-tab-content" style="display: none;">
+            <div class="admin-section">
+              <h3>Интерактивные задания</h3>
+              <div style="display:flex;flex-direction:column;gap:12px;max-width:400px;">
+                <a href="/admin/passages" class="btn" style="text-align:center;">
+                  Задания №1–3 — Тексты-пассажи
+                </a>
+                <a href="/admin/task9" class="btn btn-secondary" style="text-align:center;">
+                  Задание №9 — Гласные в корне
+                </a>
+                <a href="/admin/task10" class="btn btn-secondary" style="text-align:center;">
+                  Задание №10 — Правописание приставок
+                </a>
+                <a href="/admin/task11" class="btn btn-secondary" style="text-align:center;">
+                  Задание №11 — Правописание суффиксов
+                </a>
+                <a href="/admin/task4" class="btn btn-secondary" style="text-align:center;">
+                  Задание №4 — Орфоэпический минимум
+                </a>
+                <a href="/admin/task5" class="btn btn-secondary" style="text-align:center;">
+                  Задание №5 — Паронимы
+                </a>
+                <a href="/admin/task16" class="btn btn-secondary" style="text-align:center;">
+                  Задание №16 — Однородные и ССП
+                </a>
+                <a href="/admin/task18" class="btn btn-secondary" style="text-align:center;">
+                  Задание №18 — Вводные слова
+                </a>
+                <a href="/admin/task19" class="btn btn-secondary" style="text-align:center;">
+                  Задание №19 — Знаки в СПП
+                </a>
               </div>
             </div>
           </div>
@@ -397,11 +434,19 @@
 
           // Выбор типа задания
           function selectTaskType(typeId, typeTitle) {
-            // Если выбрано задание №17, показываем специальный интерфейс
-            if (typeId === 17) {
-              showTask17Admin();
-              return;
-            }
+            typeId = Number(typeId);
+            // Интерактивные задания — переходим на отдельную страницу
+            if (typeId === 1 || typeId === 2 || typeId === 3) { location.href = '/admin/passages'; return; }
+            if (typeId === 17) { location.href = '/admin/task17'; return; }
+            if (typeId === 4)  { location.href = '/admin/task4';  return; }
+            if (typeId === 5)  { location.href = '/admin/task5';  return; }
+            if (typeId === 9)  { location.href = '/admin/task9';  return; }
+            if (typeId === 10) { location.href = '/admin/task10'; return; }
+            if (typeId === 11) { location.href = '/admin/task11'; return; }
+            if (typeId === 12) { location.href = '/admin/task12'; return; }
+            if (typeId === 16) { location.href = '/admin/task16'; return; }
+            if (typeId === 18) { location.href = '/admin/task18'; return; }
+            if (typeId === 19) { location.href = '/admin/task19'; return; }
             
             // Сохраняем выбранный тип
             window.selectedTaskType = { id: typeId, title: typeTitle };
@@ -494,7 +539,7 @@
             <br><small>Ответ: ${assignment.answer}</small>
           </div>
           <div class="item-actions">
-            <button class="btn btn-secondary btn-sm" onclick="window.open('/admin/assignment/${assignment.id}/edit', '_blank')">Редактировать</button>
+            <a href="/admin/assignment/${assignment.id}/edit" class="btn btn-secondary btn-sm">Редактировать</a>
             <button class="btn btn-danger btn-sm" onclick="deleteAssignment(${assignment.id})">Удалить</button>
           </div>
         </div>
@@ -616,13 +661,26 @@
     const method = isEdit ? 'PUT' : 'POST';
     const successMessage = isEdit ? 'Задание обновлено!' : 'Задание добавлено!';
     
+    if (!data.subtopic_id) {
+      alert('Выберите тему задания');
+      return;
+    }
+    if (!data.prompt || data.prompt.trim() === '' || data.prompt === '{"blocks":[]}') {
+      alert('Введите условие задания');
+      return;
+    }
+    if (!data.answer || data.answer.trim() === '') {
+      alert('Введите правильный ответ');
+      return;
+    }
+
     try {
       const response = await fetch(url, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      
+
       if (response.ok) {
         alert(successMessage);
         e.target.reset();
@@ -630,11 +688,12 @@
         resetFormToAddMode();
         loadAssignments();
       } else {
-        alert('Ошибка сохранения задания');
+        const err = await response.json().catch(() => ({}));
+        alert('Ошибка сохранения: ' + (err.error || response.status));
       }
     } catch (error) {
       console.error('Ошибка:', error);
-      alert('Ошибка сохранения задания');
+      alert('Ошибка сохранения задания: ' + error.message);
     }
   });
 
@@ -821,7 +880,12 @@
 
           // Загружаем данные для активной вкладки при загрузке страницы
           document.addEventListener('DOMContentLoaded', () => {
-            restoreAdminState();
+            const initialSection = window.__adminInitialSection || '';
+            if (initialSection === 'task17') {
+              showTask17Admin();
+            } else {
+              restoreAdminState();
+            }
           });
 </script>
 
@@ -2287,10 +2351,10 @@
             margin: 0 2px;
             border-radius: 4px;
             display: inline-block;
-            color: var(--neon-cyan);
+            color: var(--brand);
             font-weight: 600;
-            background: rgba(0, 240, 255, 0.1);
-            border: 1px solid rgba(0, 240, 255, 0.3);
+            background: var(--brand-muted);
+            border: 1px solid rgba(164, 190, 226, 0.3);
             user-select: none;
           ">${part.text}</span>`;
         } else {

@@ -144,30 +144,30 @@ class TextSelectionToolbar {
    */
   getDefaultButtons() {
     return [
-      { 
-        class: 'span-participle', 
-        icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><path d="M 2 6 Q 4 4, 6 6 T 10 6 T 14 6 T 18 6 T 22 6" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>', 
-        title: 'Причастный' 
+      {
+        class: 'span-participle',
+        icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><path d="M 2 6 Q 4 4, 6 6 T 10 6 T 14 6 T 18 6 T 22 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+        title: 'Причастный'
       },
-      { 
-        class: 'span-gerund', 
-        icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="6" x2="8" y2="6" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="6" r="1.5" fill="rgba(255, 255, 255, 0.9)"/><line x1="16" y1="6" x2="22" y2="6" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/></svg>', 
-        title: 'Деепричастный' 
+      {
+        class: 'span-gerund',
+        icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="6" x2="8" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="6" r="1.5" fill="currentColor"/><line x1="16" y1="6" x2="22" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+        title: 'Деепричастный'
       },
-      { 
-        class: 'span-subject', 
-        icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="6" x2="22" y2="6" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/></svg>', 
-        title: 'Подлежащее' 
+      {
+        class: 'span-subject',
+        icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="6" x2="22" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+        title: 'Подлежащее'
       },
-      { 
-        class: 'span-predicate', 
-        icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="5" x2="22" y2="5" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="7" x2="22" y2="7" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/></svg>', 
-        title: 'Сказуемое' 
+      {
+        class: 'span-predicate',
+        icon: '<svg width="24" height="8" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="7" x2="22" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+        title: 'Сказуемое'
       },
-      { 
-        class: 'span-main-word', 
-        icon: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="2" x2="14" y2="14" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="2" x2="2" y2="14" stroke="rgba(255, 255, 255, 0.9)" stroke-width="2" stroke-linecap="round"/></svg>', 
-        title: 'Главное слово' 
+      {
+        class: 'span-main-word',
+        icon: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+        title: 'Главное слово'
       }
     ];
   }

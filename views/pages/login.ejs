@@ -1,3 +1,42 @@
+<!-- Онбординг-модал (скрыт по умолчанию) -->
+<div id="onboarding-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <h2>Расскажи о себе</h2>
+    <p class="modal-subtitle">Это поможет подобрать задания под твой уровень. Можно пропустить.</p>
+
+    <div class="form-group">
+      <label>Твой уровень подготовки</label>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="ob-level" value="beginner"> Начинающий (меньше 60 баллов)</label>
+        <label class="radio-option"><input type="radio" name="ob-level" value="intermediate" checked> Средний (60–80 баллов)</label>
+        <label class="radio-option"><input type="radio" name="ob-level" value="advanced"> Продвинутый (80+ баллов)</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="ob-score">Целевой балл ЕГЭ</label>
+      <input type="number" id="ob-score" class="form-input" min="50" max="100" value="80" style="max-width:120px">
+    </div>
+
+    <div class="form-group">
+      <label>Слабые блоки заданий (можно выбрать несколько)</label>
+      <div class="checkbox-group">
+        <label class="checkbox-option"><input type="checkbox" name="ob-tasks" value="4"> Задание 4 — Ударения</label>
+        <label class="checkbox-option"><input type="checkbox" name="ob-tasks" value="9"> Задание 9 — Гласные в корне</label>
+        <label class="checkbox-option"><input type="checkbox" name="ob-tasks" value="10"> Задание 10 — Приставки</label>
+        <label class="checkbox-option"><input type="checkbox" name="ob-tasks" value="11"> Задание 11 — Суффиксы</label>
+        <label class="checkbox-option"><input type="checkbox" name="ob-tasks" value="12"> Задание 12 — Окончания</label>
+        <label class="checkbox-option"><input type="checkbox" name="ob-tasks" value="17"> Задание 17 — Пунктуация</label>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="ob-save-btn">Сохранить</button>
+      <button class="btn btn-ghost" id="ob-skip-btn">Пропустить</button>
+    </div>
+  </div>
+</div>
+
 <div class="login-page">
   <div class="login-container">
     <div class="login-header">
@@ -6,89 +45,81 @@
     </div>
 
     <div class="login-tabs">
-      <button class="login-tab active" data-tab="telegram">Telegram</button>
-      <button class="login-tab" data-tab="login">Логин/Пароль</button>
+      <button class="login-tab active" data-tab="login">Вход</button>
+      <button class="login-tab" data-tab="register">Регистрация</button>
     </div>
 
-    <!-- Telegram авторизация -->
-    <div id="telegram-tab" class="login-tab-content active">
+    <!-- Вход -->
+    <div id="login-tab" class="login-tab-content active">
       <div class="login-form">
-        <div class="telegram-info">
-          <h3>Вход через Telegram</h3>
-          <p>Нажмите кнопку ниже, чтобы войти через Telegram WebApp</p>
-          
-          <button id="telegram-login-btn" class="btn btn-telegram">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16l-1.61 7.59c-.12.54-.44.68-.9.42l-2.49-1.84-1.2 1.16c-.13.13-.24.24-.49.24l.18-2.56 4.64-4.19c.2-.18-.04-.28-.31-.1l-5.74 3.61-2.47-.77c-.54-.17-.55-.54.11-.8l9.66-3.72c.45-.17.84.1.7.8z"/>
-            </svg>
-            Войти через Telegram
-          </button>
+        <div class="form-group">
+          <label for="login-input">Логин</label>
+          <input type="text" id="login-input" placeholder="Введите логин" class="form-input" autocomplete="username">
         </div>
+        <div class="form-group">
+          <label for="password-input">Пароль</label>
+          <input type="password" id="password-input" placeholder="Введите пароль" class="form-input" autocomplete="current-password">
+        </div>
+        <div id="login-error" class="form-error" style="display:none"></div>
+        <button id="login-btn" class="btn btn-primary">Войти</button>
       </div>
     </div>
 
-    <!-- Логин/пароль авторизация -->
-    <div id="login-tab" class="login-tab-content">
+    <!-- Регистрация -->
+    <div id="register-tab" class="login-tab-content">
       <div class="login-form">
-        <h3>Вход в систему</h3>
-        
-        <div class="form-step">
-          <div class="form-group">
-            <label for="login-input">Логин</label>
-            <input 
-              type="text" 
-              id="login-input" 
-              placeholder="Введите логин"
-              class="form-input"
-            >
-          </div>
-          <div class="form-group">
-            <label for="password-input">Пароль</label>
-            <input 
-              type="password" 
-              id="password-input" 
-              placeholder="Введите пароль"
-              class="form-input"
-            >
-          </div>
-          <button id="login-btn" class="btn btn-primary">Войти</button>
+        <div class="form-group">
+          <label for="reg-login-input">Логин <span class="required">*</span></label>
+          <input type="text" id="reg-login-input" placeholder="Придумайте логин" class="form-input" autocomplete="username">
         </div>
-        
-        <div class="login-divider">
-          <span>или</span>
+        <div class="form-group">
+          <label for="reg-password-input">Пароль <span class="required">*</span> <small>(минимум 6 символов)</small></label>
+          <input type="password" id="reg-password-input" placeholder="Придумайте пароль" class="form-input" autocomplete="new-password">
         </div>
-        
-        <div class="form-step">
-          <h4>Регистрация</h4>
-          <div class="form-group">
-            <label for="reg-login-input">Логин</label>
-            <input 
-              type="text" 
-              id="reg-login-input" 
-              placeholder="Придумайте логин"
-              class="form-input"
-            >
-          </div>
-          <div class="form-group">
-            <label for="reg-password-input">Пароль</label>
-            <input 
-              type="password" 
-              id="reg-password-input" 
-              placeholder="Придумайте пароль (минимум 6 символов)"
-              class="form-input"
-            >
-          </div>
-          <div class="form-group">
-            <label for="reg-first-name">Имя (необязательно)</label>
-            <input 
-              type="text" 
-              id="reg-first-name" 
-              placeholder="Ваше имя"
-              class="form-input"
-            >
-          </div>
-          <button id="register-btn" class="btn btn-secondary">Зарегистрироваться</button>
+        <div class="form-group">
+          <label for="reg-first-name">Имя <small>(необязательно)</small></label>
+          <input type="text" id="reg-first-name" placeholder="Ваше имя" class="form-input" autocomplete="given-name">
         </div>
+        <div class="form-group">
+          <label for="reg-email">Email <small>(необязательно)</small></label>
+          <input type="email" id="reg-email" placeholder="your@email.com" class="form-input" autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label>Я регистрируюсь как</label>
+          <div class="role-selector">
+            <label class="role-option">
+              <input type="radio" name="reg-role" value="student" checked>
+              <span class="role-label">
+                <span class="role-icon">🎓</span>
+                <span class="role-text">
+                  <strong>Ученик</strong>
+                  <small>Выполняю задания и слежу за прогрессом</small>
+                </span>
+              </span>
+            </label>
+            <label class="role-option">
+              <input type="radio" name="reg-role" value="teacher">
+              <span class="role-label">
+                <span class="role-icon">📚</span>
+                <span class="role-text">
+                  <strong>Учитель</strong>
+                  <small>Создаю задания и слежу за учениками</small>
+                </span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Код учителя — показывается только для ученика -->
+        <div class="form-group" id="teacher-code-group">
+          <label for="reg-teacher-code">Код учителя <small>(необязательно)</small></label>
+          <input type="text" id="reg-teacher-code" placeholder="Например: A3F2" class="form-input" style="text-transform:uppercase;max-width:160px">
+          <small class="hint-text">Введите код, если учитель уже пригласил вас</small>
+        </div>
+
+        <div id="register-error" class="form-error" style="display:none"></div>
+        <button id="register-btn" class="btn btn-primary">Зарегистрироваться</button>
       </div>
     </div>
 
@@ -99,135 +130,148 @@
 </div>
 
 <script>
-  // Переключение вкладок
-  document.querySelectorAll('.login-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const tabName = tab.dataset.tab;
-      
-      // Обновляем активные вкладки
-      document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.login-tab-content').forEach(c => c.classList.remove('active'));
-      
-      tab.classList.add('active');
-      document.getElementById(`${tabName}-tab`).classList.add('active');
+// Редирект если уже залогинен
+(async function checkSession() {
+  try {
+    const r = await fetch('/api/auth/me');
+    if (r.ok) window.location.href = '/profile';
+  } catch {}
+})();
+
+// Переключение вкладок
+document.querySelectorAll('.login-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const tabName = tab.dataset.tab;
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.login-tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+  });
+});
+
+// Скрывать поле кода учителя для учителей
+document.querySelectorAll('input[name="reg-role"]').forEach(r => {
+  r.addEventListener('change', () => {
+    document.getElementById('teacher-code-group').style.display =
+      r.value === 'student' ? '' : 'none';
+  });
+});
+
+// Показать ошибку
+function showError(elId, msg) {
+  const el = document.getElementById(elId);
+  el.textContent = msg;
+  el.style.display = msg ? '' : 'none';
+}
+
+// Вход
+document.getElementById('login-btn').addEventListener('click', doLogin);
+document.getElementById('password-input').addEventListener('keypress', e => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  const login = document.getElementById('login-input').value.trim();
+  const password = document.getElementById('password-input').value;
+  showError('login-error', '');
+
+  if (!login || !password) { showError('login-error', 'Введите логин и пароль'); return; }
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Входим...';
+
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login, password })
     });
-  });
+    const data = await r.json();
+    if (r.ok && data.success) {
+      window.location.href = '/profile';
+    } else {
+      showError('login-error', data.error || 'Ошибка входа');
+    }
+  } catch {
+    showError('login-error', 'Ошибка соединения');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Войти';
+  }
+}
 
-  // Telegram авторизация
-  document.getElementById('telegram-login-btn').addEventListener('click', async () => {
-    try {
-      // Проверяем, есть ли Telegram WebApp
-      if (window.Telegram && window.Telegram.WebApp) {
-        const tg = window.Telegram.WebApp;
-        const user = tg.initDataUnsafe.user;
-        
-        if (user) {
-          const response = await fetch('/api/auth/telegram', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(user)
-          });
-          
-          const result = await response.json();
-          
-          if (result.success) {
-            window.location.href = '/';
-          } else {
-            alert('Ошибка авторизации: ' + result.error);
-          }
-        } else {
-          alert('Telegram WebApp не доступен. Откройте сайт через Telegram бота.');
-        }
+// Регистрация
+document.getElementById('register-btn').addEventListener('click', doRegister);
+document.getElementById('reg-password-input').addEventListener('keypress', e => { if (e.key === 'Enter') doRegister(); });
+
+async function doRegister() {
+  const login = document.getElementById('reg-login-input').value.trim();
+  const password = document.getElementById('reg-password-input').value;
+  const firstName = document.getElementById('reg-first-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const teacherCode = document.getElementById('reg-teacher-code').value.trim().toUpperCase();
+  const role = document.querySelector('input[name="reg-role"]:checked')?.value || 'student';
+  showError('register-error', '');
+
+  if (!login || !password) { showError('register-error', 'Введите логин и пароль'); return; }
+  if (password.length < 6) { showError('register-error', 'Пароль должен содержать минимум 6 символов'); return; }
+
+  const btn = document.getElementById('register-btn');
+  btn.disabled = true; btn.textContent = 'Регистрируем...';
+
+  try {
+    const r = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        login, password,
+        first_name: firstName || null,
+        email: email || null,
+        role,
+        teacher_code: teacherCode || null,
+      })
+    });
+    const data = await r.json();
+    if (r.ok && data.success) {
+      // Для ученика показываем онбординг, для учителя — сразу в кабинет
+      if (data.user.role === 'student' && !data.user.onboarding_done) {
+        showOnboarding();
       } else {
-        alert('Telegram WebApp не доступен. Откройте сайт через Telegram бота.');
+        window.location.href = '/profile';
       }
-    } catch (error) {
-      console.error('Ошибка Telegram авторизации:', error);
-      alert('Ошибка авторизации');
+    } else {
+      showError('register-error', data.error || 'Ошибка регистрации');
     }
+  } catch {
+    showError('register-error', 'Ошибка соединения');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Зарегистрироваться';
+  }
+}
+
+/* ─── Онбординг-модал ───────────────────────────────────────── */
+function showOnboarding() {
+  document.getElementById('onboarding-modal').style.display = 'flex';
+}
+
+document.getElementById('ob-skip-btn').addEventListener('click', async () => {
+  // Отмечаем как пройденный без данных
+  await fetch('/api/auth/onboarding', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({})
   });
+  window.location.href = '/profile';
+});
 
-  // Логин/пароль авторизация
-  document.getElementById('login-btn').addEventListener('click', async () => {
-    const login = document.getElementById('login-input').value.trim();
-    const password = document.getElementById('password-input').value.trim();
-    
-    if (!login || !password) {
-      alert('Введите логин и пароль');
-      return;
-    }
+document.getElementById('ob-save-btn').addEventListener('click', async () => {
+  const level = document.querySelector('input[name="ob-level"]:checked')?.value;
+  const target_score = Number(document.getElementById('ob-score').value) || null;
+  const weak_tasks = Array.from(document.querySelectorAll('input[name="ob-tasks"]:checked'))
+    .map(el => el.value);
 
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login, password })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        window.location.href = '/';
-      } else {
-        alert('Ошибка: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Ошибка авторизации:', error);
-      alert('Ошибка авторизации');
-    }
+  await fetch('/api/auth/onboarding', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ level, target_score, weak_tasks })
   });
-
-  // Регистрация
-  document.getElementById('register-btn').addEventListener('click', async () => {
-    const login = document.getElementById('reg-login-input').value.trim();
-    const password = document.getElementById('reg-password-input').value.trim();
-    const firstName = document.getElementById('reg-first-name').value.trim();
-    
-    if (!login || !password) {
-      alert('Введите логин и пароль');
-      return;
-    }
-
-    if (password.length < 6) {
-      alert('Пароль должен содержать минимум 6 символов');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          login, 
-          password, 
-          first_name: firstName || null,
-          last_name: null 
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        window.location.href = '/';
-      } else {
-        alert('Ошибка: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Ошибка регистрации:', error);
-      alert('Ошибка регистрации');
-    }
-  });
-
-  // Вход по Enter
-  document.getElementById('password-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      document.getElementById('login-btn').click();
-    }
-  });
-
-  document.getElementById('reg-password-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      document.getElementById('register-btn').click();
-    }
-  });
+  window.location.href = '/profile';
+});
 </script>

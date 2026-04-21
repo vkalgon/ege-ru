@@ -1,0 +1,31 @@
+<div class="task-page" id="task11-play">
+  <h2 class="task-page__title">Задание №11 — Правописание суффиксов</h2>
+
+  <div class="task17-wrapper">
+    <div class="task9-column">
+      <div id="task11-container">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/task-play-card.js"></script>
+<script>
+const TASK_ID = <%- taskId %>;
+
+async function loadTask() {
+  const container = document.getElementById('task11-container');
+  const res = await fetch('/api/task11/tasks/' + TASK_ID + '/play');
+  if (!res.ok) {
+    container.innerHTML =
+      '<div class="task-card task17-card"><div class="task-content"><p style="color:#D69295;margin:0;">Задание не найдено.</p></div></div>';
+    return;
+  }
+  const task = await res.json();
+  container.innerHTML = renderTask11CardHTML(TASK_ID, task, { standalone: true });
+  initTask11Card(container, TASK_ID, task, { standalone: true });
+}
+
+loadTask();
+</script>
