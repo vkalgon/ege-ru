@@ -245,6 +245,7 @@
         }
         
         // Меняем кнопку в зависимости от результата
+        inputEl.classList.add(data.ok ? 'input-correct' : 'input-incorrect');
         if (data.ok) {
           // Создаем изображение и проверяем его загрузку
           const img = new Image();

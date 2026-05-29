@@ -40,7 +40,7 @@ api.get('/assignments', (req, res) => {
   if (!subtopicId) return res.status(400).json({ error: 'subtopicId required' });
 
   const rows = db.prepare(`
-    SELECT 
+    SELECT
       a.id,
       a.fipi_number,
       a.source,
@@ -55,6 +55,38 @@ api.get('/assignments', (req, res) => {
     WHERE a.subtopic_id = ?
     ORDER BY a.id
   `).all(subtopicId);
+
+  res.json(rows);
+});
+
+
+/* ----------------------
+   ЗАДАНИЯ по типу (все задания типа)
+   GET /api/assignments/by-type?type=1
+----------------------- */
+api.get('/assignments/by-type', (req, res) => {
+  const type = Number(req.query.type);
+  if (!type) return res.status(400).json({ error: 'type required' });
+
+  const rows = db.prepare(`
+    SELECT
+      a.id,
+      a.subtopic_id,
+      s.title AS subtopic_title,
+      a.fipi_number,
+      a.source,
+      a.prompt,
+      a.context,
+      a.answer,
+      a.explanation,
+      a.rule_ref,
+      a.alt_answers,
+      a.extra_data
+    FROM assignments a
+    JOIN subtopics s ON s.id = a.subtopic_id
+    WHERE s.type_id = ?
+    ORDER BY a.subtopic_id, a.id
+  `).all(type);
 
   res.json(rows);
 });
@@ -291,6 +323,41 @@ api.delete('/sources/:id', (req, res) => {
     console.error('Ошибка удаления источника:', error);
     res.status(500).json({ error: 'Ошибка удаления источника' });
   }
+});
+
+/* ── Theory unlock system ─────────────────────────────── */
+
+// Создаём таблицу если не существует
+db.exec(`
+  CREATE TABLE IF NOT EXISTS theory_unlocks (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL,
+    theory_key TEXT    NOT NULL,
+    unlocked_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id, theory_key)
+  )
+`);
+
+// GET /api/theory/unlocks — список разблокированных для текущего пользователя
+api.get('/theory/unlocks', (req, res) => {
+  const sessionId = req.cookies?.session_id;
+  if (!sessionId) return res.json({ unlocked: [] });
+  const session = db.prepare('SELECT user_id FROM sessions WHERE session_id = ?').get(sessionId);
+  if (!session) return res.json({ unlocked: [] });
+  const rows = db.prepare('SELECT theory_key FROM theory_unlocks WHERE user_id = ?').all(session.user_id);
+  res.json({ unlocked: rows.map(r => r.theory_key) });
+});
+
+// POST /api/theory/unlock — разблокировать раздел теории
+api.post('/theory/unlock', (req, res) => {
+  const sessionId = req.cookies?.session_id;
+  if (!sessionId) return res.status(401).json({ error: 'Требуется авторизация' });
+  const session = db.prepare('SELECT user_id FROM sessions WHERE session_id = ?').get(sessionId);
+  if (!session) return res.status(401).json({ error: 'Требуется авторизация' });
+  const { theory_key } = req.body;
+  if (!theory_key) return res.status(400).json({ error: 'theory_key required' });
+  db.prepare('INSERT OR IGNORE INTO theory_unlocks (user_id, theory_key) VALUES (?, ?)').run(session.user_id, theory_key);
+  res.json({ ok: true });
 });
 
 export default api;

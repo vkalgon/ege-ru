@@ -1,0 +1,539 @@
+/* ===== TASK 9 — карточки в стиле задания №17 ===== */
+.task9-list-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  max-width: 800px;
+}
+
+.task9-list-title {
+  margin-bottom: 0 !important;
+  flex: 1;
+  min-width: 200px;
+}
+
+a.task9-generate-link {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.task9-column {
+  max-width: 800px;
+  width: 100%;
+}
+
+.task10-section-title {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.task10-generate-wrap {
+  padding-left: 0;
+}
+
+/* Админки заданий 9–12: общая полоса вкладок */
+.admin-task-tabs-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0;
+  align-items: stretch;
+}
+.admin-task-tabs-bar .tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 10px 18px;
+  min-height: 42px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+  text-align: center;
+}
+.admin-task-tabs-bar .tab-btn:hover {
+  color: var(--text-primary);
+}
+.admin-task-tabs-bar .tab-btn.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+}
+
+.task10-generate-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.task10-generate-grid > .form-group {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.task10-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px 12px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-sizing: border-box;
+  flex: 1;
+}
+
+.task10-check-grid label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.task10-check-grid input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  margin: 0;
+  padding: 0;
+  border: initial;
+  border-radius: 3px;
+  background: initial;
+  box-shadow: none;
+  accent-color: var(--neon-cyan);
+}
+
+.task10-count-grid {
+  min-width: 200px;
+  grid-template-columns: 1fr;
+}
+
+.task10-generate-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* Лента заданий на /task9 (как вертикальный список карточек в №17) */
+.task9-task-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.task9-feed-inner {
+  flex: 1;
+}
+
+.task9-feed-item {
+  width: 100%;
+}
+
+.task9-feed-item .task9-play-card {
+  margin-bottom: 0;
+}
+
+.task9-section-title {
+  margin: 8px 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.task9-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.task9-filters-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Alternation deep filters */
+.alternation-filters {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.alt-filter-section { display: flex; flex-direction: column; gap: 8px; }
+.alt-filter-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.alt-filter-hint {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+.toggle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+.toggle-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 13px;
+  min-height: 34px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+  line-height: 1.4;
+  text-align: center;
+}
+.toggle-chip:hover { border-color: var(--brand); }
+.toggle-chip.active {
+  background: var(--brand-muted);
+  border-color: var(--brand);
+  color: var(--brand);
+  font-weight: 600;
+}
+.toggle-chip-root {
+  font-size: 0.78rem;
+  padding: 4px 11px;
+}
+
+.task9-task-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+.task9-task-grid > .task-card {
+  margin-bottom: 0;
+}
+
+@media (min-width: 520px) {
+  .task9-task-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+a.task9-list-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+a.task9-list-card:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: var(--glow-cyan);
+}
+
+a.task9-list-card .task-meta {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+a.task9-list-card .task9-list-kind {
+  font-size: 12px;
+  opacity: 0.95;
+}
+
+/* Класс для всех карточек заданий в режиме «играть» */
+.task-play-card .task-content,
+.task9-play-card .task-content {
+  gap: 20px;
+}
+
+/* Отступ между карточкой задания и карточкой результата */
+.task-play-result {
+  margin-top: 16px;
+}
+
+.task9-all-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 0 0;
+  margin: 0;
+}
+
+.task9-line {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  transition: background 0.2s ease;
+}
+
+.task9-line:last-child {
+  padding-bottom: 2px;
+}
+
+.task9-num-square {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-secondary);
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.task9-num-square:hover:not(:disabled) {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.task9-num-square.selected {
+  border-color: var(--brand);
+  background: var(--brand-muted);
+  color: var(--brand);
+}
+
+.task9-num-square:disabled {
+  cursor: default;
+}
+
+/* Play result answer rows */
+.play-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+}
+.play-answer-label {
+  color: var(--text-secondary);
+  font-size: 14px;
+  min-width: 160px;
+}
+.play-answer-value {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+.play-answer-correct { color: var(--brand); }
+.play-answer-ok      { color: var(--color-success); }
+.play-answer-wrong   { color: var(--color-error); }
+.play-answer-icon    { font-size: 18px; font-weight: 700; }
+
+.task9-num-square.result-num-correct {
+  border-color: var(--color-success);
+  background: transparent;
+  color: var(--color-success);
+}
+
+.task9-num-square.result-num-incorrect {
+  border-color: #e05c65;
+  background: transparent;
+  color: #e05c65;
+}
+
+.task9-line.result-correct {
+  background: transparent;
+}
+
+.task9-line.result-incorrect {
+  background: transparent;
+}
+
+.task9-task-controls {
+  margin-top: 16px;
+  align-items: center;
+}
+
+/* Validation warning below controls */
+.task9-validation-warn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-warning);
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  margin-top: 0;
+  border-width: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease, max-height 0.25s ease, margin-top 0.25s ease, padding 0.25s ease, border-width 0.25s ease;
+  pointer-events: none;
+}
+.task9-validation-warn::before {
+  content: '!';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(251, 191, 36, 0.18);
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.task9-validation-warn.visible {
+  opacity: 1;
+  max-height: 60px;
+  margin-top: 10px;
+  padding: 9px 14px;
+  border-width: 1px;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Shake animation for the answer input */
+@keyframes inputShake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-5px); }
+  40%  { transform: translateX(5px); }
+  60%  { transform: translateX(-4px); }
+  80%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+.input-shake { animation: inputShake 0.35s ease; }
+
+.task9-task-controls .task9-back-btn {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.task9-solution-wrap .task9-solution-card {
+  margin-bottom: 0;
+}
+
+.task9-solution-body .task9-solution-row + .task9-solution-row {
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.task9-words-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  gap: 24px;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.task9-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.task9-word input {
+  width: 18px;
+  min-width: 18px;
+  height: 22px;
+  padding: 0 2px;
+  margin: 0 2px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  background: var(--brand-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  outline: none;
+  text-transform: lowercase;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  caret-color: var(--brand);
+}
+
+.task9-word input::placeholder {
+  color: var(--text-disabled);
+  font-weight: 400;
+  font-size: 13px;
+}
+
+.task9-word input:focus {
+  background: rgba(164, 190, 226, 0.18);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--glass-border);
+}
+
+.task9-word input:not(:placeholder-shown) {
+  background: var(--brand-muted);
+  border-color: var(--brand);
+  color: var(--text-primary);
+}
+
+.task9-word input.letter-correct {
+  background: transparent;
+  border-color: var(--color-success);
+  color: var(--color-success);
+  box-shadow: none;
+}
+
+.task9-word input.letter-incorrect {
+  background: transparent;
+  border-color: var(--color-error);
+  color: var(--color-error);
+  box-shadow: none;
+}
+
+#task9-result {
+  margin-top: 16px;
+}
+
+#task9-result .result-score {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-accent);
+}
+
+@media (max-width: 700px) {
+  .task10-generate-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .task10-generate-actions {
+    justify-content: flex-start;
+  }
+}

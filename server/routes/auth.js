@@ -1,22 +1,27 @@
 import { Router } from 'express';
 import db from '../db.js';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const auth = Router();
+const BCRYPT_ROUNDS = 12;
 
-// Генерация session ID
 function generateSessionId() {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// Хеширование пароля
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
+async function hashPassword(password) {
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
-// Проверка пароля
-function verifyPassword(password, hash) {
-  return hashPassword(password) === hash;
+// Handles both legacy SHA-256 hashes and new bcrypt hashes
+async function verifyPassword(password, storedHash) {
+  if (storedHash.startsWith('$2')) {
+    return bcrypt.compare(password, storedHash);
+  }
+  // Legacy SHA-256 — compare but signal migration needed
+  const legacyHash = crypto.createHash('sha256').update(password).digest('hex');
+  return legacyHash === storedHash ? 'legacy' : false;
 }
 
 /* ----------------------
@@ -88,24 +93,29 @@ auth.post('/telegram', (req, res) => {
    LOGIN/PASSWORD AUTH
    POST /api/auth/login
 ----------------------- */
-auth.post('/login', (req, res) => {
+auth.post('/login', async (req, res) => {
   try {
     const { login, password } = req.body;
-    
+
     if (!login || !password) {
       return res.status(400).json({ error: 'Логин и пароль обязательны' });
     }
-    
-    // Ищем пользователя по логину
+
     const user = db.prepare('SELECT * FROM users WHERE login = ?').get(login);
-    
+
     if (!user) {
       return res.status(400).json({ error: 'Неверный логин или пароль' });
     }
-    
-    // Проверяем пароль
-    if (!verifyPassword(password, user.password)) {
+
+    const verified = await verifyPassword(password, user.password);
+    if (!verified) {
       return res.status(400).json({ error: 'Неверный логин или пароль' });
+    }
+
+    // Migrate legacy SHA-256 hash to bcrypt on first login
+    if (verified === 'legacy') {
+      const newHash = await hashPassword(password);
+      db.prepare('UPDATE users SET password = ? WHERE id = ?').run(newHash, user.id);
     }
     
     // Обновляем время последнего входа
@@ -152,7 +162,7 @@ auth.post('/login', (req, res) => {
    REGISTER NEW USER
    POST /api/auth/register
 ----------------------- */
-auth.post('/register', (req, res) => {
+auth.post('/register', async (req, res) => {
   try {
     const { login, password, first_name, last_name, email, teacher_code } = req.body;
 
@@ -172,6 +182,9 @@ auth.post('/register', (req, res) => {
 
     // Проверяем уникальность email если указан
     if (email) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        return res.status(400).json({ error: 'Некорректный формат email' });
+      }
       const existingEmail = db.prepare('SELECT id FROM users WHERE email = ?').get(email.trim().toLowerCase());
       if (existingEmail) {
         return res.status(400).json({ error: 'Пользователь с таким email уже существует' });
@@ -192,8 +205,7 @@ auth.post('/register', (req, res) => {
       }
     }
 
-    // Создаем нового пользователя
-    const hashedPassword = hashPassword(password);
+    const hashedPassword = await hashPassword(password);
     const result = db.prepare(`
       INSERT INTO users (login, password, first_name, last_name, email, role, last_login)
       VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
@@ -482,6 +494,30 @@ auth.post('/avatar', (req, res) => {
   } catch (error) {
     console.error('Ошибка сохранения аватара:', error);
     res.status(500).json({ error: 'Ошибка сохранения аватара' });
+  }
+});
+
+auth.patch('/name', (req, res) => {
+  try {
+    const sessionId = req.cookies.session_id;
+    if (!sessionId) return res.status(401).json({ error: 'Не авторизован' });
+
+    const session = db.prepare(`
+      SELECT u.id
+      FROM users u
+      JOIN user_sessions s ON s.user_id = u.id
+      WHERE s.session_id = ? AND s.expires_at > datetime('now')
+    `).get(sessionId);
+    if (!session) return res.status(401).json({ error: 'Сессия истекла' });
+
+    const name = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
+    if (!name || name.length > 64) return res.status(400).json({ error: 'Некорректное имя' });
+
+    db.prepare('UPDATE users SET name = ? WHERE id = ?').run(name, session.id);
+    res.json({ success: true, name });
+  } catch (error) {
+    console.error('Ошибка обновления имени:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 

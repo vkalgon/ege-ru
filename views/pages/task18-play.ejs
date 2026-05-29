@@ -21,10 +21,10 @@
     background-color: var(--brand-muted);
     border-color: var(--brand);
   }
-  .task17-digit.selected       { background-color: rgba(164, 190, 226, 0.2); color: var(--brand); outline: 1.5px solid var(--brand-dim); outline-offset: -1px; }
-  .task17-digit.correct        { background-color: transparent !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; }
-  .task17-digit.correct-selected { background-color: rgba(164,226,208,0.12) !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; font-weight: bold; }
-  .task17-digit.extra-selected { background-color: #D69295 !important; color: #0f1117 !important; font-weight: bold; }
+  .task17-digit.selected       { background-color: rgba(164, 190, 226, 0.2); color: var(--brand); outline: 1px solid var(--brand-dim); outline-offset: -1px; }
+  .task17-digit.correct        { background-color: transparent !important; color: #A4E2D0 !important; outline: 1px solid #A4E2D0 !important; outline-offset: -1px; }
+  .task17-digit.correct-selected { background-color: rgba(164,226,208,0.12) !important; color: #A4E2D0 !important; outline: 1px solid #A4E2D0 !important; outline-offset: -1px; font-weight: bold; }
+  .task17-digit.extra-selected { background-color: #e05c65 !important; color: #0f1117 !important; font-weight: bold; }
 
   .task18-word-card {
     padding: 10px 14px; border-radius: 8px;
@@ -32,7 +32,7 @@
     font-size: 0.9rem; margin-bottom: 8px;
   }
   .task18-word-card.ok  { border-color: rgba(164,226,208,0.5); background: rgba(164,226,208,0.07); }
-  .task18-word-card.err { border-color: rgba(214,146,149,0.5); background: rgba(214,146,149,0.07); }
+  .task18-word-card.err { border-color: rgba(224,92,101,0.5); background: rgba(224,92,101,0.07); }
   .task18-word-card__phrase { font-weight: 700; font-size: 1rem; }
   .task18-word-card__type   { font-size: 0.8rem; color: var(--text-secondary); margin-left: 6px; }
   .task18-word-card__rule   { margin-top: 4px; color: var(--text-secondary); font-size: 0.88rem; }
@@ -186,7 +186,7 @@
 
           <div className="task-controls">
             <input
-              ref={inputRef} className="task-input" type="text"
+              ref={inputRef} className={`task-input${hasChecked ? (checkResult && checkResult.is_correct ? ' input-correct' : ' input-incorrect') : ''}`} type="text"
               value={answerInput} onChange={handleInputChange}
               placeholder="Введите свой ответ" inputMode="numeric"
               disabled={hasChecked}
@@ -216,21 +216,12 @@
             <div className="task-solution-block" style={{ marginTop:'24px' }}>
               <h3 style={{ marginTop:0, marginBottom:'16px' }}>Результат проверки</h3>
 
-              {checkResult.is_correct ? (
-                <div style={{
-                  display:'flex', alignItems:'center', gap:'12px', padding:'16px',
-                  background:'rgba(164,226,208,0.07)', border:'1px solid rgba(164,226,208,0.4)',
-                  borderRadius:'8px', marginBottom:'16px',
-                }}>
-                  <div style={{ fontSize:'32px', color:'#A4E2D0', lineHeight:1 }}>✓</div>
-                  <div style={{ fontSize:'18px', fontWeight:'bold', color:'#A4E2D0' }}>Всё верно!</div>
-                </div>
-              ) : (
+              {!checkResult.is_correct && (
                 <div style={{ marginBottom:'16px' }}>
                   <div style={{ fontWeight:'bold', color:'#f6b462', marginBottom:'12px', fontSize:'16px' }}>Ответ неверный</div>
                   <div style={{
-                    padding:'12px', background:'rgba(214,146,149,0.1)',
-                    border:'1px solid rgba(214,146,149,0.3)', borderRadius:'8px', marginBottom:'12px',
+                    padding:'12px', background:'rgba(224,92,101,0.1)',
+                    border:'1px solid rgba(224,92,101,0.3)', borderRadius:'8px', marginBottom:'12px',
                   }}>
                     <div style={{ color:'var(--text-secondary)', marginBottom:'4px', fontSize:'14px' }}>Правильный ответ:</div>
                     <div style={{ fontSize:'18px', fontWeight:'bold', color:'#A4E2D0' }}>

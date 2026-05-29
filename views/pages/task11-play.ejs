@@ -19,7 +19,7 @@ async function loadTask() {
   const res = await fetch('/api/task11/tasks/' + TASK_ID + '/play');
   if (!res.ok) {
     container.innerHTML =
-      '<div class="task-card task17-card"><div class="task-content"><p style="color:#D69295;margin:0;">Задание не найдено.</p></div></div>';
+      '<div class="task-card task17-card"><div class="task-content"><p style="color:#e05c65;margin:0;">Задание не найдено.</p></div></div>';
     return;
   }
   const task = await res.json();

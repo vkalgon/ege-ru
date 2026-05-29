@@ -1,0 +1,350 @@
+/* ===== SIDEBAR ===== */
+:root {
+  --sidebar-w: 228px;
+  --sidebar-w-sm: 72px;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--glass-border);
+  z-index: 1100;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  /* overflow: visible чтобы кнопка-стрелка торчала за пределы */
+  overflow: visible;
+}
+
+/* Внутренний контейнер обрезает текст при сворачивании */
+.sidebar__inner {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+html.sidebar-collapsed .sidebar {
+  width: var(--sidebar-w-sm);
+}
+
+/* --- Head --- */
+.sidebar__head {
+  display: flex;
+  align-items: center;
+  padding: 18px 16px;
+  flex-shrink: 0;
+  min-height: 72px;
+}
+
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.sidebar__logo-img {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: block;
+  opacity: 0.95;
+  transition: opacity 0.2s, filter 0.2s;
+}
+
+.sidebar__logo:hover .sidebar__logo-img {
+  opacity: 1;
+  filter: drop-shadow(var(--shadow-neon));
+}
+
+.sidebar__logo-name {
+  font: 700 15px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+
+html.sidebar-collapsed .sidebar__logo-name {
+  opacity: 0;
+  width: 0;
+  pointer-events: none;
+}
+
+/* Кнопка абсолютно позиционирована на правом краю сайдбара */
+.sidebar__toggle {
+  position: absolute;
+  right: -13px;
+  top: 23px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  z-index: 10;
+  box-shadow: var(--shadow-glass);
+}
+
+.sidebar__toggle:hover {
+  background: var(--brand-hover);
+  border-color: var(--brand);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-neon);
+}
+
+.sidebar__toggle svg {
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html.sidebar-collapsed .sidebar__toggle svg {
+  transform: rotate(180deg);
+}
+
+/* --- User card --- */
+.sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 10px 8px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar__user:hover {
+  background: var(--brand-hover);
+}
+
+.sidebar__user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--brand-muted);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  font: 600 15px/1 "Inter", sans-serif;
+  color: var(--brand);
+}
+
+.sidebar__user-name {
+  font: 500 14px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+
+html.sidebar-collapsed .sidebar__user {
+  justify-content: center;
+  padding: 10px;
+  margin: 0 10px 8px;
+}
+
+html.sidebar-collapsed .sidebar__user-name {
+  opacity: 0;
+  width: 0;
+  pointer-events: none;
+}
+
+/* --- Nav --- */
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 10px 12px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 6px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font: 500 14px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.sidebar__link:hover {
+  color: var(--text-primary);
+}
+
+.sidebar__link.is-active {
+  color: var(--text-primary);
+}
+
+/* Icon container */
+.sidebar__icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.sidebar__link:hover .sidebar__icon-wrap {
+  background: var(--brand-hover);
+}
+
+.sidebar__link.is-active .sidebar__icon-wrap {
+  background: var(--brand-muted);
+  box-shadow: 0 0 0 1px var(--brand-ripple);
+}
+
+.sidebar__icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.sidebar__link.is-active .sidebar__icon {
+  color: var(--brand);
+}
+
+.sidebar__label {
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+html.sidebar-collapsed .sidebar__label {
+  opacity: 0;
+  width: 0;
+  pointer-events: none;
+}
+
+html.sidebar-collapsed .sidebar__link {
+  justify-content: center;
+  padding: 6px;
+}
+
+/* Tooltip при свёрнутом состоянии */
+html.sidebar-collapsed .sidebar__link::after {
+  content: attr(title);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font: 500 13px/18px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  white-space: nowrap;
+  z-index: 1300;
+  pointer-events: none;
+  box-shadow: var(--shadow-glass);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+html.sidebar-collapsed .sidebar__user::after {
+  content: 'Профиль';
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font: 500 13px/18px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  white-space: nowrap;
+  z-index: 1300;
+  pointer-events: none;
+  box-shadow: var(--shadow-glass);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+html.sidebar-collapsed .sidebar__link:hover::after,
+html.sidebar-collapsed .sidebar__user:hover::after {
+  opacity: 1;
+}
+
+/* Светлая тема */
+[data-theme="light"] .sidebar {
+  background: #ffffff;
+  border-right-color: #e8eef8;
+}
+
+[data-theme="light"] .sidebar__icon-wrap {
+  background: #f0f4fb;
+}
+
+[data-theme="light"] .sidebar__link:hover .sidebar__icon-wrap {
+  background: #e4ecf8;
+}
+
+[data-theme="light"] .sidebar__link.is-active .sidebar__icon-wrap {
+  background: var(--brand-muted);
+}
+
+[data-theme="light"] .sidebar__user {
+  background: #f0f4fb;
+}
+
+[data-theme="light"] .sidebar__user:hover {
+  background: #e4ecf8;
+}
+
+[data-theme="light"] .sidebar__toggle {
+  background: #ffffff;
+  border-color: #dce8f4;
+  box-shadow: 0 2px 8px rgba(77, 125, 181, 0.12);
+}
+
+[data-theme="light"] .sidebar__toggle:hover {
+  background: var(--brand-muted);
+  border-color: var(--brand);
+}
+
+/* ===== PAGE WRAPPER ===== */
+.page-wrapper {
+  margin-left: var(--sidebar-w);
+  transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+html.sidebar-collapsed .page-wrapper {
+  margin-left: var(--sidebar-w-sm);
+}

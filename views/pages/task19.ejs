@@ -7,22 +7,6 @@
 </div>
 
 <style>
-  .task17-digit {
-    cursor: pointer;
-    padding: 1px 4px;
-    margin: 0 1px;
-    border-radius: 4px;
-    transition: all 0.2s;
-    display: inline-block;
-  }
-  .task17-digit:hover:not(.selected):not(.correct-selected):not(.extra-selected):not(.correct) {
-    background-color: var(--brand-muted);
-  }
-  .task17-digit.selected       { background-color: rgba(164, 190, 226, 0.2); color: var(--brand); outline: 1.5px solid var(--brand-dim); outline-offset: -1px; }
-  .task17-digit.correct        { background-color: transparent !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; }
-  .task17-digit.correct-selected { background-color: rgba(164,226,208,0.12) !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; font-weight: bold; }
-  .task17-digit.extra-selected { background-color: #D69295 !important; color: #0f1117 !important; font-weight: bold; }
-
   /* Перетаскиваемые маркеры скобок */
   .bracket-handle { display:inline-block; font-weight:bold; font-size:1.15em; line-height:1; padding:0 2px; border-radius:3px; cursor:grab; user-select:none; transition:background 0.15s, transform 0.1s; }
   .bracket-handle:hover { transform:scale(1.2); }
@@ -34,9 +18,6 @@
   .bracket-handle[data-dragging="true"] { opacity:0.3; }
   .task17-text-editable.bh-drag-over { outline:2px dashed var(--glass-border); }
   @keyframes bhBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-  /* Подчёркивания */
-  .span-subject  { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:3px; }
-  .span-predicate{ text-decoration:underline double; text-decoration-thickness:2px; text-underline-offset:3px; }
 </style>
 
 <script src="/js/text-selection-toolbar.js"></script>
@@ -128,47 +109,56 @@
     if (!taskData) return null;
 
     const hasChecked = !!checkResult;
+    const isAnswerOk = hasChecked && checkResult?.is_correct;
+    const statusPillClass = 'task-status-pill' + (hasChecked ? (isAnswerOk ? ' task-status-pill--correct' : ' task-status-pill--incorrect') : '');
 
     return (
       <div className="task-card">
         <div className="task-meta">
-          <span className="task-meta__number">№ {index + 1}</span>
+          <span className="task-meta__number">№ 19</span>
           {taskData.source && <span className="task-meta__source">{taskData.source}</span>}
+          <span className={statusPillClass}>{hasChecked ? (isAnswerOk ? 'Верно' : 'Неверно') : 'Не решено'}</span>
         </div>
         <div className="task-content">
-          <div className="task-prompt">
-            <div style={{ padding:'16px', border:'1px solid var(--glass-border)', borderRadius:'8px', background:'var(--bg-secondary)' }}>
-              <div style={{ paddingBottom:'12px', marginBottom:'12px', borderBottom:'1px solid var(--glass-border)', fontSize:'16px', lineHeight:'1.6', color:'var(--text-primary)', fontWeight:'500' }}>
+          <div className="task-prompt" style={{position: 'relative'}}>
+            <div
+              className="task17-text-editable"
+              contentEditable={false}
+              suppressContentEditableWarning={true}
+              style={{padding: '0', borderRadius: '8px', background: 'transparent', position: 'relative'}}
+            >
+              <div style={{paddingBottom: '12px', marginBottom: '12px', borderBottom: '1px solid var(--glass-border)', fontSize: '16px', lineHeight: '1.6', color: 'var(--text-primary)', fontWeight: '500'}}>
                 Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).
               </div>
-              <div
-                className="task17-text-editable"
-                contentEditable={false}
-                suppressContentEditableWarning={true}
-                style={{ fontSize:'18px', lineHeight:'2.0' }}
-              >
-                {parseTextWithDigits(taskData.source_text).map((part, idx) => {
-                  if (part.digit !== null) {
-                    const isSel = selectedDigits.has(part.digit);
-                    const isCorr = correctDigits.has(part.digit);
-                    const isExtra = extraDigits.has(part.digit);
-                    let cls = 'task17-digit';
-                    if (hasChecked) {
-                      if (isExtra && isSel)     cls += ' extra-selected';
-                      else if (isCorr && isSel) cls += ' correct-selected';
-                      else if (isCorr)          cls += ' correct';
-                    } else if (isSel) cls += ' selected';
-                    return <span key={idx} className={cls} onClick={() => handleDigitClick(part.digit)} style={{ userSelect:'none', cursor: hasChecked ? 'default' : 'pointer' }}>{part.text}</span>;
-                  }
-                  return <span key={idx}>{part.text}</span>;
-                })}
-              </div>
+              {parseTextWithDigits(taskData.source_text).map((part, idx) => {
+                if (part.digit !== null) {
+                  const isSel = selectedDigits.has(part.digit);
+                  const isCorr = correctDigits.has(part.digit);
+                  const isExtra = extraDigits.has(part.digit);
+                  const hasResult = correctDigits.size > 0 || extraDigits.size > 0;
+                  let cls = 'task17-digit';
+                  if (hasResult) {
+                    if (isExtra && isSel)     cls += ' extra-selected';
+                    else if (isCorr && isSel) cls += ' correct-selected';
+                    else if (isCorr)          cls += ' correct';
+                    else if (isSel)           cls += ' selected';
+                  } else if (isSel) cls += ' selected';
+                  return <span key={idx} className={cls} data-digit={part.digit}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDigitClick(part.digit); }}
+                    title={`Кликните, чтобы ${isSel ? 'убрать' : 'добавить'} цифру ${part.digit} в ответ`}
+                    style={{ userSelect:'none', cursor: hasChecked ? 'default' : 'pointer' }}
+                    contentEditable={false}
+                  >{part.digit}</span>;
+                }
+                return <span key={idx}>{part.text}</span>;
+              })}
             </div>
           </div>
 
           <div className="task-controls">
-            <input ref={inputRef} className="task-input" type="text" value={answerInput} onChange={handleInputChange}
-              placeholder="Введите свой ответ" inputMode="numeric" disabled={hasChecked}
+            <input ref={inputRef} className={'task-input' + (hasChecked ? (isAnswerOk ? ' input-correct' : ' input-incorrect') : '')}
+              type="text" value={answerInput} onChange={handleInputChange}
+              placeholder="Введите свой ответ" inputMode="numeric"
               onKeyPress={e => { if (e.key==='Enter') handleCheck(); }} />
             <button className="task-send" onClick={handleCheck} disabled={loading || hasChecked}>
               <span>{loading ? 'Проверка...' : 'Отправить'}</span>
@@ -182,25 +172,42 @@
             </button>
           </div>
 
-          {showSolution && taskData.explanation_md && (
-            <div style={{ marginTop:'24px' }}>
-              <div dangerouslySetInnerHTML={{ __html: taskData.explanation_md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
-                style={{ fontSize:'16px', lineHeight:'1.7' }} />
+          {showSolution && (taskData.comma_positions?.length || taskData.explanation_md) && (
+            <div style={{marginTop: '24px'}}>
+              {taskData.comma_positions && taskData.comma_positions.length > 0 && (
+                <div style={{marginBottom: '12px'}} className="solution-answer">
+                  <strong>Ответ:</strong> {taskData.comma_positions.join(', ')}
+                </div>
+              )}
+              {taskData.explanation_md && (
+                <div>
+                  <h4 style={{marginTop: 0, marginBottom: '8px'}}>Объяснение:</h4>
+                  <div
+                    dangerouslySetInnerHTML={{ __html: taskData.explanation_md }}
+                    className="editor-content task17-explanation-content"
+                    style={{position: 'relative', fontSize: '18px', lineHeight: '1.8'}}
+                  />
+                </div>
+              )}
             </div>
           )}
 
           {checkResult && (
-            <div className="task-solution-block" style={{ marginTop:'24px' }}>
-              <h3 style={{ marginTop:0, marginBottom:'16px' }}>Результат проверки</h3>
+            <div id={`task19-solution-block-${task.id}`} style={{ marginTop:'24px' }}>
               {checkResult.is_correct ? (
                 <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'16px', background:'rgba(164,226,208,0.07)', border:'1px solid rgba(164,226,208,0.4)', borderRadius:'8px', marginBottom:'16px' }}>
                   <div style={{ fontSize:'32px', color:'#A4E2D0', lineHeight:1 }}>✓</div>
-                  <div style={{ fontSize:'18px', fontWeight:'bold', color:'#A4E2D0' }}>Всё верно!</div>
+                  <div>
+                    <div style={{ fontSize:'18px', fontWeight:'bold', color:'#A4E2D0' }}>Всё верно!</div>
+                    <div style={{ fontSize:'14px', color:'var(--text-secondary)', marginTop:'4px' }}>
+                      Запятые на месте: <strong style={{ color:'#A4E2D0' }}>{checkResult.comma_positions.join(', ')}</strong>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div style={{ marginBottom:'16px' }}>
                   <div style={{ fontWeight:'bold', color:'#f6b462', marginBottom:'12px', fontSize:'16px' }}>Ответ неверный</div>
-                  <div style={{ padding:'12px', background:'rgba(214,146,149,0.1)', border:'1px solid rgba(214,146,149,0.3)', borderRadius:'8px', marginBottom:'12px' }}>
+                  <div style={{ padding:'12px', background:'rgba(224,92,101,0.1)', border:'1px solid rgba(224,92,101,0.3)', borderRadius:'8px', marginBottom:'12px' }}>
                     <div style={{ color:'var(--text-secondary)', marginBottom:'4px', fontSize:'14px' }}>Правильный ответ:</div>
                     <div style={{ fontSize:'18px', fontWeight:'bold', color:'#A4E2D0' }}>
                       {checkResult.comma_positions.join(', ') || '(нет запятых)'}
@@ -208,9 +215,10 @@
                   </div>
                 </div>
               )}
-              {checkResult.explanation_md && (
-                <div style={{ padding:'12px 14px', background:'var(--bg-secondary)', border:'1px solid var(--glass-border)', borderRadius:'8px', fontSize:'15px', lineHeight:'1.6' }}
-                  dangerouslySetInnerHTML={{ __html: checkResult.explanation_md.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>') }} />
+              {(checkResult.explanation_md || taskData?.explanation_md) && (
+                <div className="editor-content task17-explanation-content"
+                  style={{ fontSize:'18px', lineHeight:'1.8', marginTop:'16px' }}
+                  dangerouslySetInnerHTML={{ __html: checkResult.explanation_md || taskData.explanation_md }} />
               )}
             </div>
           )}
@@ -238,8 +246,10 @@
     if (!allTasks.length) return <div style={{padding:'20px'}}><p>Заданий №19 пока нет. <a href="/admin/task19">Добавить задания</a></p></div>;
 
     return (
-      <div style={{ maxWidth:'800px' }}>
-        {allTasks.map((task, index) => <Task19Item key={task.id} task={task} index={index} />)}
+      <div className="task17-wrapper">
+        <div style={{flex: 1, maxWidth: '800px'}}>
+          {allTasks.map((task, index) => <Task19Item key={task.id} task={task} index={index} />)}
+        </div>
       </div>
     );
   }

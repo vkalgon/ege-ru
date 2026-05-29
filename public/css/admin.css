@@ -1,0 +1,680 @@
+/* ===== ADMIN PAGE ===== */
+.admin-page {
+  max-width: 1200px;
+}
+
+.admin-page__title {
+  font: var(--h2-fw) var(--h2)/var(--h2-lh) "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0 0 16px 0;
+  color: var(--text-primary);
+}
+
+/* Хлебные крошки */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+
+.breadcrumb-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.breadcrumb-link:hover {
+  color: var(--neon-cyan);
+  background: var(--brand-hover);
+}
+
+.breadcrumb-separator {
+  color: var(--text-secondary);
+  margin: 0 4px;
+  opacity: 0.6;
+}
+
+.breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 500;
+  padding: 4px 8px;
+}
+
+/* Ссылка для перехода к редактированию тем (второстепенная) */
+.admin-link-subtle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.admin-link-subtle:hover {
+  opacity: 1;
+  color: var(--neon-cyan);
+  background: var(--brand-hover);
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 4px;
+}
+
+.admin-tab {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  font: 500 16px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+}
+
+.admin-tab::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--neon-cyan);
+  transition: width 0.3s ease;
+}
+
+.admin-tab:hover {
+  color: var(--text-primary);
+  background: var(--brand-hover);
+}
+
+.admin-tab.active {
+  color: var(--neon-cyan);
+  background: var(--brand-hover);
+}
+
+.admin-tab.active::before {
+  width: 100%;
+}
+
+.admin-tab-content {
+  display: none;
+}
+
+.admin-tab-content.active {
+  display: block;
+}
+
+.admin-section {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--glass-border);
+  overflow: visible !important;
+  position: relative;
+}
+
+.admin-section h3 {
+  font: 600 18px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 20px 0;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 20px;
+  position: relative;
+  z-index: 1;
+  overflow: visible !important;
+}
+
+.admin-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+  overflow: visible !important;
+}
+
+.admin-form .form-group:last-of-type {
+  margin-bottom: 0;
+}
+
+/* Отступ для кнопок в формах */
+.admin-form .btn,
+.admin-form button[type="submit"],
+.admin-form button[type="button"] {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.admin-form .form-group label {
+  font: 500 14px/18px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+.word-select {
+  padding: 10px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  font: 400 14px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  width: 100%;
+  transition: border-color 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.word-select {
+  width: auto;
+  min-width: 140px;
+}
+
+/* Убеждаемся что input поля точно темные */
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group input[type="tel"] {
+  background: var(--glass-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.form-group input::placeholder {
+  color: var(--text-disabled) !important;
+}
+
+/* select и word-select — единая стрелка */
+.form-group select,
+.word-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23A4BEE2' d='M8 11L3 5h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.form-group select::-ms-expand,
+.word-select::-ms-expand { display: none; }
+
+.form-group select option,
+.word-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.form-group select option[value=""],
+.word-select option[value=""] {
+  color: var(--text-disabled);
+}
+
+/* ===== КАСТОМНЫЙ DROPDOWN В СТИЛЕ САЙТА ===== */
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+  z-index: 10;
+}
+
+/* Убираем overflow скрытие на родительских элементах */
+.admin-form .form-group,
+.admin-form,
+.admin-section,
+.admin-tab-content {
+  overflow: visible !important;
+}
+
+.custom-dropdown__trigger {
+  width: 100%;
+  padding: 10px 36px 10px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: 400 14px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+
+.custom-dropdown__trigger:hover { border-color: var(--brand-dark); }
+
+.custom-dropdown__trigger:focus,
+.custom-dropdown__trigger.active {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.custom-dropdown__trigger-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-dropdown__trigger-text.placeholder { color: var(--text-disabled); }
+
+.custom-dropdown__arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  transition: transform 0.2s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23A4BEE2' d='M8 11L3 5h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.8;
+}
+
+.custom-dropdown__trigger.active .custom-dropdown__arrow {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.custom-dropdown__menu {
+  position: fixed !important;
+  z-index: 99999 !important;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 0 !important;
+  padding: 4px 0 !important;
+  pointer-events: none;
+  min-width: 200px;
+}
+
+.custom-dropdown__menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.custom-dropdown__option {
+  padding: 10px 16px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  font: 400 14px/1.5 "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  user-select: none;
+}
+
+.custom-dropdown__option:hover {
+  background: var(--brand-muted);
+  color: var(--brand);
+}
+
+.custom-dropdown__option.selected {
+  background: var(--brand-muted);
+  color: var(--brand);
+  font-weight: 500;
+}
+
+.custom-dropdown__option.placeholder {
+  color: var(--text-disabled);
+  font-style: italic;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.custom-dropdown__option-content {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-dropdown__option-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.custom-dropdown__option:hover .custom-dropdown__option-actions { opacity: 1; }
+
+.custom-dropdown__action-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  color: var(--text-secondary);
+}
+
+.custom-dropdown__action-btn--edit:hover {
+  color: var(--brand);
+  background: var(--brand-muted);
+  border-color: var(--glass-border);
+}
+
+.custom-dropdown__action-btn--delete:hover {
+  color: #e05c65;
+  background: rgba(224, 92, 101, 0.12);
+  border-color: rgba(224, 92, 101, 0.3);
+}
+
+/* Скроллбар */
+.custom-dropdown__menu::-webkit-scrollbar { width: 6px; }
+.custom-dropdown__menu::-webkit-scrollbar-track { background: transparent; }
+.custom-dropdown__menu::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 3px;
+}
+.custom-dropdown__menu::-webkit-scrollbar-thumb:hover { background: var(--brand-dark); }
+
+/* Скрываем нативный select внутри custom-dropdown */
+.custom-dropdown select {
+  position: absolute !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 1px !important;
+  height: 1px !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  visibility: hidden !important;
+  z-index: -1 !important;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: auto;
+  line-height: 1.5;
+}
+
+.admin-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  transition: all 0.3s ease;
+  margin-bottom: 12px;
+}
+
+.admin-item:last-child {
+  margin-bottom: 0;
+}
+
+.admin-item:hover {
+  border-color: var(--brand);
+}
+
+.item-info {
+  flex: 1;
+  font: 400 14px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+}
+
+.item-info strong {
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font: 400 14px/18px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.primary-badge {
+  display: inline-block;
+  background: var(--brand-muted);
+  color: var(--brand);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font: 500 12px/16px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  margin-top: 4px;
+  border: 1px solid var(--glass-border);
+}
+
+.item-info em {
+  font-style: italic;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+  padding: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+}
+
+.form-section h4 {
+  font: 600 16px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--neon-cyan);
+}
+
+.answer-item {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+  box-shadow: var(--shadow-glass);
+}
+
+.btn-sm {
+  height: 32px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.btn-icon + .btn-icon {
+  margin-left: 2px;
+}
+.btn-icon:hover {
+  opacity: 1;
+}
+.btn-icon img {
+  display: block;
+  pointer-events: none;
+}
+
+.item-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ===== MODAL ===== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 14, 39, 0.8);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-xl);
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--glass-border);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.modal-header h3 {
+  font: 600 20px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-close {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: rgba(224, 92, 101, 0.2);
+  color: #e05c65;
+  border-color: rgba(224, 92, 101, 0.3);
+  box-shadow: 0 0 15px rgba(224, 92, 101, 0.3);
+}
+
+.modal-content .admin-form {
+  padding: 24px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 20px 24px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}

@@ -6,6 +6,7 @@
     <button class="tab-btn active" onclick="switchTab('words',this)">Словарь слов</button>
     <button class="tab-btn" onclick="switchTab('tasks',this)">Готовые задания</button>
     <button class="tab-btn" onclick="switchTab('generate',this)">Генерация</button>
+    <button class="tab-btn" onclick="switchTab('from-text',this)">Из текста</button>
   </div>
 
   <!-- ══ ВКЛАДКА: СЛОВАРЬ ══════════════════════════════════ -->
@@ -46,10 +47,14 @@
     </div>
 
     <!-- Фильтр -->
-    <div style="max-width:300px;margin-bottom:16px;">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:16px;">
       <div class="form-group">
-        <label>Фильтр: правило</label>
-        <select id="filter-rule" onchange="loadWords()">
+        <label>Поиск</label>
+        <input type="text" id="words-search" placeholder="Поиск по слову..." style="max-width:200px;" oninput="filterWords()">
+      </div>
+      <div class="form-group">
+        <label>Правило</label>
+        <select id="filter-rule" onchange="filterWords()">
           <option value="">Все</option>
           <option value="ъ/ь">ъ / ь</option>
           <option value="з/с">з / с</option>
@@ -121,6 +126,42 @@
     </div>
   </div>
 
+  <!-- ══ ВКЛАДКА: ИЗ ТЕКСТА ══════════════════════════════ -->
+  <div id="tab-from-text" style="display:none;">
+    <div class="admin-section">
+      <h3>Создать задание из текста</h3>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:4px;">
+        Вставьте текст задания. Формат каждой строки: <code style="font-family:monospace;font-size:13px;">1) слово1, слово2, слово3</code>
+      </p>
+      <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">
+        Пропуск обозначается двумя точками: <code style="font-family:monospace;">непр..ходящие</code>. Подсказки в скобках допускаются: <code style="font-family:monospace;">пр..вратный (смысл)</code>
+      </p>
+      <textarea id="ft-input" rows="6" class="ft-textarea" placeholder="1) непр..ходящие (духовные ценности), пр..вратный (смысл), беспр..кословный
+2) ар..ергард, фельд..егерь, кон..юнктура
+3) пр..рогатива, пр..зумпция, пр..валировать
+4) ад..юнкт, пан..европейский, суб..ядерный
+5) неп..чатый (край), п..дспудный, р..зыскной"></textarea>
+      <div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button type="button" class="btn" onclick="ftParse()">Разобрать текст</button>
+        <span id="ft-parse-status" style="font-size:13px;color:var(--text-secondary);"></span>
+      </div>
+    </div>
+
+    <div id="ft-preview" style="display:none;">
+      <div class="admin-section">
+        <h3>Строки задания</h3>
+        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:14px;">
+          Слова из словаря помечены зелёным. Для остальных заполните букву и правило.
+        </p>
+        <div id="ft-rows"></div>
+        <div style="margin-top:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <button type="button" class="btn" id="ft-create-btn" onclick="ftCreate()">Сохранить задание</button>
+          <span id="ft-create-status" style="font-size:13px;"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ ВКЛАДКА: ЗАДАНИЯ ══════════════════════════════════ -->
   <div id="tab-tasks" style="display:none;">
     <div class="admin-section">
@@ -130,7 +171,10 @@
       </p>
       <div id="task-builder">
         <div id="task-rows" style="display:flex;flex-direction:column;gap:12px;"></div>
-        <button class="btn" id="btn-save-task" style="margin-top:16px;">Сохранить задание</button>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center;">
+          <button class="btn" id="btn-save-task">Сохранить задание</button>
+          <button type="button" class="btn btn-secondary" id="task-edit-cancel" style="display:none;">Отменить редактирование</button>
+        </div>
       </div>
     </div>
 
@@ -199,6 +243,50 @@
   box-shadow: none;
   accent-color: var(--brand);
 }
+/* ── Вкладка «Из текста» ─────────────────────── */
+.ft-textarea {
+  width: 100%; box-sizing: border-box;
+  font-family: monospace; font-size: 14px; line-height: 1.7;
+  padding: 12px 14px;
+  border: 1px solid var(--glass-border); border-radius: var(--radius-md);
+  background: var(--bg-secondary); color: var(--text-primary);
+  resize: vertical; outline: none;
+}
+.ft-textarea:focus { border-color: var(--brand); }
+.ft-row {
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 10px;
+}
+.ft-row.correct-row { border-color: var(--brand); }
+.ft-row-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.ft-words { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 700px) { .ft-words { grid-template-columns: 1fr; } }
+.ft-word {
+  border: 1px solid var(--glass-border); border-radius: var(--radius-md);
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;
+}
+.ft-word--found { border-color: rgba(164,226,208,0.45); background: rgba(164,226,208,0.04); }
+.ft-word--missing { border-color: rgba(251,191,36,0.38); background: rgba(251,191,36,0.03); }
+.ft-word-label { font-family: monospace; font-size: 14px; font-weight: 600; }
+.ft-found-info { font-size: 12px; color: var(--color-success); }
+.ft-missing-form { display: flex; flex-direction: column; gap: 5px; margin-top: 2px; }
+.ft-missing-row { display: flex; gap: 6px; align-items: center; }
+.ft-letter-inp {
+  width: 44px; height: 32px; text-align: center; font-size: 16px; font-weight: 700;
+  border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+  background: var(--bg-tertiary); color: var(--text-primary); outline: none; flex-shrink: 0;
+}
+.ft-letter-inp:focus { border-color: var(--brand); }
+.ft-missing-form select {
+  height: 30px; font-size: 12px;
+  border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+  background: var(--bg-secondary); color: var(--text-primary);
+  padding: 0 7px; outline: none; width: 100%; box-sizing: border-box;
+}
+.ft-missing-form select:focus { border-color: var(--brand); }
 </style>
 
 <script src="/js/admin-task-shared.js"></script>
@@ -209,24 +297,37 @@ const esc = (s) => AdminTasks.escAttr(s);
 let allWords = [];
 
 const switchTab = AdminTasks.createSwitchTab({
-  tabIds: ['words', 'tasks', 'generate'],
+  tabIds: ['words', 'tasks', 'generate', 'from-text'],
   onShow: {
     tasks() { loadAllWords(); loadTasks(); },
     generate() { loadGenTasks(); },
+    'from-text'() { if (!allWords.length) loadWords(); },
   },
 });
 
 /* ─── СЛОВАРЬ ────────────────────────────────── */
 
 async function loadWords() {
+  const res = await fetch('/api/task10/words');
+  allWords = await res.json();
+  filterWords();
+}
+
+function filterWords() {
+  const q    = (document.getElementById('words-search')?.value || '').toLowerCase();
   const rule = document.getElementById('filter-rule').value;
-  const params = new URLSearchParams();
-  if (rule) params.set('rule', rule);
-  const res = await fetch('/api/task10/words?' + params);
-  const words = await res.json();
+  const list = allWords.filter(w => {
+    if (q    && !w.prefix_display.toLowerCase().includes(q)) return false;
+    if (rule && w.rule !== rule) return false;
+    return true;
+  });
+  renderWords(list);
+}
+
+function renderWords(words) {
   const tbody = document.getElementById('words-tbody');
   if (!words.length) {
-    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-secondary);">Слов нет</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-secondary);">Слов не найдено</td></tr>';
     return;
   }
   tbody.innerHTML = words.map(w => `
@@ -351,6 +452,8 @@ async function removeFromGroup(wordId) {
 
 /* ─── ЗАДАНИЯ ────────────────────────────────── */
 
+let editingTaskId = null;
+
 async function loadAllWords() {
   const res = await fetch('/api/task10/words');
   allWords = await res.json();
@@ -380,6 +483,42 @@ function renderTaskBuilder() {
   }
 }
 
+function cancelTaskEdit(clearBuilder) {
+  editingTaskId = null;
+  document.getElementById('btn-save-task').textContent = 'Сохранить задание';
+  document.getElementById('task-edit-cancel').style.display = 'none';
+  if (clearBuilder !== false) renderTaskBuilder();
+}
+
+async function editTask(id) {
+  await loadAllWords();
+  const res = await fetch('/api/task10/tasks/' + id);
+  if (!res.ok) { alert('Не удалось загрузить задание'); return; }
+  const task = await res.json();
+  editingTaskId = id;
+  const rowsByIndex = {};
+  for (const r of task.rows) rowsByIndex[r.row_index] = r;
+  document.querySelectorAll('.task-row-builder').forEach((rowEl) => {
+    const idx = +rowEl.dataset.rowIndex;
+    const row = rowsByIndex[idx];
+    if (!row) return;
+    const cb = rowEl.querySelector('[data-correct]');
+    const ok = !!row.is_correct;
+    cb.checked = ok;
+    rowEl.classList.toggle('correct-row', ok);
+    const words = [...row.words].sort((a, b) => a.cell_index - b.cell_index);
+    words.forEach((w, i) => {
+      const sel = rowEl.querySelector(`select[data-cell="${i + 1}"]`);
+      if (sel) sel.value = String(w.word_id);
+    });
+  });
+  document.getElementById('btn-save-task').textContent = 'Сохранить изменения';
+  document.getElementById('task-edit-cancel').style.display = '';
+  document.getElementById('task-builder').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+document.getElementById('task-edit-cancel').addEventListener('click', () => cancelTaskEdit(true));
+
 document.getElementById('btn-save-task').addEventListener('click', async () => {
   const rowEls = document.querySelectorAll('.task-row-builder');
   const rows = [];
@@ -394,13 +533,26 @@ document.getElementById('btn-save-task').addEventListener('click', async () => {
   }
   const correct = rows.filter(r => r.is_correct).length;
   if (correct < 2 || correct > 5) { alert('Отметьте от 2 до 5 правильных строк'); return; }
+
+  if (editingTaskId) {
+    const res = await fetch(`/api/task10/tasks/${editingTaskId}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ rows })
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    alert(`Задание #${editingTaskId} обновлено`);
+    cancelTaskEdit(true);
+    loadTasks();
+    return;
+  }
+
   const res = await fetch('/api/task10/tasks', {
     method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ rows })
   });
   const data = await res.json();
   if (data.error) { alert(data.error); return; }
   alert(`Задание #${data.id} создано`);
-  renderTaskBuilder();
+  cancelTaskEdit(true);
   loadTasks();
 });
 
@@ -421,6 +573,7 @@ async function loadTasks() {
       </span>
       <div style="display:flex;gap:8px;">
         <a href="/task10/${t.id}" target="_blank" class="btn btn-sm btn-secondary">Открыть</a>
+        <button class="btn btn-sm" onclick="editTask(${t.id})">Редактировать</button>
         <button class="btn btn-sm btn-secondary" onclick="deleteTask(${t.id})">Удалить</button>
       </div>
     </div>
@@ -469,6 +622,220 @@ function loadGenTasks() {
 async function deleteGenTask(id) {
   const ok = await AdminTasks.deleteGeneratedTask('/api/task10', id);
   if (ok) loadGenTasks();
+}
+
+/* ─── ИЗ ТЕКСТА ──────────────────────────────── */
+
+// Буквы, по которым правило определяется однозначно
+const LETTER_TO_RULE10 = {
+  'ъ': 'ъ/ь', 'ь': 'ъ/ь',
+  'з': 'з/с',  'с': 'з/с',
+  'е': 'пре/при',
+  'ы': 'ы/и',
+};
+
+function ftAutoFillRule(input) {
+  const wordEl = input.closest('.ft-word');
+  const ruleEl = wordEl.querySelector('.ft-rule');
+  if (ruleEl.dataset.manual === '1') return; // пользователь уже выбрал вручную
+
+  const letter = input.value.trim().toLowerCase().slice(-1);
+
+  // Прямое однозначное соответствие
+  let rule = LETTER_TO_RULE10[letter] || '';
+
+  // Для и/о/а берём правило от соседнего слова в строке
+  if (!rule) {
+    const rowEl = wordEl.closest('.ft-row');
+    for (const r of rowEl.querySelectorAll('.ft-rule')) {
+      if (r !== ruleEl && r.value) { rule = r.value; break; }
+    }
+  }
+
+  if (rule) ruleEl.value = rule;
+}
+
+// Когда пользователь вручную выбирает правило — распространяем на соседей без правила и перепроверяем строку
+function ftPropagateRule(ruleEl) {
+  const rowEl = ruleEl.closest('.ft-row');
+  const rule = ruleEl.value;
+  if (!rule) return;
+  for (const r of rowEl.querySelectorAll('.ft-rule')) {
+    if (r !== ruleEl && !r.value) r.value = rule;
+  }
+  ftCheckRowCorrectness(rowEl);
+}
+
+const FT10_RULE_OPT = `<option value="">— правило —</option>
+<option value="ъ/ь">ъ / ь разделительные</option>
+<option value="з/с">з / с чередование</option>
+<option value="пре/при">пре / при</option>
+<option value="пра/про">пра / про</option>
+<option value="ы/и">ы / и после приставки</option>
+<option value="неизменяемые гласные">Неизменяемые (гласные)</option>
+<option value="неизменяемые согласные">Неизменяемые (согласные)</option>`;
+
+function ftLookupWord(display) {
+  const norm = display.toLowerCase().trim();
+  let w = allWords.find(w => w.prefix_display.toLowerCase() === norm);
+  if (w) return w;
+  const bare = norm.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  if (bare !== norm) w = allWords.find(w => w.prefix_display.toLowerCase() === bare || w.prefix_display.toLowerCase() === norm);
+  return w || null;
+}
+
+function ftParse() {
+  const text = document.getElementById('ft-input').value;
+  const status = document.getElementById('ft-parse-status');
+  const parsed = [];
+  for (const line of text.trim().split('\n')) {
+    const m = line.trim().match(/^(\d+)[).]\s*(.+)/);
+    if (!m) continue;
+    const rowNum = parseInt(m[1], 10);
+    const words = m[2].split(',').map(w => w.trim()).filter(Boolean);
+    parsed.push({ rowNum, isCorrect: false, words: words.map(d => ({ display: d, found: ftLookupWord(d) })) });
+  }
+  if (!parsed.length) {
+    status.textContent = 'Не удалось распознать строки. Проверьте формат.';
+    status.style.color = 'var(--color-error)';
+    return;
+  }
+  for (const row of parsed) {
+    const found = row.words.filter(w => w.found);
+    if (found.length === row.words.length && found.length > 0) {
+      const letters = found.map(w => w.found.correct_letter.toLowerCase());
+      row.isCorrect = letters.every(v => v === letters[0]);
+    }
+  }
+  window._ftParsedRows = parsed;
+  const foundCount = parsed.flatMap(r => r.words).filter(w => w.found).length;
+  const total = parsed.flatMap(r => r.words).length;
+  status.textContent = `Строк: ${parsed.length} · найдено в словаре: ${foundCount} из ${total}`;
+  status.style.color = 'var(--text-secondary)';
+  ftRenderPreview(parsed);
+  document.getElementById('ft-preview').style.display = '';
+}
+
+function ftRenderPreview(parsed) {
+  const container = document.getElementById('ft-rows');
+  container.innerHTML = '';
+  for (const row of parsed) {
+    const div = document.createElement('div');
+    div.className = 'ft-row' + (row.isCorrect ? ' correct-row' : '');
+    div.dataset.rowNum = row.rowNum;
+    const wordsHtml = row.words.map((w) => {
+      if (w.found) {
+        return `<div class="ft-word ft-word--found" data-word-id="${w.found.id}">
+          <span class="ft-word-label">${escHtml(w.display)}</span>
+          <span class="ft-found-info">«${escHtml(w.found.correct_letter)}» · ${escHtml(w.found.rule)}</span>
+        </div>`;
+      }
+      return `<div class="ft-word ft-word--missing">
+        <span class="ft-word-label">${escHtml(w.display)}</span>
+        <div class="ft-missing-form">
+          <div class="ft-missing-row">
+            <input type="text" maxlength="2" class="ft-letter-inp" placeholder="·"
+              title="Правильная буква (оставьте пустым если знак не нужен)"
+              oninput="ftAutoFillRule(this); ftCheckRowCorrectness(this.closest('.ft-row'))">
+            <select class="ft-rule" style="flex:1;" onchange="this.dataset.manual='1'; ftPropagateRule(this)">${FT10_RULE_OPT}</select>
+          </div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Пусто = знак не нужен</div>
+        </div>
+      </div>`;
+    }).join('');
+    div.innerHTML = `
+      <div class="ft-row-header">
+        <span style="font-size:13px;font-weight:600;color:var(--text-secondary);min-width:60px;">Строка ${row.rowNum}</span>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;font-weight:500;">
+          <input type="checkbox" class="ft-correct-cb" ${row.isCorrect ? 'checked' : ''}
+            onchange="this.closest('.ft-row').classList.toggle('correct-row',this.checked)">
+          правильная строка
+        </label>
+      </div>
+      <div class="ft-words">${wordsHtml}</div>`;
+    container.appendChild(div);
+    ftCheckRowCorrectness(div);
+  }
+}
+
+function ftCheckRowCorrectness(rowEl) {
+  if (!rowEl) return;
+  const letters = [];
+  for (const wordEl of rowEl.querySelectorAll('.ft-word')) {
+    if (wordEl.dataset.wordId) {
+      const w = allWords.find(w => w.id === +wordEl.dataset.wordId);
+      if (!w) return;
+      letters.push((w.correct_letter || '').toLowerCase());
+    } else {
+      const inp = wordEl.querySelector('.ft-letter-inp');
+      const letter = (inp?.value ?? '').trim().toLowerCase();
+      // Если буква не введена и правило не выбрано — слово ещё не заполнено, ждём
+      const rule = wordEl.querySelector('.ft-rule')?.value;
+      if (!letter && !rule) return;
+      letters.push(letter);
+    }
+  }
+  if (letters.length !== 3) return;
+  const allSame = letters.every(l => l === letters[0]);
+  const cb = rowEl.querySelector('.ft-correct-cb');
+  if (cb) { cb.checked = allSame; rowEl.classList.toggle('correct-row', allSame); }
+}
+
+async function ftCreate() {
+  const btn = document.getElementById('ft-create-btn');
+  const status = document.getElementById('ft-create-status');
+  btn.disabled = true;
+  status.style.color = 'var(--text-secondary)';
+  status.textContent = '';
+  try {
+    const rowEls = document.querySelectorAll('#ft-rows .ft-row');
+    if (rowEls.length !== 5) throw new Error(`Нужно ровно 5 строк (сейчас: ${rowEls.length})`);
+    const rows = [];
+    for (const rowEl of rowEls) {
+      const rowNum = +rowEl.dataset.rowNum;
+      const isCorrect = rowEl.querySelector('.ft-correct-cb').checked;
+      const wordIds = [];
+      for (const wordEl of rowEl.querySelectorAll('.ft-word')) {
+        if (wordEl.dataset.wordId) { wordIds.push(+wordEl.dataset.wordId); continue; }
+        const display = wordEl.querySelector('.ft-word-label').textContent.trim();
+        const letter  = (wordEl.querySelector('.ft-letter-inp')?.value || '').trim().toLowerCase();
+        const rule    = wordEl.querySelector('.ft-rule')?.value;
+        if (!rule)   throw new Error(`«${display}»: выберите правило`);
+        status.textContent = `Добавляем «${display}» в словарь…`;
+        const res = await fetch('/api/task10/words', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefix_display: display, correct_letter: letter, rule })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(`«${display}»: ${data.error}`);
+        wordEl.dataset.wordId = data.id;
+        wordIds.push(data.id);
+      }
+      if (wordIds.length !== 3) throw new Error(`Строка ${rowNum}: нужно 3 слова`);
+      rows.push({ row_index: rowNum, is_correct: isCorrect, word_ids: wordIds });
+    }
+    const correctCount = rows.filter(r => r.is_correct).length;
+    if (correctCount < 2 || correctCount > 5) throw new Error('Отметьте от 2 до 5 правильных строк');
+    status.textContent = 'Сохраняем задание…';
+    const res = await fetch('/api/task10/tasks', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    status.style.color = '';
+    status.innerHTML = `<span style="color:var(--color-success);">✓ Задание #${data.id} создано.
+      <a href="/task10/${data.id}" target="_blank" style="color:inherit;text-decoration:underline;">Открыть →</a></span>`;
+    document.getElementById('ft-preview').style.display = 'none';
+    document.getElementById('ft-input').value = '';
+    document.getElementById('ft-parse-status').textContent = '';
+    await loadWords();
+  } catch (err) {
+    status.style.color = 'var(--color-error)';
+    status.textContent = err.message;
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 loadWords();

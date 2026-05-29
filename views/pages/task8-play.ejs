@@ -1,0 +1,339 @@
+<div class="task-page" id="task8-play">
+  <h2 class="task-page__title">Задание №8 — Синтаксические нормы</h2>
+
+  <div class="task17-wrapper">
+    <div class="task9-column">
+      <div id="task8-container">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── Карточка задания ── */
+.t8-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--shadow-glass);
+}
+
+/* ── Список предложений ── */
+.t8-sentences { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+
+.t8-sentence {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  transition: border-color 0.2s, background 0.2s;
+  line-height: 1.6;
+}
+.t8-sentence.highlighted {
+  border-color: var(--brand-dim);
+  background: var(--brand-muted);
+}
+
+.t8-pos {
+  min-width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--brand-muted);
+  color: var(--brand);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  font: 600 12px/1 'Inter', sans-serif;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.t8-pos.result-ok  { background: rgba(164,226,208,0.15); color: var(--color-success); border-color: rgba(164,226,208,0.35); }
+.t8-pos.result-err { background: rgba(224,92,101,0.15); color: var(--color-error);   border-color: rgba(224,92,101,0.35); }
+
+.t8-sentence-text { flex: 1; font-size: 15px; color: var(--text-primary); }
+
+/* ── Таблица ответов ── */
+.t8-answer-section { margin-bottom: 24px; }
+.t8-answer-section h3 {
+  font: 600 15px/1.3 'Inter', sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 14px;
+}
+
+.t8-slots { display: flex; flex-direction: column; gap: 10px; }
+
+.t8-slot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  transition: border-color 0.2s;
+}
+.t8-slot.result-ok  { border-color: rgba(164,226,208,0.5); background: rgba(164,226,208,0.06); }
+.t8-slot.result-err { border-color: rgba(224,92,101,0.5); background: rgba(224,92,101,0.06); }
+
+.t8-slot-letter {
+  min-width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--brand-muted);
+  color: var(--brand);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  font: 700 14px/1 'Inter', sans-serif;
+  flex-shrink: 0;
+}
+.t8-slot.result-ok  .t8-slot-letter { background: rgba(164,226,208,0.15); color: var(--color-success); border-color: rgba(164,226,208,0.35); }
+.t8-slot.result-err .t8-slot-letter { background: rgba(224,92,101,0.15); color: var(--color-error);   border-color: rgba(224,92,101,0.35); }
+
+.t8-slot-title {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.t8-slot-input {
+  width: 52px;
+  text-align: center;
+  font: 600 16px/1 'Inter', sans-serif;
+  padding: 8px 4px !important;
+  flex-shrink: 0;
+}
+.t8-slot-input:disabled { opacity: 0.7; }
+
+.t8-slot-result-info {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: none;
+}
+.t8-slot.result-ok  .t8-slot-result-info { display: block; color: var(--color-success); }
+.t8-slot.result-err .t8-slot-result-info { display: block; color: var(--color-error); }
+
+/* ── Блок результата ── */
+.t8-result-banner {
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font: 600 15px/1.4 'Inter', sans-serif;
+  text-align: center;
+}
+.t8-result-banner.perfect { background: rgba(164,226,208,0.12); border: 1px solid rgba(164,226,208,0.35); color: var(--color-success); }
+.t8-result-banner.good    { background: var(--brand-muted);     border: 1px solid var(--glass-border);   color: var(--brand); }
+.t8-result-banner.fail    { background: rgba(224,92,101,0.08); border: 1px solid rgba(224,92,101,0.3); color: var(--color-error); }
+
+/* ── Объяснение ── */
+.t8-explanation {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+}
+.t8-explanation h4 {
+  font: 600 14px/1 'Inter', sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+.t8-expl-row {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-bottom: 8px; font-size: 14px; line-height: 1.5;
+}
+.t8-expl-letter {
+  min-width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font: 700 11px/1 'Inter', sans-serif;
+  flex-shrink: 0; margin-top: 1px;
+}
+.t8-expl-letter.ok  { background: rgba(164,226,208,0.15); color: var(--color-success); }
+.t8-expl-letter.err { background: rgba(224,92,101,0.15); color: var(--color-error); }
+.t8-expl-correct { color: var(--color-success); font-weight: 600; }
+.t8-expl-wrong   { color: var(--color-error);   text-decoration: line-through; opacity: 0.7; }
+</style>
+
+<script>
+const TASK_ID = <%- taskId %>;
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+let taskData = null;
+
+async function loadTask() {
+  const container = document.getElementById('task8-container');
+  const res = await fetch(`/api/task8/tasks/${TASK_ID}/play`);
+  if (!res.ok) {
+    container.innerHTML = '<div class="t8-card"><p style="color:var(--color-error);">Задание не найдено.</p><a href="/task8" class="btn btn-secondary" style="margin-top:16px;">← Назад</a></div>';
+    return;
+  }
+  taskData = await res.json();
+  renderTask();
+}
+
+function renderTask() {
+  const { errors, sentences, source } = taskData;
+  const container = document.getElementById('task8-container');
+
+  const sentencesHTML = sentences.map(s => `
+    <div class="t8-sentence" id="sent-${s.position}">
+      <span class="t8-pos" id="pos-badge-${s.position}">${s.position}</span>
+      <span class="t8-sentence-text">${escHtml(s.text)}</span>
+    </div>
+  `).join('');
+
+  const slotsHTML = errors.map(e => `
+    <div class="t8-slot" id="slot-${e.slot}">
+      <span class="t8-slot-letter">${e.slot}</span>
+      <span class="t8-slot-title">${escHtml(e.error_title)}</span>
+      <input class="t8-slot-input form-group"
+             type="number" min="1" max="9"
+             id="input-${e.slot}"
+             placeholder="№"
+             oninput="onAnswerInput('${e.slot}', this.value)">
+      <span class="t8-slot-result-info" id="result-info-${e.slot}"></span>
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <div class="t8-card">
+      ${source ? `<p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;">Источник: ${escHtml(source)}</p>` : ''}
+
+      <div class="t8-sentences">${sentencesHTML}</div>
+
+      <div class="t8-answer-section">
+        <h3>Установите соответствие — укажите номер предложения для каждой ошибки</h3>
+        <div class="t8-slots">${slotsHTML}</div>
+      </div>
+
+      <div id="result-banner" style="display:none;"></div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn" id="check-btn" onclick="checkAnswers()">Проверить</button>
+        <a href="/task8" class="btn btn-secondary">← К заданиям</a>
+      </div>
+
+      <div id="explanation-block" style="display:none;"></div>
+    </div>
+  `;
+}
+
+// Подсветка предложения при вводе
+const highlighted = {};
+function onAnswerInput(slot, val) {
+  // Снимаем старую подсветку этого слота
+  if (highlighted[slot]) {
+    const old = document.getElementById('sent-' + highlighted[slot]);
+    if (old) old.classList.remove('highlighted');
+  }
+  const pos = parseInt(val);
+  if (pos >= 1 && pos <= 9) {
+    highlighted[slot] = pos;
+    const sent = document.getElementById('sent-' + pos);
+    if (sent) sent.classList.add('highlighted');
+  } else {
+    delete highlighted[slot];
+  }
+}
+
+async function checkAnswers() {
+  const slots = ['А','Б','В','Г','Д'];
+  const answers = {};
+  for (const s of slots) {
+    const val = parseInt(document.getElementById('input-' + s)?.value);
+    if (!val || val < 1 || val > 9) { alert(`Введите номер предложения для слота ${s}`); return; }
+    answers[s] = val;
+  }
+
+  // Проверяем уникальность
+  const vals = Object.values(answers);
+  if (new Set(vals).size < vals.length) { alert('Каждому слоту должно соответствовать отдельное предложение'); return; }
+
+  const res = await fetch(`/api/task8/tasks/${TASK_ID}/check`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers })
+  });
+  const result = await res.json();
+  showResult(result, answers);
+}
+
+function showResult(result, answers) {
+  const slots = ['А','Б','В','Г','Д'];
+
+  // Блокируем инпуты
+  slots.forEach(s => {
+    const inp = document.getElementById('input-' + s);
+    if (inp) inp.disabled = true;
+  });
+  document.getElementById('check-btn').disabled = true;
+
+  // Сбрасываем подсветку
+  document.querySelectorAll('.t8-sentence.highlighted').forEach(el => el.classList.remove('highlighted'));
+
+  // Помечаем слоты и предложения
+  for (const [slot, detail] of Object.entries(result.details)) {
+    const slotEl = document.getElementById('slot-' + slot);
+    const infoEl = document.getElementById('result-info-' + slot);
+    const posBadge = document.getElementById('pos-badge-' + detail.correct_position);
+    const sentEl   = document.getElementById('sent-' + detail.correct_position);
+
+    if (detail.ok) {
+      slotEl?.classList.add('result-ok');
+      posBadge?.classList.add('result-ok');
+      sentEl?.style.setProperty('border-color', 'rgba(164,226,208,0.5)');
+      if (infoEl) infoEl.textContent = '✓';
+    } else {
+      slotEl?.classList.add('result-err');
+      if (infoEl) infoEl.textContent = `✗ (верно: ${detail.correct_position})`;
+      // Правильное предложение отмечаем ошибочным
+      posBadge?.classList.add('result-err');
+    }
+  }
+
+  // Баннер
+  const banner = document.getElementById('result-banner');
+  banner.style.display = '';
+  const { correct, total } = result;
+  if (correct === total) {
+    banner.className = 't8-result-banner perfect';
+    banner.textContent = `Верно! Все ${total} из ${total} ответов правильные.`;
+  } else if (correct >= 3) {
+    banner.className = 't8-result-banner good';
+    banner.textContent = `Почти! ${correct} из ${total} верно.`;
+  } else {
+    banner.className = 't8-result-banner fail';
+    banner.textContent = `${correct} из ${total} верно. Попробуйте ещё раз.`;
+  }
+
+  // Объяснение
+  const explBlock = document.getElementById('explanation-block');
+  const explRows = Object.entries(result.details).map(([slot, detail]) => {
+    const cls = detail.ok ? 'ok' : 'err';
+    const userWrong = !detail.ok
+      ? `<span class="t8-expl-wrong">${detail.user_position}</span> → ` : '';
+    return `<div class="t8-expl-row">
+      <span class="t8-expl-letter ${cls}">${slot}</span>
+      <span>${userWrong}<span class="t8-expl-correct">${detail.correct_position}</span></span>
+    </div>`;
+  }).join('');
+
+  explBlock.innerHTML = `<div class="t8-explanation">
+    <h4>Правильные ответы</h4>
+    ${explRows}
+  </div>`;
+  explBlock.style.display = '';
+  banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+loadTask();
+</script>

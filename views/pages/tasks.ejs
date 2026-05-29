@@ -124,6 +124,7 @@
             ${assignment.source || 'Источник не указан'}
             ${assignment.fipi_number ? ` № ${assignment.fipi_number}` : ''}
           </span>
+          <span class="task-status-pill" id="status-${assignment.id}">Не решено</span>
         </div>
         
         <div class="task-content">
@@ -199,6 +200,11 @@
       });
       const data = await resp.json();
       
+      const pill = document.getElementById(`status-${assignmentId}`);
+      if (pill) {
+        pill.textContent = data.ok ? 'Верно' : 'Неверно';
+        pill.className = 'task-status-pill ' + (data.ok ? 'task-status-pill--correct' : 'task-status-pill--incorrect');
+      }
       if (data.ok) {
         button.innerHTML = '<span>✓</span>';
         button.style.background = '#bfd884';

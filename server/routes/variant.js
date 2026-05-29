@@ -9,6 +9,7 @@ export const TASK_CONFIG = {
   task4:  { table: 'task4_tasks',  urlPrefix: '/task4',  label: 'Ударения',                          num: 4  },
   task5:  { table: 'task5_tasks',  urlPrefix: '/task5',  label: 'Паронимы',                          num: 5  },
   task7:  { table: 'task7_tasks',  urlPrefix: '/task7',  label: 'Морфологические нормы',              num: 7  },
+  task8:  { table: 'task8_tasks',  urlPrefix: '/task8',  label: 'Синтаксические нормы',               num: 8  },
   task9:  { table: 'task9_tasks',  urlPrefix: '/task9',  label: 'Правописание корней',               num: 9  },
   task10: { table: 'task10_tasks', urlPrefix: '/task10', label: 'Правописание приставок',            num: 10 },
   task11: { table: 'task11_tasks', urlPrefix: '/task11', label: 'Правописание суффиксов',            num: 11 },

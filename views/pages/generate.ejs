@@ -1,0 +1,462 @@
+<div class="task-page" id="generate-page">
+  <h2 class="task-page__title">Генерация заданий</h2>
+
+  <div class="generate-page-sections">
+
+    <!-- ── Задание №4 ─────────────────────────────────── -->
+    <section class="generate-section" id="gen-task4">
+      <h3 class="generate-section__title">Задание №4 — Орфоэпические нормы (ударения)</h3>
+      <div class="generate-section__body">
+        <div class="generate-section__filters">
+          <div class="form-group" style="margin:0;">
+            <label>Количество заданий</label>
+            <input type="number" id="gen-t4-count" min="1" max="20" value="1" class="generate-number-input">
+          </div>
+        </div>
+        <div class="generate-section__actions">
+          <button class="btn" id="gen-btn-task4" type="button">Сгенерировать</button>
+          <a href="/task4" class="btn btn-secondary">Все задания</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Задание №9 ─────────────────────────────────── -->
+    <section class="generate-section" id="gen-task9">
+      <h3 class="generate-section__title">Задание №9 — Гласные в корне слова</h3>
+      <div class="generate-section__body">
+        <div class="generate-section__filters">
+          <div id="gen-t9-filter-bar"></div>
+          <div id="gen-t9-alt-filters" class="alternation-filters" style="display:none;margin-top:12px;">
+            <div class="alt-filter-section">
+              <div class="alt-filter-label">Тип чередования <span class="alt-filter-hint">пусто = все</span></div>
+              <div class="toggle-chips" id="gen-t9-type-chips">
+                <button class="toggle-chip" data-type="stress">По ударению</button>
+                <button class="toggle-chip" data-type="suffix">По суффиксу -А</button>
+                <button class="toggle-chip" data-type="consonant">По следующей букве</button>
+                <button class="toggle-chip" data-type="meaning">По значению</button>
+              </div>
+            </div>
+            <div class="alt-filter-section">
+              <div class="alt-filter-label">Конкретные корни <span class="alt-filter-hint">пусто = все выбранных типов</span></div>
+              <div class="toggle-chips" id="gen-t9-root-chips"></div>
+            </div>
+          </div>
+        </div>
+        <div class="generate-section__actions">
+          <button class="btn" id="gen-btn-task9" type="button">Сгенерировать</button>
+          <a href="/task9" class="btn btn-secondary">Все задания</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Задание №10 ─────────────────────────────────── -->
+    <section class="generate-section" id="gen-task10">
+      <h3 class="generate-section__title">Задание №10 — Правописание приставок</h3>
+      <div class="generate-section__body">
+        <div class="generate-section__filters">
+          <div id="gen-t10-filter-bar"></div>
+        </div>
+        <div class="generate-section__actions">
+          <button class="btn" id="gen-btn-task10" type="button">Сгенерировать</button>
+          <a href="/task10" class="btn btn-secondary">Все задания</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Задание №11 ─────────────────────────────────── -->
+    <section class="generate-section" id="gen-task11">
+      <h3 class="generate-section__title">Задание №11 — Правописание суффиксов</h3>
+      <div class="generate-section__body">
+        <div class="generate-section__filters">
+          <div id="gen-t11-filter-bar"></div>
+        </div>
+        <div class="generate-section__actions">
+          <button class="btn" id="gen-btn-task11" type="button">Сгенерировать</button>
+          <a href="/task11" class="btn btn-secondary">Все задания</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Задание №12 ─────────────────────────────────── -->
+    <section class="generate-section" id="gen-task12">
+      <h3 class="generate-section__title">Задание №12 — Личные окончания и суффиксы причастий</h3>
+      <div class="generate-section__body">
+        <div class="generate-section__filters">
+          <div id="gen-t12-filter-bar"></div>
+        </div>
+        <div class="generate-section__actions">
+          <button class="btn" id="gen-btn-task12" type="button">Сгенерировать</button>
+          <a href="/task12" class="btn btn-secondary">Все задания</a>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /generate-page-sections -->
+</div>
+
+<style>
+.generate-page-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 860px;
+}
+
+.generate-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg, 14px);
+  overflow: hidden;
+}
+
+.generate-section__title {
+  font-size: 15px;
+  font-weight: 700;
+  padding: 16px 20px 14px;
+  margin: 0;
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--bg-primary, var(--bg));
+}
+
+.generate-section__body {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.generate-section__filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.generate-section__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.generate-number-input {
+  width: 80px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-primary, var(--bg));
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+/* Reuse task10 checkbox grid styles if not already global */
+.task10-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg, 10px);
+  background: var(--bg-secondary);
+  box-sizing: border-box;
+}
+.task10-check-grid label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}
+.task10-check-grid input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  width: 16px; height: 16px; min-width: 16px;
+  margin: 0; padding: 0;
+  border: initial; border-radius: 3px; background: initial; box-shadow: none;
+  accent-color: var(--brand);
+}
+.task10-count-grid {
+  max-width: 200px;
+  grid-template-columns: 1fr;
+}
+</style>
+
+<script src="/js/filter-bar.js"></script>
+<script>
+window.addEventListener('error', function(e) {
+  console.error('Generate page error:', e.message, e.filename, e.lineno);
+  var errDiv = document.getElementById('generate-page-error');
+  if (!errDiv) {
+    errDiv = document.createElement('div');
+    errDiv.id = 'generate-page-error';
+    errDiv.style.cssText = 'margin:12px 0;padding:12px;background:#fee;border:1px solid #e05c65;border-radius:8px;color:#c00;font-size:13px;';
+    var title = document.querySelector('.task-page__title');
+    if (title) title.insertAdjacentElement('afterend', errDiv);
+    else document.body.prepend(errDiv);
+  }
+  errDiv.textContent = 'Ошибка инициализации: ' + e.message + ' (строка ' + e.lineno + ')';
+});
+
+/* ── Задание №4 ─────────────────────────────────────── */
+document.getElementById('gen-btn-task4').addEventListener('click', async () => {
+  const btn = document.getElementById('gen-btn-task4');
+  btn.disabled = true; btn.textContent = 'Генерируем...';
+  try {
+    const res = await fetch('/api/task4/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tasks_count: +document.getElementById('gen-t4-count').value || 1, is_practice: true })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) { alert(data.error || ('Ошибка: ' + res.status)); return; }
+    location.href = '/task4/' + data.id;
+  } catch (err) {
+    alert('Ошибка: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Сгенерировать';
+  }
+});
+
+/* ── Задание №9 ─────────────────────────────────────── */
+const t9GenBar = new FilterBar(document.getElementById('gen-t9-filter-bar'));
+
+const t9GenCatPill = t9GenBar.addPill('Категория', [
+  { value: 'alternating',  label: 'чередующиеся' },
+  { value: 'verifiable',   label: 'проверяемые' },
+  { value: 'unverifiable', label: 'непроверяемые' },
+], { multi: true });
+
+
+const t9GenTasksCount = t9GenBar.addNumberPill('Заданий', 1, { min: 1, max: 20 });
+
+
+let t9GenAltTypeRules = {};
+let t9GenSelectedTypes = new Set();
+let t9GenSelectedRoots = new Set();
+
+(async function loadT9AltTypes() {
+  try {
+    t9GenAltTypeRules = await fetch('/api/task9/alternation-types').then(r => r.json());
+    renderT9GenRootChips();
+  } catch (_) {}
+})();
+
+t9GenCatPill.el.addEventListener('change', () => {
+  const show = t9GenCatPill.getValues().includes('alternating');
+  document.getElementById('gen-t9-alt-filters').style.display = show ? '' : 'none';
+  if (!show) {
+    t9GenSelectedTypes.clear(); t9GenSelectedRoots.clear();
+    document.querySelectorAll('#gen-t9-type-chips .toggle-chip').forEach(c => c.classList.remove('active'));
+  }
+});
+
+document.getElementById('gen-t9-type-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.toggle-chip[data-type]');
+  if (!chip) return;
+  const t = chip.dataset.type;
+  if (t9GenSelectedTypes.has(t)) { t9GenSelectedTypes.delete(t); chip.classList.remove('active'); }
+  else { t9GenSelectedTypes.add(t); chip.classList.add('active'); }
+  pruneT9GenRoots();
+  renderT9GenRootChips();
+});
+
+function t9GenVisibleRoots() {
+  if (!t9GenSelectedTypes.size) return Object.values(t9GenAltTypeRules).flat();
+  return [...t9GenSelectedTypes].flatMap(t => t9GenAltTypeRules[t] || []);
+}
+function pruneT9GenRoots() {
+  const visible = new Set(t9GenVisibleRoots());
+  for (const r of [...t9GenSelectedRoots]) { if (!visible.has(r)) t9GenSelectedRoots.delete(r); }
+}
+function renderT9GenRootChips() {
+  const container = document.getElementById('gen-t9-root-chips');
+  container.innerHTML = t9GenVisibleRoots().map(r => {
+    const active = t9GenSelectedRoots.has(r) ? ' active' : '';
+    return `<button class="toggle-chip toggle-chip-root${active}" data-root="${r}">${r}</button>`;
+  }).join('');
+}
+document.getElementById('gen-t9-root-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.toggle-chip[data-root]');
+  if (!chip) return;
+  const r = chip.dataset.root;
+  if (t9GenSelectedRoots.has(r)) { t9GenSelectedRoots.delete(r); chip.classList.remove('active'); }
+  else { t9GenSelectedRoots.add(r); chip.classList.add('active'); }
+});
+
+document.getElementById('gen-btn-task9').addEventListener('click', async () => {
+  const btn = document.getElementById('gen-btn-task9');
+  btn.disabled = true; btn.textContent = 'Генерируем...';
+  try {
+    const categories = t9GenCatPill.getValues();
+    const body = { is_practice: true };
+    if (categories.length) body.categories = categories;
+    body.tasks_count = t9GenTasksCount.getValue();
+    if (categories.includes('alternating')) {
+      if (t9GenSelectedRoots.size) body.alternation_rules = [...t9GenSelectedRoots];
+      else if (t9GenSelectedTypes.size) body.alternation_types = [...t9GenSelectedTypes];
+    }
+    const res = await fetch('/api/task9/generate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) { alert(data.error || ('Ошибка: ' + res.status)); return; }
+    location.href = '/task9/' + data.id;
+  } catch (err) {
+    alert('Ошибка: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Сгенерировать';
+  }
+});
+
+/* ── Задание №10 ─────────────────────────────────────── */
+const t10GenBar = new FilterBar(document.getElementById('gen-t10-filter-bar'));
+
+const t10GenRulesPill = t10GenBar.addPill('Правила', [
+  { value: 'ъ/ь',                    label: 'ъ / ь' },
+  { value: 'з/с',                    label: 'з / с' },
+  { value: 'пре/при',                label: 'пре / при' },
+  { value: 'пра/про',                label: 'пра / про' },
+  { value: 'ы/и',                    label: 'ы / и' },
+  { value: 'неизменяемые гласные',   label: 'неизменяемые гласные' },
+  { value: 'неизменяемые согласные', label: 'неизменяемые согласные' },
+], { multi: true });
+
+const t10GenTasksCount = t10GenBar.addNumberPill('Заданий', 1, { min: 1, max: 20 });
+
+document.getElementById('gen-btn-task10').addEventListener('click', async () => {
+  const btn = document.getElementById('gen-btn-task10');
+  btn.disabled = true; btn.textContent = 'Генерируем...';
+  try {
+    const body = { is_practice: true };
+    const rules = t10GenRulesPill.getValues();
+    if (rules.length) body.rules = rules;
+    body.tasks_count = t10GenTasksCount.getValue();
+    const res = await fetch('/api/task10/generate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) { alert(data.error || ('Ошибка: ' + res.status)); return; }
+    location.href = '/task10/' + data.id;
+  } catch (err) {
+    alert('Ошибка: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Сгенерировать';
+  }
+});
+
+/* ── Задание №11 ─────────────────────────────────────── */
+const T11_RULES_MAP = {
+  'глагол':            { 'variable': [['ова/ыва','-ова-/-ева- vs -ыва-/-ива-'],['перед_вш','гласная перед -вш-/-л-/-в-'],['обес/обез','обес-/обез-']] },
+  'прилагательное':    { 'variable': [['ев/ив','-ев-/-ив-'],['к/ск','-к-/-ск-'],['ян/ен','-ян-/-ен-'],['ач/еч','-ач-/-еч-'],['ин/ен','-ин-/-ен-']],
+                         'fixed':    [['лив/чив','-лив-/-чив-'],['еньк/оньк','-еньк-/-оньк-'],['еват/оват','-еват-/-оват-'],['ист','-ист-'],['чат','-чат-']] },
+  'существительное':   { 'variable': [['ик/ек','-ик- vs -ек-'],['ец/иц','-ец- vs -иц-'],['чик/щик','-чик-/-щик-'],['инк/енк','-инк- / -енк-'],['ичк/ечк','-ичк- / -ечк-']],
+                         'fixed':    [['изн/от/ин','-изн-/-от-/-ин-']] },
+  'наречие':           { 'fixed':    [['о/а_нар','о/а в наречиях']] },
+  'о/ё после шипящей': { 'fixed':    [['о/ё_ё_гл','ё — от глагола'],['о/ё_ё_ёр','ё — суффикс -ёр-'],['о/ё_о','о']] }
+};
+
+function t11ComputeRules(selectedPos, selectedCat) {
+  const posKeys = selectedPos.length ? selectedPos : Object.keys(T11_RULES_MAP);
+  const catKeys = selectedCat.length ? selectedCat : ['variable', 'fixed'];
+  const seen = new Set();
+  const result = [];
+  for (const pos of posKeys) {
+    for (const cat of catKeys) {
+      for (const [value, label] of ((T11_RULES_MAP[pos] || {})[cat] || [])) {
+        if (!seen.has(value)) { seen.add(value); result.push({ value, label }); }
+      }
+    }
+  }
+  return result;
+}
+
+const t11GenBar = new FilterBar(document.getElementById('gen-t11-filter-bar'));
+
+const t11GenPosPill = t11GenBar.addPill('Часть речи', [
+  { value: 'глагол',            label: 'глагол' },
+  { value: 'прилагательное',    label: 'прилагательное' },
+  { value: 'существительное',   label: 'существительное' },
+  { value: 'наречие',           label: 'наречие' },
+  { value: 'о/ё после шипящей', label: 'о/ё после шипящей' },
+], { multi: true });
+
+const t11GenCatPill = t11GenBar.addPill('Категория', [
+  { value: 'variable', label: 'изменяемая' },
+  { value: 'fixed',    label: 'неизменяемая' },
+], { multi: true });
+
+const t11GenRulesPill = t11GenBar.addPill('Правила', t11ComputeRules([], []), { multi: true });
+t11GenRulesPill._dropdown.classList.add('task-filter-dropdown--two-col');
+
+const t11GenTasksCount = t11GenBar.addNumberPill('Заданий', 1, { min: 1, max: 20 });
+
+function t11UpdateRulesOptions() {
+  t11GenRulesPill.updateOptions(t11ComputeRules(t11GenPosPill.getValues(), t11GenCatPill.getValues()));
+}
+t11GenPosPill.el.addEventListener('change', t11UpdateRulesOptions);
+t11GenCatPill.el.addEventListener('change', t11UpdateRulesOptions);
+
+document.getElementById('gen-btn-task11').addEventListener('click', async () => {
+  const btn = document.getElementById('gen-btn-task11');
+  btn.disabled = true; btn.textContent = 'Генерируем...';
+  try {
+    const body = { is_practice: true };
+    const rules = t11GenRulesPill.getValues();
+    if (rules.length) body.rules = rules;
+    const pos = t11GenPosPill.getValues();
+    if (pos.length) body.part_of_speech = pos;
+    const cat = t11GenCatPill.getValues();
+    if (cat.length) body.category = cat;
+    body.tasks_count = t11GenTasksCount.getValue();
+    const res = await fetch('/api/task11/generate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) { alert(data.error || ('Ошибка: ' + res.status)); return; }
+    location.href = '/task11/' + data.id;
+  } catch (err) {
+    alert('Ошибка: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Сгенерировать';
+  }
+});
+
+/* ── Задание №12 ─────────────────────────────────────── */
+const t12GenBar = new FilterBar(document.getElementById('gen-t12-filter-bar'));
+
+const t12GenPairPill = t12GenBar.addPill('Пара букв', [
+  { value: 'е/и', label: 'е / и (окончания, страдат.)' },
+  { value: 'у/а', label: 'у / а (действит., твёрд.)' },
+  { value: 'ю/я', label: 'ю / я (действит., мягк.)' },
+], { multi: true });
+
+const t12GenFormPill = t12GenBar.addPill('Тип формы', [
+  { value: 'verb',         label: 'глаголы' },
+  { value: 'active_part',  label: 'действит. причастия' },
+  { value: 'passive_part', label: 'страдат. причастия' },
+  { value: 'wsh',          label: 'ВШ отвлекатели' },
+  { value: 'nn',           label: 'НН отвлекатели' },
+], { multi: true });
+
+const t12GenTasksCount = t12GenBar.addNumberPill('Заданий', 1, { min: 1, max: 20 });
+
+document.getElementById('gen-btn-task12').addEventListener('click', async () => {
+  const btn = document.getElementById('gen-btn-task12');
+  btn.disabled = true; btn.textContent = 'Генерируем...';
+  try {
+    const body = { is_practice: true };
+    const pairs     = t12GenPairPill.getValues();
+    const formTypes = t12GenFormPill.getValues();
+    if (pairs.length)     body.vowel_pairs = pairs;
+    if (formTypes.length) body.form_types = formTypes;
+    body.tasks_count = t12GenTasksCount.getValue();
+    const res = await fetch('/api/task12/generate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) { alert(data.error || ('Ошибка: ' + res.status)); return; }
+    location.href = '/task12/' + data.id;
+  } catch (err) {
+    alert('Ошибка: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Сгенерировать';
+  }
+});
+</script>

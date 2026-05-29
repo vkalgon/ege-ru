@@ -1,0 +1,147 @@
+/* ===== CSS VARIABLES - DARK THEME (default) ===== */
+/*
+   Палитра строится из двух фирменных цветов:
+   #A4BEE2 — основной (стальной голубой)
+   #C3D4F0 — светлый вариант
+   Оттенки: #8aaad4 (темнее), #6a8cb8 (акцент), #dce8f8 (совсем светлый)
+*/
+:root {
+  /* Фоны */
+  --bg-primary:   #0f1117;
+  --bg-secondary: #181c26;
+  --bg-tertiary:  #222738;
+
+  /* === Фирменная палитра === */
+  --brand:         #A4BEE2;   /* основной */
+  --brand-light:   #C3D4F0;   /* светлее */
+  --brand-dark:    #7a9dc6;   /* темнее, для hover */
+  --brand-subtle:  #4d6e96;   /* приглушённый акцент */
+  --brand-dim:     rgba(164, 190, 226, 0.5);
+  --brand-muted:   rgba(164, 190, 226, 0.12);
+  --brand-glow:    0 0 12px rgba(164, 190, 226, 0.4), 0 0 28px rgba(164, 190, 226, 0.15);
+
+  /* Glass */
+  --glass-bg:      rgba(164, 190, 226, 0.05);
+  --glass-border:  rgba(164, 190, 226, 0.15);
+  --glass-shadow:  0 4px 16px rgba(0, 0, 0, 0.4);
+  --glass-backdrop: blur(8px);
+
+  /* Акценты — алиасы бренд-палитры (устаревшие neon-имена оставлены для совместимости) */
+  --neon-cyan:   var(--brand);
+  --neon-blue:   var(--brand-light);
+  --neon-purple: var(--brand-dark);
+  --neon-pink:   var(--brand-subtle);
+
+  /* Прозрачные варианты бренда */
+  --brand-hover:  rgba(164, 190, 226, 0.1);
+  --brand-medium: rgba(164, 190, 226, 0.2);
+  --brand-ripple: rgba(164, 190, 226, 0.25);
+  --brand-strong: rgba(164, 190, 226, 0.3);
+
+  /* Текст */
+  --text-primary:   #e8eef6;   /* чуть тёплее чем чисто белый */
+  --text-secondary: #8a9ab8;
+  --text-disabled:  #556070;
+  --text-accent:    var(--brand);
+
+  /* Свечения */
+  --glow-cyan:   0 0 10px rgba(164, 190, 226, 0.45), 0 0 22px rgba(164, 190, 226, 0.2);
+  --glow-blue:   0 0 10px rgba(195, 212, 240, 0.4),  0 0 22px rgba(195, 212, 240, 0.15);
+  --glow-purple: 0 0 10px rgba(138, 170, 212, 0.4),  0 0 22px rgba(138, 170, 212, 0.15);
+  --glow-pink:   0 0 10px rgba(106, 140, 184, 0.4),  0 0 22px rgba(106, 140, 184, 0.15);
+
+  /* Тени */
+  --shadow-neon:  0 2px 10px rgba(164, 190, 226, 0.3);
+  --shadow-glass: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+  /* Подчёркивания оборотов */
+  --span-participle-color: var(--brand);
+  --span-gerund-color:     var(--brand);
+  --span-subject-color:    var(--brand-light);
+  --span-predicate-color:  var(--brand-light);
+
+  /* Spacing & Sizing */
+  --radius-sm: 4px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --space-16:  16px;
+  --space-24:  24px;
+  --space-32:  32px;
+
+  /* Typography */
+  --h2:    24px;
+  --h2-lh: 32px;
+  --h2-fw: 700;
+  --body:    16px;
+  --body-lh: 24px;
+
+  /* Алиасы совместимости */
+  --border:        var(--glass-border);
+  --border-color:  var(--glass-border);
+  --bg-card:       var(--bg-secondary);
+  --color-accent:  var(--brand);
+  --color-accent-soft: var(--brand-muted);
+  --color-success: #4ecda4;
+  --color-warning: #FFB020;
+  --color-error:   #e05c65;
+  --color-purple:  #A8A4E2;
+
+  /* Предупреждения (тёплый янтарный) */
+  --warn-subtle: rgba(226, 160, 122, 0.1);
+  --warn-border: rgba(226, 160, 122, 0.3);
+}
+
+/* ===== LIGHT THEME ===== */
+[data-theme="light"] {
+  /* Фоны */
+  --bg-primary:   #ffffff;
+  --bg-secondary: #f4f7fc;
+  --bg-tertiary:  #e8eff8;
+
+  /* === Фирменная палитра (затемнённая для читаемости на белом) === */
+  --brand:        #4d7db5;   /* насыщенный, хорошо на светлом */
+  --brand-light:  #7aa0cc;   /* чуть светлее */
+  --brand-dark:   #3a6496;   /* hover */
+  --brand-subtle: #2a4d78;   /* самый тёмный акцент */
+  --brand-dim:    rgba(77, 125, 181, 0.4);
+  --brand-muted:  rgba(77, 125, 181, 0.1);
+  --brand-glow:   0 0 10px rgba(77, 125, 181, 0.3), 0 0 22px rgba(77, 125, 181, 0.12);
+
+  /* Glass */
+  --glass-bg:      rgba(77, 125, 181, 0.06);
+  --glass-border:  rgba(77, 125, 181, 0.2);
+  --glass-shadow:  0 4px 16px rgba(0, 0, 0, 0.08);
+  --glass-backdrop: blur(8px);
+
+  /* Прозрачные варианты бренда (для светлой темы) */
+  --brand-hover:  rgba(77, 125, 181, 0.08);
+  --brand-medium: rgba(77, 125, 181, 0.15);
+  --brand-ripple: rgba(77, 125, 181, 0.18);
+  --brand-strong: rgba(77, 125, 181, 0.25);
+
+  /* Текст */
+  --text-primary:   #1a2535;
+  --text-secondary: #4a6080;
+  --text-disabled:  #8a9eb8;
+  --text-accent:    var(--brand);
+
+  /* Свечения */
+  --glow-cyan:   0 0 8px rgba(77, 125, 181, 0.35), 0 0 18px rgba(77, 125, 181, 0.15);
+  --glow-blue:   0 0 8px rgba(122, 160, 204, 0.3), 0 0 18px rgba(122, 160, 204, 0.12);
+  --glow-purple: 0 0 8px rgba(90, 127, 170, 0.3),  0 0 18px rgba(90, 127, 170, 0.12);
+  --glow-pink:   0 0 8px rgba(58, 100, 150, 0.3),  0 0 18px rgba(58, 100, 150, 0.12);
+
+  /* Тени */
+  --shadow-neon:  0 2px 8px rgba(77, 125, 181, 0.3);
+  --shadow-glass: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+  /* Алиасы совместимости (переопределяем для светлой темы) */
+  --color-success: #4ecda4;
+  --color-warning: #D9822B;
+  --color-error:   #e05c65;
+  --color-purple:  #6a65c8;
+
+  /* Предупреждения (тёплый янтарный) */
+  --warn-subtle: rgba(200, 130, 80, 0.1);
+  --warn-border: rgba(200, 130, 80, 0.3);
+}

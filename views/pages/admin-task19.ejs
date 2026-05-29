@@ -33,7 +33,7 @@
   }
   .t19-btn:hover { opacity: 0.85; }
   .t19-btn-primary { background: var(--brand); color: var(--bg-primary); }
-  .t19-btn-danger  { background: #D69295; color: #fff; padding: 5px 10px; font-size: 12px; }
+  .t19-btn-danger  { background: #e05c65; color: #fff; padding: 5px 10px; font-size: 12px; }
   .t19-btn-edit    { background: var(--bg-secondary); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 5px 10px; font-size: 12px; }
   .t19-task-row {
     display: flex; align-items: flex-start; gap: 10px;
@@ -53,7 +53,7 @@
   /* Разметка объяснения */
   #task19-expl-editor .span-subject   { text-decoration: underline; text-decoration-thickness:2px; text-underline-offset:3px; }
   #task19-expl-editor .span-predicate { text-decoration: underline double; text-decoration-thickness:2px; text-underline-offset:3px; }
-  #task19-expl-editor .span-main-word { border-bottom: 2px solid #f6b462; }
+  #task19-expl-editor .span-main-word { border-bottom: 1px solid #f6b462; }
   #task19-expl-editor:empty::before {
     content: attr(placeholder);
     color: var(--text-secondary);
@@ -110,23 +110,72 @@
   const EMPTY_FORM = { source_text: '', source: '', rule_types: [], explanation_md: '', comma_positions_str: '' };
 
   function parsePositions(str) {
-    return str.trim().split(/[\s,]+/).map(Number).filter(n => Number.isFinite(n) && n > 0);
+    const trimmed = str.trim();
+    if (!trimmed) return [];
+    // Если есть разделители — разбиваем по ним; иначе — каждый символ отдельно (формат "12" = [1,2])
+    if (/[\s,]/.test(trimmed)) {
+      return trimmed.split(/[\s,]+/).map(Number).filter(n => Number.isFinite(n) && n > 0);
+    }
+    return trimmed.split('').map(Number).filter(n => !isNaN(n) && n > 0);
   }
 
-  // Генерирует предложение с расставленными запятыми из source_text + positions
-  function generateBaseText(sourceText, positions) {
+  // Предложение с расставленными запятыми
+  function generateSentence(sourceText, positions) {
     if (!sourceText.trim() || !positions.length) return '';
     const posSet = new Set(positions.map(Number));
-    let result = sourceText.replace(/\s*\((\d+)\)\s*/g, (match, num) => {
-      return posSet.has(Number(num)) ? ', ' : ' ';
-    });
-    // Чистим: двойные пробелы, пробел перед точкой/запятой
-    result = result
+    let result = sourceText.replace(/\s*\((\d+)\)\s*/g, (_, num) =>
+      posSet.has(Number(num)) ? ', ' : ' '
+    );
+    return result
       .replace(/\s{2,}/g, ' ')
       .replace(/\s+([.,;:!?])/g, '$1')
       .replace(/,\s*,/g, ',')
       .trim();
-    return result;
+  }
+
+  // Ищет пары (N) И (N+1) где ни N, ни N+1 не являются запятыми → однородные придаточные
+  function findHomogeneousPairs(sourceText, positions) {
+    const posSet = new Set(positions.map(Number));
+    const regex = /\((\d+)\)/g;
+    const markers = [];
+    let m;
+    while ((m = regex.exec(sourceText)) !== null)
+      markers.push({ num: parseInt(m[1]), index: m.index, end: m.index + m[0].length });
+
+    const pairs = [];
+    for (let i = 0; i < markers.length - 1; i++) {
+      const a = markers[i], b = markers[i + 1];
+      const between = sourceText.slice(a.end, b.index).trim().toLowerCase();
+      if (/^(и|или)$/.test(between) && !posSet.has(a.num) && !posSet.has(b.num))
+        pairs.push([a.num, b.num]);
+    }
+    return pairs;
+  }
+
+  // Полное объяснение: предложение + шаблонные фразы по позициям
+  function generateExplanation(sourceText, positions) {
+    if (!sourceText.trim() || !positions.length) return '';
+    const sentence = generateSentence(sourceText, positions);
+    if (!sentence) return '';
+
+    const pairs = findHomogeneousPairs(sourceText, positions);
+    const pairedSet = new Set(pairs.flat());
+
+    let html = `<p>${sentence}</p>`;
+
+    const commaOther = positions.filter(n => !pairedSet.has(n));
+    if (commaOther.length === 1) {
+      html += `<p>На месте цифры ${commaOther[0]} нужна запятая.</p>`;
+    } else if (commaOther.length > 1) {
+      const joined = commaOther.slice(0, -1).join(', ') + ' и ' + commaOther[commaOther.length - 1];
+      html += `<p>На месте цифр ${joined} нужны запятые.</p>`;
+    }
+
+    for (const [n, m] of pairs) {
+      html += `<p>На месте цифр ${n} и ${m} запятая не нужна — придаточные предложения однородные, соединены одиночным союзом И.</p>`;
+    }
+
+    return html;
   }
 
   function AdminTask19() {
@@ -152,10 +201,10 @@
     useEffect(() => {
       if (!autoExpl) return;
       const positions = parsePositions(form.comma_positions_str);
-      const generated = generateBaseText(form.source_text, positions);
+      const generated = generateExplanation(form.source_text, positions);
       if (generated) {
         setForm(f => ({ ...f, explanation_md: generated }));
-        if (explRef.current) explRef.current.innerText = generated;
+        if (explRef.current) explRef.current.innerHTML = generated;
       }
     }, [form.source_text, form.comma_positions_str, autoExpl]);
 
@@ -163,10 +212,9 @@
     const prevExplRef = useRef('');
     useEffect(() => {
       if (explRef.current && form.explanation_md !== prevExplRef.current) {
-        const sel = window.getSelection();
         const hasFocus = document.activeElement === explRef.current;
         if (!hasFocus) {
-          explRef.current.innerText = form.explanation_md || '';
+          explRef.current.innerHTML = form.explanation_md || '';
         }
         prevExplRef.current = form.explanation_md;
       }
@@ -249,7 +297,7 @@
     return (
       <div>
         {msg && (
-          <div style={{ padding:'10px 14px', borderRadius:'8px', marginBottom:'16px', background: msg.ok ? 'rgba(164,226,208,0.15)' : 'rgba(214,146,149,0.15)', color: msg.ok ? '#A4E2D0' : '#D69295', border: `1px solid ${msg.ok ? 'rgba(164,226,208,0.4)' : 'rgba(214,146,149,0.4)'}` }}>
+          <div style={{ padding:'10px 14px', borderRadius:'8px', marginBottom:'16px', background: msg.ok ? 'rgba(164,226,208,0.15)' : 'rgba(224,92,101,0.15)', color: msg.ok ? '#A4E2D0' : '#e05c65', border: `1px solid ${msg.ok ? 'rgba(164,226,208,0.4)' : 'rgba(224,92,101,0.4)'}` }}>
             {msg.text}
           </div>
         )}
@@ -278,7 +326,7 @@
                   <label key={r.value} style={{
                     display:'flex', alignItems:'center', gap:'6px', cursor:'pointer',
                     padding:'5px 12px', borderRadius:'20px', fontSize:'13px',
-                    border: `1.5px solid ${checked ? r.color : 'var(--glass-border)'}`,
+                    border: `1px solid ${checked ? r.color : 'var(--glass-border)'}`,
                     background: checked ? `${r.color}20` : 'var(--bg-primary)',
                     color: checked ? r.color : 'var(--text-primary)',
                     transition:'all 0.15s',
@@ -315,7 +363,7 @@
               suppressContentEditableWarning={true}
               onInput={e => {
                 setAutoExpl(false);
-                const val = e.currentTarget.innerText;
+                const val = e.currentTarget.innerHTML;
                 prevExplRef.current = val;
                 setForm(f => ({ ...f, explanation_md: val }));
               }}

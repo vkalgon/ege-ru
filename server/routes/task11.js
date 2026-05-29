@@ -55,21 +55,21 @@ router.get('/words', (req, res) => {
 
 router.post('/words', (req, res) => {
   const { suffix_display, correct_vowel, suffix, part_of_speech, category, vowel_pair } = req.body;
-  if (!suffix_display || correct_vowel == null || !suffix || !part_of_speech || !category || !vowel_pair)
+  if (!suffix_display || correct_vowel == null || !suffix || !part_of_speech || !category)
     return res.status(400).json({ error: 'Все поля обязательны' });
   const { lastInsertRowid } = db.prepare(
     'INSERT INTO task11_words (suffix_display, correct_vowel, suffix, part_of_speech, category, vowel_pair) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(suffix_display.trim(), String(correct_vowel).trim().toLowerCase(), suffix, part_of_speech, category, vowel_pair);
+  ).run(suffix_display.trim(), String(correct_vowel).trim().toLowerCase(), suffix, part_of_speech, category, vowel_pair || '');
   res.json({ id: lastInsertRowid });
 });
 
 router.put('/words/:id', (req, res) => {
   const { suffix_display, correct_vowel, suffix, part_of_speech, category, vowel_pair } = req.body;
-  if (!suffix_display || correct_vowel == null || !suffix || !part_of_speech || !category || !vowel_pair)
+  if (!suffix_display || correct_vowel == null || !suffix || !part_of_speech || !category)
     return res.status(400).json({ error: 'Все поля обязательны' });
   const r = db.prepare(
     'UPDATE task11_words SET suffix_display=?, correct_vowel=?, suffix=?, part_of_speech=?, category=?, vowel_pair=? WHERE id=?'
-  ).run(suffix_display.trim(), String(correct_vowel).trim().toLowerCase(), suffix, part_of_speech, category, vowel_pair, req.params.id);
+  ).run(suffix_display.trim(), String(correct_vowel).trim().toLowerCase(), suffix, part_of_speech, category, vowel_pair || '', req.params.id);
   if (r.changes === 0) return res.status(404).json({ error: 'Слово не найдено' });
   res.json({ ok: true });
 });
@@ -91,8 +91,8 @@ router.post('/tasks', (req, res) => {
   if (!Array.isArray(rows) || rows.length !== 5)
     return res.status(400).json({ error: 'Нужно ровно 5 строк' });
   for (const row of rows) {
-    if (!Array.isArray(row.word_ids) || row.word_ids.length !== 3)
-      return res.status(400).json({ error: 'В каждой строке должно быть 3 слова' });
+    if (!Array.isArray(row.word_ids) || row.word_ids.length !== 2)
+      return res.status(400).json({ error: 'В каждой строке должно быть 2 слова' });
   }
   const correct = rows.filter(r => r.is_correct).length;
   if (correct < 2 || correct > 5)
@@ -137,12 +137,15 @@ router.delete('/tasks/:id', (req, res) => {
 /* ─── ГЕНЕРАЦИЯ ───────────────────────────────────────────── */
 
 router.post('/generate', (req, res) => {
-  let { suffix, rules, correct_count = 3, correct_counts, tasks_count = 1, is_practice = false } = req.body;
+  let { suffix, rules, part_of_speech, category, correct_count = 3, correct_counts, tasks_count = 1, is_practice = false } = req.body;
   const practiceFlag = is_practice ? 1 : 0;
 
   const selectedRules = Array.isArray(rules)
     ? rules.map(String).map(s => s.trim()).filter(Boolean)
     : (suffix ? [String(suffix).trim()] : []);
+
+  const selectedPos = Array.isArray(part_of_speech) ? part_of_speech.map(String).filter(Boolean) : [];
+  const selectedCat = Array.isArray(category) ? category.map(String).filter(Boolean) : [];
 
   let allowedCorrectCounts;
   if (Array.isArray(correct_counts)) {
@@ -172,6 +175,16 @@ router.post('/generate', (req, res) => {
     sql += ' AND suffix IN (' + selectedRules.map(() => '?').join(',') + ')';
     params.push(...selectedRules);
   }
+  if (selectedPos.length === 1) { sql += ' AND part_of_speech = ?'; params.push(selectedPos[0]); }
+  else if (selectedPos.length > 1) {
+    sql += ' AND part_of_speech IN (' + selectedPos.map(() => '?').join(',') + ')';
+    params.push(...selectedPos);
+  }
+  if (selectedCat.length === 1) { sql += ' AND category = ?'; params.push(selectedCat[0]); }
+  else if (selectedCat.length > 1) {
+    sql += ' AND category IN (' + selectedCat.map(() => '?').join(',') + ')';
+    params.push(...selectedCat);
+  }
   const allWords = db.prepare(sql).all(...params);
 
   const targetUserId = resolveWeakUserFromReq(req);
@@ -199,14 +212,14 @@ router.post('/generate', (req, res) => {
 
     for (let i = 0; i < correct_count; i++) {
       const candidates = validForCorrect.filter(
-        vl => vl.words.filter(w => !usedWordIds.has(w.id)).length >= 3
+        vl => vl.words.filter(w => !usedWordIds.has(w.id)).length >= 2
       );
       if (!candidates.length) return { error: 'Недостаточно уникальных слов для правильных строк' };
 
       const vl = candidates[Math.floor(Math.random() * candidates.length)];
-      const three = pickRandom(vl.words.filter(w => !usedWordIds.has(w.id)), 3);
-      three.forEach(w => usedWordIds.add(w.id));
-      rows.push({ row_index: 0, is_correct: 1, word_ids: three.map(w => w.id) });
+      const two = pickRandom(vl.words.filter(w => !usedWordIds.has(w.id)), 2);
+      two.forEach(w => usedWordIds.add(w.id));
+      rows.push({ row_index: 0, is_correct: 1, word_ids: two.map(w => w.id) });
     }
 
     const wrongCount = 5 - correct_count;
@@ -223,16 +236,11 @@ router.post('/generate', (req, res) => {
           if (!pool0.length || !pool1.length) break;
 
           const a = pool0[Math.floor(Math.random() * pool0.length)];
-          const bPool = pool1.filter(w => w.id !== a.id);
+          const bPool = pool1.filter(w => w.id !== a.id && w.correct_vowel !== a.correct_vowel);
           if (!bPool.length) continue;
           const b = bPool[Math.floor(Math.random() * bPool.length)];
 
-          const cPool = allWords.filter(w => !usedWordIds.has(w.id) && w.id !== a.id && w.id !== b.id);
-          if (!cPool.length) continue;
-          const c = cPool[Math.floor(Math.random() * cPool.length)];
-
-          if (a.correct_vowel === b.correct_vowel && b.correct_vowel === c.correct_vowel) continue;
-          solved = [a, b, c];
+          solved = [a, b];
         }
 
         if (!solved) return { error: 'Недостаточно уникальных слов для некорректных строк' };

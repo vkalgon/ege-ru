@@ -1,0 +1,388 @@
+/* ===== THEORY PAGES — общая система стилей ===== */
+/*
+   Все страницы теории используют классы .th-* для структуры.
+   Задание-специфичные стили остаются в <style> внутри EJS
+   только для уникальных компонентов (таблицы, схемы, тренажёры).
+*/
+
+/* ── Обёртка страницы ── */
+.th-page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 28px 16px 80px;
+}
+
+/* ── Шапка ── */
+.th-header {
+  margin-bottom: 28px;
+}
+
+.th-header-top {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.th-back {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.th-back:hover {
+  color: var(--brand);
+}
+
+.th-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.th-desc {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  font-size: 14px;
+}
+
+/* ── Блоки-карточки ── */
+.th-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.th-block {
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.th-block-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 0;
+}
+
+.th-section-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--brand-muted);
+  border: 1px solid var(--brand-ripple);
+  color: var(--brand);
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.th-section-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.th-block-body {
+  padding: 14px 20px 20px;
+}
+
+/* ── Контент ── */
+.th-list {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.th-list:last-child {
+  margin-bottom: 0;
+}
+
+/* Подсказка (голубой тон) */
+.th-tip {
+  margin-top: 12px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--brand-hover);
+  border: 1px solid var(--brand-ripple);
+}
+
+/* Предупреждение (янтарный тон) */
+.th-warn {
+  margin-top: 12px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--warn-subtle);
+  border: 1px solid var(--warn-border);
+}
+
+/* ── Таблицы ── */
+.th-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+
+.th-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.th-table th {
+  text-align: left;
+  padding: 9px 12px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.th-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  vertical-align: top;
+}
+
+.th-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Карточки-сетки внутри блоков ── */
+.th-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 650px) {
+  .th-grid { grid-template-columns: 1fr; }
+}
+
+.th-card {
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--bg-primary);
+  padding: 14px 16px;
+}
+
+.th-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.th-card p {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.th-card p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Кнопка "потренировать блок" ── */
+.th-practice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  font: 500 13px/1 "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.th-practice-btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: var(--brand-hover);
+}
+
+/* ── Графические метки в учебных примерах ── */
+/* Причастный / деепричастный оборот — волнистое подчёркивание */
+.th-po {
+  text-decoration: underline wavy var(--brand);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+/* Главное (определяемое) слово — крестик сверху, без влияния на метрики строки */
+.th-def {
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+}
+.th-def::before {
+  content: '×';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--color-error);
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* ── Примеры ошибка / верно (используются в теории задания 8) ── */
+.th-ex-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0 4px;
+}
+
+.th-ex {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+
+.th-ex--err {
+  background: rgba(224, 92, 101, 0.08);
+  border: 1px solid rgba(224, 92, 101, 0.25);
+}
+
+.th-ex--ok {
+  background: rgba(164, 226, 208, 0.08);
+  border: 1px solid rgba(164, 226, 208, 0.25);
+}
+
+.th-ex-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 1px;
+  text-transform: uppercase;
+}
+
+.th-ex--err .th-ex-badge {
+  background: rgba(224, 92, 101, 0.2);
+  color: var(--color-error);
+}
+
+.th-ex--ok .th-ex-badge {
+  background: rgba(164, 226, 208, 0.2);
+  color: var(--color-success);
+}
+
+/* Заголовок подраздела внутри th-block-body */
+.th-sub {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 14px 0 6px;
+}
+.th-sub:first-child { margin-top: 0; }
+
+/* ── Карточки отдельных правил внутри блока (задание 8) ── */
+.t8-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.t8-rule-card {
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  padding: 12px 14px 10px;
+}
+
+.t8-rule-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.t8-rule-card .th-ex-pair { margin-bottom: 0; }
+.t8-rule-card .th-tip,
+.t8-rule-card .th-warn { margin-bottom: 0; }
+.t8-rule-card .th-list { margin-bottom: 6px; }
+.t8-rule-card .th-list:last-child { margin-bottom: 0; }
+
+/* Двухколоночная сетка правил (для блоков с короткими правилами) */
+.t8-rules--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .t8-rules--grid { grid-template-columns: 1fr; }
+}
+
+/* ── Футер с призывом к тренировке ── */
+.th-train-footer {
+  margin-top: 28px;
+  padding: 20px 24px;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.th-train-footer__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.th-train-footer__desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+@media (max-width: 560px) {
+  .th-train-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .th-train-footer .btn {
+    width: 100%;
+    text-align: center;
+  }
+}

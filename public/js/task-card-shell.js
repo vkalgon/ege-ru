@@ -43,6 +43,7 @@
   <div class="task-meta">
     <span class="task-meta__number">№ ${escHtml(String(taskNum))}</span>
     <span class="task-meta__source">Задание #${escHtml(String(taskId))}</span>
+    <span class="task-status-pill" id="${uid}-status">Не решено</span>
   </div>
   <div class="task-content">
     ${bodyHtml}
@@ -63,9 +64,23 @@
   function showResult(uid, ok, bodyHtml) {
     const el = document.getElementById(uid + '-result');
     if (!el) return;
+    const card = document.getElementById(uid + '-card');
+    if (card) {
+      const inp = card.querySelector('.task-input');
+      if (inp) {
+        inp.classList.remove('input-correct', 'input-incorrect');
+        inp.classList.add(ok ? 'input-correct' : 'input-incorrect');
+      }
+      const statusPill = card.querySelector('#' + uid + '-status');
+      if (statusPill) {
+        statusPill.textContent = ok ? 'Верно' : 'Неверно';
+        statusPill.className = 'task-status-pill ' + (ok ? 'task-status-pill--correct' : 'task-status-pill--incorrect');
+      }
+    }
+    if (ok) { el.style.display = 'none'; return; }
     el.innerHTML = `<div class="task-card task17-card">
   <div class="task-meta">
-    <span class="task-meta__number" style="color:${ok ? 'var(--brand)' : '#D69295'};">${ok ? '✓ Верно' : 'Есть ошибки'}</span>
+    <span class="task-meta__number" style="color:#e05c65;">Есть ошибки</span>
   </div>
   <div class="task-content" style="gap:12px;">
     ${bodyHtml}

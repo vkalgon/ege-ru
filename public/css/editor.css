@@ -1,0 +1,861 @@
+/* ===== ADMIN TASK TYPES ===== */
+.task-types-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+
+@media (max-width: 700px) {
+  .task-types-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.task-type-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-glass);
+}
+
+.task-type-card:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: var(--shadow-neon), var(--shadow-glass);
+  transform: translateY(-4px);
+  background: var(--bg-secondary);
+}
+
+.task-type-number {
+  font: 700 24px/32px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--neon-cyan);
+  margin-bottom: 8px;
+}
+
+.task-type-title {
+  font: 600 16px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+        .task-type-description {
+          font: 400 14px/18px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+          color: var(--text-secondary);
+          line-height: 1.4;
+        }
+
+        .task-type-content {
+          cursor: pointer;
+          flex: 1;
+        }
+
+        .task-type-actions {
+          margin-top: 12px;
+          display: flex;
+          gap: 8px;
+        }
+
+        .task-type-actions .btn {
+          font-size: 12px;
+          padding: 6px 12px;
+        }
+
+        .form-actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 16px;
+        }
+
+        .form-actions .btn {
+          flex: 1;
+        }
+
+/* ===== EDITOR.JS STYLES ===== */
+.editor-container {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg) !important;
+  min-height: auto !important;
+  height: auto !important;
+  padding: 12px !important;
+  margin-top: 12px;
+  margin-bottom: 12px !important;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-glass);
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+.editor-container .codex-editor {
+  color: var(--text-primary) !important;
+}
+
+/* Улучшаем видимость текста в редакторе при редактировании */
+.editor-container .codex-editor__redactor,
+.editor-container .ce-block__content,
+.editor-container .ce-paragraph,
+.editor-container * {
+  color: var(--text-primary) !important;
+}
+
+.editor-container .ce-paragraph [contenteditable="true"],
+.editor-container .ce-header [contenteditable="true"],
+.editor-container [contenteditable="true"] {
+  color: var(--text-primary) !important;
+  background: transparent !important;
+  caret-color: var(--neon-cyan) !important;
+}
+
+.editor-container .ce-paragraph [contenteditable="true"]:focus,
+.editor-container .ce-header [contenteditable="true"]:focus {
+  color: var(--text-primary) !important;
+  background: var(--glass-bg) !important;
+  border-radius: 4px;
+  outline: 1px solid var(--brand-strong) !important;
+}
+
+.editor-container:hover {
+  border-color: rgba(164, 190, 226, 0.6);
+  box-shadow: 0 0 20px var(--brand-strong), var(--shadow-glass);
+}
+
+.editor-container:focus-within {
+  border-color: var(--neon-cyan);
+  box-shadow: var(--glow-cyan), var(--shadow-glass), 0 0 25px rgba(164, 190, 226, 0.4);
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.editor-large {
+  min-height: auto !important;
+  height: auto !important;
+  margin-bottom: 16px !important;
+}
+
+/* Editor.js блоки */
+.codex-editor {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+  z-index: 1;
+  color: var(--text-primary);
+  min-height: auto !important;
+  height: auto !important;
+}
+
+.codex-editor__redactor {
+  padding: 0 !important;
+  margin: 0 !important;
+  position: relative;
+  z-index: 1;
+  color: var(--text-primary);
+  min-height: auto !important;
+  height: auto !important;
+}
+
+.codex-editor__redactor p,
+.codex-editor__redactor div,
+.codex-editor__redactor span,
+.codex-editor__redactor * {
+  color: var(--text-primary) !important;
+}
+
+/* Улучшаем контраст для редактируемого текста */
+.ce-paragraph [contenteditable="true"],
+.ce-header [contenteditable="true"],
+.codex-editor [contenteditable="true"] {
+  color: var(--text-primary) !important;
+  background: transparent !important;
+  outline: none !important;
+}
+
+.ce-paragraph [contenteditable="true"]:focus,
+.ce-header [contenteditable="true"]:focus {
+  background: var(--glass-bg) !important;
+  border-radius: 4px;
+}
+
+.ce-block {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 4px;
+}
+
+/* Editor.js v2 toolbar — левая панель с кнопками + и настроек */
+.ce-toolbar {
+  z-index: 100 !important;
+}
+
+.ce-toolbar__plus,
+.ce-toolbar__settings-btn {
+  color: var(--text-secondary) !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 6px !important;
+  width: 26px !important;
+  height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.ce-toolbar__plus:hover,
+.ce-toolbar__settings-btn:hover {
+  background: var(--bg-tertiary) !important;
+  border-color: var(--neon-cyan) !important;
+  color: var(--neon-cyan) !important;
+  box-shadow: 0 0 8px rgba(164, 190, 226, 0.4) !important;
+}
+
+.ce-toolbar__plus svg,
+.ce-toolbar__settings-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  fill: currentColor !important;
+}
+
+.ce-block__content {
+  max-width: none;
+  position: relative;
+  z-index: 1;
+  min-height: auto !important;
+  margin: 0 !important;
+}
+
+/* Стили для предотвращения перекрытия элементов Editor.js */
+.ce-toolbox,
+.ce-inline-toolbar,
+.ce-settings,
+.ce-conversion-toolbar,
+.ce-popover {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+/* Специальные правила для выпадающих меню */
+.ce-settings .ce-popover,
+.ce-toolbox .ce-popover {
+  margin-top: 4px;
+}
+
+/* Улучшаем отступы для редакторов в формах */
+.admin-form .editor-container {
+  margin-top: 8px !important;
+  margin-bottom: 12px !important;
+  padding: 12px !important;
+  min-height: auto !important;
+  height: auto !important;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-form .editor-container + .form-group {
+  margin-top: 8px;
+}
+
+.ce-paragraph {
+  line-height: 1.4 !important;
+  margin: 0.1em 0 !important;
+  padding: 0 !important;
+  min-height: auto !important;
+  color: var(--text-primary);
+}
+
+.ce-paragraph[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.5;
+  min-height: auto !important;
+  line-height: 1.4 !important;
+}
+
+.ce-header {
+  margin: 0.3em 0 0.2em 0 !important;
+  padding: 0 !important;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ce-quote {
+  border-left: 4px solid var(--neon-cyan);
+  padding-left: 16px;
+  margin: 1em 0;
+  font-style: italic;
+  color: var(--text-secondary);
+  box-shadow: 0 0 10px var(--brand-medium);
+}
+
+.ce-list {
+  margin: 0.5em 0;
+}
+
+.ce-list__item {
+  margin: 0.25em 0;
+}
+
+.ce-code {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  border-left: 1px solid var(--neon-purple);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-glass);
+}
+
+.ce-delimiter {
+  text-align: center;
+  margin: 2em 0;
+}
+
+.ce-delimiter::before {
+  content: '•••';
+  color: var(--neon-cyan);
+  font-size: 18px;
+  letter-spacing: 0.5em;
+  text-shadow: 0 0 10px var(--brand-dim);
+}
+
+/* Inline toolbar */
+.codex-editor__redactor {
+  padding-right: 16px;
+  padding-left: 0;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin: 0;
+  min-height: auto;
+}
+
+.ce-inline-toolbar {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px var(--brand-medium);
+  z-index: 100000 !important;
+  margin: 0;
+}
+
+.ce-inline-toolbar__button {
+  color: var(--text-primary) !important;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.ce-inline-toolbar__button:hover {
+  background: var(--glass-border) !important;
+  color: var(--neon-cyan) !important;
+}
+
+.ce-inline-toolbar__button--active {
+  background: var(--brand-ripple) !important;
+  color: var(--neon-cyan) !important;
+}
+
+/* Toolbox */
+.ce-toolbox {
+  z-index: 1000 !important;
+}
+
+/* Block tunes / settings */
+.ce-settings {
+  z-index: 1000 !important;
+}
+
+.ce-settings__button {
+  color: var(--text-primary) !important;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.ce-settings__button:hover {
+  background: var(--glass-border) !important;
+  color: var(--neon-cyan) !important;
+}
+
+/* Conversion Toolbar */
+.ce-conversion-toolbar {
+  z-index: 1000 !important;
+}
+
+.ce-conversion-toolbar__button {
+  color: var(--text-primary) !important;
+  transition: all 0.2s ease;
+}
+
+.ce-conversion-toolbar__button:hover {
+  background: var(--glass-border) !important;
+  color: var(--neon-cyan) !important;
+}
+
+/* Popover (выпадающий список типов блоков) */
+.ce-popover {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 12px var(--glass-border) !important;
+  z-index: 100000 !important;
+}
+
+.ce-popover__item {
+  color: var(--text-primary) !important;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+}
+
+.ce-popover__item:hover,
+.ce-popover__item--active {
+  background: var(--brand-muted) !important;
+  color: var(--neon-cyan) !important;
+}
+
+.ce-popover__item-icon {
+  color: var(--text-secondary) !important;
+}
+
+.ce-popover__item:hover .ce-popover__item-icon,
+.ce-popover__item--active .ce-popover__item-icon {
+  color: var(--neon-cyan) !important;
+}
+
+.ce-popover__item-label {
+  color: inherit !important;
+}
+
+.ce-popover-header {
+  color: var(--text-secondary) !important;
+}
+
+.ce-popover__nothing-found-label {
+  color: var(--text-secondary) !important;
+}
+
+.ce-popover__search .cdx-search-field__input {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 6px !important;
+}
+
+/* Marker and inline code styles */
+.ce-marker {
+  background: var(--brand-medium);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--neon-cyan);
+  border: 1px solid var(--brand-strong);
+}
+
+.ce-inline-code {
+  background: var(--bg-tertiary);
+  border: 1px solid rgba(106, 140, 184, 0.2);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: var(--neon-pink);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* ===== EDITOR.JS ADDITIONAL STYLES ===== */
+/* Checklist стили */
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  margin: 8px 0;
+  padding: 4px 0;
+}
+
+.checklist-item input[type="checkbox"] {
+  margin-right: 8px;
+  margin-top: 2px;
+}
+
+.checklist-item.checked {
+  opacity: 0.7;
+}
+
+.checklist-item.checked span {
+  text-decoration: line-through;
+}
+
+/* Warning блок */
+.warning-block {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.warning-title {
+  font-weight: 600;
+  color: #856404;
+  margin-bottom: 8px;
+}
+
+.warning-message {
+  color: #856404;
+}
+
+/* Editor.js таблицы */
+.editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+.editor-table th,
+.editor-table td {
+  border: 1px solid #e1e5e9;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.editor-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Улучшенные стили для отображения контента */
+.editor-content {
+  line-height: 1.7;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.editor-content h1,
+.editor-content h2,
+.editor-content h3,
+.editor-content h4,
+.editor-content h5,
+.editor-content h6 {
+  margin: 20px 0 12px 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.editor-content h1 {
+  font-size: 28px;
+}
+
+.editor-content h2 {
+  font-size: 24px;
+}
+
+.editor-content h3 {
+  font-size: 20px;
+}
+
+.editor-content h4 {
+  font-size: 18px;
+}
+
+.editor-content h5 {
+  font-size: 16px;
+}
+
+.editor-content h6 {
+  font-size: 14px;
+}
+
+.editor-content p {
+  margin: 0 0 12px 0;
+  line-height: 1.7;
+}
+
+.editor-content p:last-child {
+  margin-bottom: 0;
+}
+
+.editor-content ul,
+.editor-content ol {
+  margin: 0 0 16px 0;
+  padding-left: 28px;
+}
+
+.editor-content li {
+  margin: 0 0 6px 0;
+  line-height: 1.7;
+}
+
+.editor-content blockquote {
+  margin: 16px 0;
+  padding: 16px 20px;
+  background: var(--glass-bg);
+  border-left: 4px solid var(--brand);
+  border-radius: 0 4px 4px 0;
+  font-style: italic;
+  border: 1px solid var(--glass-border);
+}
+
+.editor-content blockquote cite {
+  display: block;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-style: normal;
+}
+
+.editor-content pre {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-family: 'Courier New', 'Courier', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.editor-content hr {
+  border: none;
+  height: 1px;
+  background: var(--glass-border);
+  margin: 24px 0;
+}
+
+.editor-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+.editor-content table th,
+.editor-content table td {
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.editor-content table th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.editor-content .checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.editor-content .checklist-item {
+  display: flex;
+  align-items: flex-start;
+  margin: 0 0 8px 0;
+}
+
+.editor-content .checklist-item input[type="checkbox"] {
+  margin-right: 8px;
+  margin-top: 4px;
+}
+
+.editor-content .checklist-item.checked {
+  opacity: 0.7;
+}
+
+/* Подчеркивание */
+u {
+  text-decoration: underline;
+}
+
+/* Исправление проблем с полями ввода */
+#add-assignment-form input,
+#add-assignment-form select,
+#add-assignment-form textarea {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-backdrop) !important;
+  -webkit-backdrop-filter: var(--glass-backdrop) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+#add-assignment-form input:disabled,
+#add-assignment-form select:disabled,
+#add-assignment-form textarea:disabled {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: var(--text-disabled) !important;
+}
+
+#add-assignment-form input:focus,
+#add-assignment-form select:focus,
+#add-assignment-form textarea:focus {
+  outline: 1px solid var(--neon-cyan) !important;
+  outline-offset: 2px !important;
+  box-shadow: var(--glow-cyan) !important;
+}
+
+/* Editor.js стили для сайта (только для чтения) */
+.task-prompt .editor-container,
+.task-fulltext .editor-container {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 20px;
+  box-shadow: var(--shadow-glass) !important;
+}
+
+.task-prompt .codex-editor,
+.task-fulltext .codex-editor {
+  padding: 0 !important;
+}
+
+.task-prompt .codex-editor__redactor,
+.task-fulltext .codex-editor__redactor {
+  padding: 0 !important;
+}
+
+.task-prompt .ce-block__content,
+.task-fulltext .ce-block__content {
+  margin: 0 !important;
+}
+
+.task-prompt .ce-paragraph,
+.task-fulltext .ce-paragraph {
+  line-height: 1.7;
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.task-prompt .ce-header,
+.task-fulltext .ce-header {
+  margin: 0 0 16px 0;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.task-prompt .ce-quote,
+.task-fulltext .ce-quote {
+  margin: 0 0 16px 0;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+  border-radius: 0 4px 4px 0;
+  font-style: italic;
+}
+
+.task-prompt .ce-code,
+.task-fulltext .ce-code {
+  margin: 0 0 16px 0;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  overflow-x: auto;
+}
+
+.task-prompt .ce-delimiter,
+.task-fulltext .ce-delimiter {
+  margin: 24px 0;
+  text-align: center;
+  color: #6c757d;
+  font-size: 24px;
+}
+
+.task-prompt .ce-checklist,
+.task-fulltext .ce-checklist {
+  margin: 0 0 16px 0;
+}
+
+.task-prompt .ce-table,
+.task-fulltext .ce-table {
+  margin: 0 0 16px 0;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.task-prompt .ce-table th,
+.task-prompt .ce-table td,
+.task-fulltext .ce-table th,
+.task-fulltext .ce-table td {
+  border: 1px solid #dee2e6;
+  padding: 12px;
+  text-align: left;
+}
+
+.task-prompt .ce-table th,
+.task-fulltext .ce-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.task-prompt .ce-warning,
+.task-fulltext .ce-warning {
+  margin: 0 0 16px 0;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.task-prompt .ce-warning .warning-title,
+.task-fulltext .ce-warning .warning-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #856404;
+}
+
+.task-prompt .ce-warning .warning-message,
+.task-fulltext .ce-warning .warning-message {
+  color: #856404;
+  margin: 0;
+}
+
+/* Стили для inline элементов */
+.task-prompt .ce-inline-tool,
+.task-fulltext .ce-inline-tool {
+  display: none; /* Скрываем панель инструментов для режима чтения */
+}
+
+.task-prompt .ce-inline-toolbar,
+.task-fulltext .ce-inline-toolbar {
+  display: none; /* Скрываем панель инструментов для режима чтения */
+}
+
+/* Убираем курсор и выделение в режиме чтения */
+.task-prompt .codex-editor[contenteditable="false"],
+.task-fulltext .codex-editor[contenteditable="false"] {
+  cursor: default;
+  user-select: none;
+}
+
+.task-prompt .ce-block,
+.task-fulltext .ce-block {
+  cursor: default;
+  user-select: none;
+}

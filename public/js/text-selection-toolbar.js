@@ -291,7 +291,7 @@ class TextSelectionToolbar {
       const toolbarRect = this.toolbar.getBoundingClientRect();
       
       // Позиционируем панель над выделением по центру
-      let top = rect.top - toolbarRect.height - 10;
+      let top = rect.top - toolbarRect.height - 26;
       let left = rect.left + (rect.width / 2) - (toolbarRect.width / 2);
 
       // Проверяем границы экрана
@@ -302,7 +302,7 @@ class TextSelectionToolbar {
         left = 8;
       }
       if (top < 8) {
-        top = rect.bottom + 10;
+        top = rect.bottom + 14;
       }
 
       this.toolbar.style.top = top + 'px';

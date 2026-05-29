@@ -1,0 +1,190 @@
+/* ===== TASK META ===== */
+.task-meta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+.task-meta__pair {
+  display: flex;
+  gap: 4px;
+}
+
+.task-meta__number {
+  font-weight: 600;
+  color: var(--neon-cyan);
+  background: transparent;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  border: 1px solid var(--neon-cyan);
+  box-shadow: var(--shadow-neon);
+}
+
+.task-meta__source {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ===== TASK STATUS PILL ===== */
+.task-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.task-status-pill--correct {
+  background: transparent;
+  color: #4ecda4;
+  border-color: #4ecda4;
+}
+.task-status-pill--incorrect {
+  background: transparent;
+  color: #e05c65;
+  border-color: #e05c65;
+}
+
+/* ===== TASK TEXT ===== */
+.task-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  align-items: flex-start;
+}
+
+.task-text__button {
+  color: var(--neon-cyan);
+  font: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.task-text__button:hover {
+  color: var(--neon-cyan);
+  text-decoration: underline;
+}
+
+.task-fulltext {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  font: 400 16px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  border-left: 1px solid var(--neon-cyan);
+  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--glass-border);
+}
+
+/* ===== CONTROLS ===== */
+.controls {
+  display: flex;
+  gap: var(--space-24);
+  align-items: flex-start;
+}
+
+.input {
+  width: 300px;
+  height: 56px;
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-backdrop) !important;
+  -webkit-backdrop-filter: var(--glass-backdrop) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-glass);
+  padding: 20px 30px;
+  color: var(--text-primary) !important;
+  transition: all 0.3s ease;
+  font: 400 16px/16px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.input::placeholder {
+  color: var(--text-disabled) !important;
+  line-height: 16px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: var(--glow-cyan), var(--shadow-glass);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 28px;
+  border-radius: 9999px;
+  border: 1px solid var(--text-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: 500 14px/1.14 "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.btn:active {
+  opacity: 0.75;
+}
+
+/* ===== FEEDBACK ===== */
+.feedback {
+  margin-top: var(--space-16);
+  border-radius: var(--radius-lg);
+  padding: var(--space-16);
+  display: none;
+}
+
+.feedback--ok {
+  display: block;
+  background: rgba(164, 226, 208, 0.08);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  color: var(--color-success);
+  border: 1px solid rgba(164, 226, 208, 0.35);
+  box-shadow: none;
+}
+
+.feedback--bad {
+  display: block;
+  background: rgba(224, 92, 101, 0.12);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  color: var(--color-error);
+  border: 1px solid rgba(224, 92, 101, 0.3);
+  box-shadow: 0 0 20px rgba(224, 92, 101, 0.15);
+}
+
+.feedback--ok,
+.feedback--bad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedback__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}

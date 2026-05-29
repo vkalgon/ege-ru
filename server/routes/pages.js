@@ -78,6 +78,21 @@ pages.get('/theory', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// страница задания №1
+pages.get('/task1', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task1.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №1',
+      body,
+      breadcrumbs: [{ title: 'Задание №1' }]
+    });
+  } catch (err) { next(err); }
+});
+
 // страница "Задания" — через общий лейаут с хеддером
 pages.get('/tasks', async (req, res, next) => {
   try {
@@ -107,7 +122,7 @@ pages.get('/profile', async (req, res, next) => {
     res.render('pages/layout', {
       title: 'ЕГЭ · Личный кабинет',
       body,
-      breadcrumbs: [{ title: 'Личный кабинет' }]
+      breadcrumbs: null
     });
   } catch (err) {
     next(err);
@@ -276,6 +291,21 @@ pages.get('/login', async (req, res, next) => {
   }
 });
 
+// страница генерации заданий (все типы)
+pages.get('/generate', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'generate.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Генерация заданий',
+      body,
+      breadcrumbs: [{ title: 'Генерация заданий' }]
+    });
+  } catch (err) { next(err); }
+});
+
 // страница списка заданий №9
 pages.get('/task9', async (req, res, next) => {
   try {
@@ -411,6 +441,19 @@ pages.get('/task10', async (req, res, next) => {
     res.render('pages/layout', { title: 'ЕГЭ · Задание №10', body, breadcrumbs: [{ title: 'Задание №10' }] });
   } catch (err) { next(err); }
 });
+pages.get('/task10/theory', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task10-theory.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №10 — Теория',
+      body,
+      breadcrumbs: [{ title: 'Задание №10', url: '/task10' }, { title: 'Теория' }]
+    });
+  } catch (err) { next(err); }
+});
 pages.get('/task10/:id', async (req, res, next) => {
   try {
     const __filename = fileURLToPath(import.meta.url);
@@ -444,6 +487,19 @@ pages.get('/task11', async (req, res, next) => {
     const ROOT = path.join(__dirname, '..', '..');
     const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task11.ejs'), {});
     res.render('pages/layout', { title: 'ЕГЭ · Задание №11', body, breadcrumbs: [{ title: 'Задание №11' }] });
+  } catch (err) { next(err); }
+});
+pages.get('/task11/theory', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task11-theory.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №11 — Теория',
+      body,
+      breadcrumbs: [{ title: 'Задание №11', url: '/task11' }, { title: 'Теория' }]
+    });
   } catch (err) { next(err); }
 });
 pages.get('/task11/:id', async (req, res, next) => {
@@ -484,6 +540,20 @@ pages.get('/task12', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+pages.get('/task12/theory', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task12-theory.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №12 — Теория',
+      body,
+      breadcrumbs: [{ title: 'Задание №12', url: '/task12' }, { title: 'Теория' }]
+    });
+  } catch (err) { next(err); }
+});
+
 pages.get('/task12/:id', async (req, res, next) => {
   try {
     const __filename = fileURLToPath(import.meta.url);
@@ -506,6 +576,49 @@ pages.get('/admin/task12', async (req, res, next) => {
     res.render('pages/layout', {
       title: 'ЕГЭ · Админка Задание №12', body,
       breadcrumbs: [{ title: 'Администрирование', url: '/admin' }, { title: 'Задание №12' }]
+    });
+  } catch (err) { next(err); }
+});
+
+// ── Задание №6: Лексические ошибки ─────────────────────────
+pages.get('/task6', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task6.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №6',
+      body,
+      breadcrumbs: [{ title: 'Задание №6' }]
+    });
+  } catch (err) { next(err); }
+});
+
+pages.get('/task6/:id', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task6-play.ejs'), { taskId: req.params.id });
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №6 #' + req.params.id,
+      body,
+      breadcrumbs: [{ title: 'Задание №6', url: '/task6' }, { title: `Задание #${req.params.id}` }]
+    });
+  } catch (err) { next(err); }
+});
+
+pages.get('/admin/task6', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'admin-task6.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Админка Задание №6',
+      body,
+      breadcrumbs: [{ title: 'Администрирование', url: '/admin' }, { title: 'Задание №6' }]
     });
   } catch (err) { next(err); }
 });
@@ -625,6 +738,20 @@ pages.get('/task7', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+pages.get('/task7/theory', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task7-theory.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №7 — Теория',
+      body,
+      breadcrumbs: [{ title: 'Задание №7', url: '/task7' }, { title: 'Теория' }]
+    });
+  } catch (err) { next(err); }
+});
+
 pages.get('/task7/:id', async (req, res, next) => {
   try {
     const __filename = fileURLToPath(import.meta.url);
@@ -653,6 +780,62 @@ pages.get('/admin/task7', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+pages.get('/task8', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task8.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №8',
+      body,
+      breadcrumbs: [{ title: 'Задание №8' }]
+    });
+  } catch (err) { next(err); }
+});
+
+pages.get('/task8/theory', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task8-theory.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №8 — Теория',
+      body,
+      breadcrumbs: [{ title: 'Задание №8', url: '/task8' }, { title: 'Теория' }]
+    });
+  } catch (err) { next(err); }
+});
+
+pages.get('/task8/:id', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task8-play.ejs'), { taskId: req.params.id });
+    res.render('pages/layout', {
+      title: `ЕГЭ · Задание №8 #${req.params.id}`,
+      body,
+      breadcrumbs: [{ title: 'Задание №8', url: '/task8' }, { title: `Задание #${req.params.id}` }]
+    });
+  } catch (err) { next(err); }
+});
+
+pages.get('/admin/task8', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'admin-task8.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Админка Задание №8',
+      body,
+      breadcrumbs: [{ title: 'Администрирование', url: '/admin' }, { title: 'Задание №8' }]
+    });
+  } catch (err) { next(err); }
+});
+
 // страница списка заданий №17 - с интерактивными заданиями
 pages.get('/task17', async (req, res, next) => {
   try {
@@ -672,13 +855,32 @@ pages.get('/task17', async (req, res, next) => {
   }
 });
 
+pages.get('/task17/theory', async (req, res, next) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname  = path.dirname(__filename);
+    const ROOT = path.join(__dirname, '..', '..');
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task17-theory.ejs'), {});
+    res.render('pages/layout', {
+      title: 'ЕГЭ · Задание №17 — Теория',
+      body,
+      breadcrumbs: [
+        { title: 'Задание №17', url: '/task17' },
+        { title: 'Теория' }
+      ]
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // страница решения задания №17
 pages.get('/task17/:id', async (req, res, next) => {
   try {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname  = path.dirname(__filename);
     const ROOT = path.join(__dirname, '..', '..');
-    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task17-play.ejs'), {
+    const body = await ejs.renderFile(path.join(ROOT, 'views', 'pages', 'task17.ejs'), {
       taskId: req.params.id
     });
     res.render('pages/layout', { 

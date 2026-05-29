@@ -16,15 +16,19 @@ const TASK_ID = <%- taskId %>;
 
 async function loadTask() {
   const container = document.getElementById('task9-container');
-  const res = await fetch('/api/task9/tasks/' + TASK_ID + '/play');
-  if (!res.ok) {
-    container.innerHTML =
-      '<div class="task-card task17-card"><div class="task-content"><p style="color:#D69295;margin:0;">Задание не найдено.</p></div></div>';
-    return;
+  try {
+    const res = await fetch('/api/task9/tasks/' + TASK_ID + '/play');
+    if (!res.ok) {
+      container.innerHTML =
+        '<div class="task-card task17-card"><div class="task-content"><p style="color:#e05c65;margin:0;">Задание не найдено.</p></div></div>';
+      return;
+    }
+    const task = await res.json();
+    container.innerHTML = renderTask9CardHTML(TASK_ID, task, { standalone: true });
+    initTask9Card(container, TASK_ID, task, { standalone: true });
+  } catch (e) {
+    container.innerHTML = '<p style="color:#e05c65;margin:0;">Ошибка загрузки: ' + e.message + '</p>';
   }
-  const task = await res.json();
-  container.innerHTML = renderTask9CardHTML(TASK_ID, task, { standalone: true });
-  initTask9Card(container, TASK_ID, task, { standalone: true });
 }
 
 loadTask();

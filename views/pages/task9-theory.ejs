@@ -1,11 +1,11 @@
-<div class="t9th-page">
+<div class="th-page">
 
-  <div class="t9th-header">
-    <div class="t9th-header-top">
-      <a href="/task9" class="t9th-back">← Задание №9</a>
-      <h2 class="t9th-title">Гласные в корне — теория</h2>
+  <div class="th-header">
+    <div class="th-header-top">
+      <a href="/task9" class="th-back">← Задание №9</a>
+      <h2 class="th-title">Гласные в корне — теория</h2>
     </div>
-    <p class="t9th-desc">
+    <p class="th-desc">
       В задании №9 нужно выбрать строку, в которой во всех словах пропущена одна и та же гласная.
       Все слова делятся на три группы по принципу выбора гласной.
     </p>
@@ -30,12 +30,17 @@
       </div>
     </div>
 
-    <a href="/task9/theory/alternating" class="t9th-type-card t9th-type-alt t9th-type-link">
+    <div class="t9th-type-card t9th-type-alt t9th-type-link t9th-lockable"
+         data-theory-key="task9-alternating" data-href="/task9/theory/alternating">
       <div class="t9th-type-icon">Ч</div>
       <div class="t9th-type-body">
         <div class="t9th-type-title">
           Чередующиеся
-          <span class="t9th-link-badge">Подробнее →</span>
+          <span class="t9th-link-badge t9th-badge-open" style="display:none">Подробнее →</span>
+          <span class="t9th-lock-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Открыть
+          </span>
         </div>
         <div class="t9th-type-text">
           Гласная зависит не от ударения, а от условия: ударения на корне, наличия
@@ -49,14 +54,19 @@
           <span class="t9th-ex">м<strong>а</strong>к/м<strong>о</strong>к — по значению</span>
         </div>
       </div>
-    </a>
+    </div>
 
-    <a href="/task9/theory/unverifiable" class="t9th-type-card t9th-type-unv t9th-type-link">
+    <div class="t9th-type-card t9th-type-unv t9th-type-link t9th-lockable"
+         data-theory-key="task9-unverifiable" data-href="/task9/theory/unverifiable">
       <div class="t9th-type-icon">С</div>
       <div class="t9th-type-body">
         <div class="t9th-type-title">
           Непроверяемые (словарные)
-          <span class="t9th-link-badge">Список слов →</span>
+          <span class="t9th-link-badge t9th-badge-open" style="display:none">Список слов →</span>
+          <span class="t9th-lock-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Открыть
+          </span>
         </div>
         <div class="t9th-type-text">
           Написание не подчиняется правилам — гласную нужно запомнить. Такие слова
@@ -69,7 +79,7 @@
           <span class="t9th-ex">к<strong>о</strong>ридор</span>
         </div>
       </div>
-    </a>
+    </div>
 
   </div>
 
@@ -86,51 +96,13 @@
 </div>
 
 <style>
-.t9th-page {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 28px 16px 64px;
-}
-
-/* ── Шапка ── */
-.t9th-header { margin-bottom: 32px; }
-.t9th-header-top {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-}
-.t9th-back {
-  font-size: 13px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: color .18s;
-  white-space: nowrap;
-}
-.t9th-back:hover { color: var(--brand); }
-.t9th-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-.t9th-desc {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  max-width: 680px;
-  margin: 0;
-}
-
-/* ── Карточки типов ── */
+/* ── Карточки типов (уникальны для задания 9) ── */
 .t9th-types {
   display: flex;
   flex-direction: column;
   gap: 14px;
   margin-bottom: 28px;
 }
-
 .t9th-type-card {
   display: flex;
   align-items: flex-start;
@@ -148,65 +120,39 @@
 }
 .t9th-type-link:hover {
   border-color: var(--brand);
-  background: var(--brand-muted);
+  background: var(--brand-hover);
   transform: translateX(2px);
 }
-
 .t9th-type-icon {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 44px; height: 44px;
   border-radius: 12px;
   background: var(--brand-muted);
-  border: 1px solid rgba(164, 190, 226, 0.2);
+  border: 1px solid var(--brand-medium);
   color: var(--brand);
-  font-size: 17px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 17px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
 }
-.t9th-type-check .t9th-type-icon { background: rgba(52, 211, 153, 0.1); color: #34d399; border-color: rgba(52, 211, 153, 0.2); }
-.t9th-type-alt .t9th-type-icon   { background: rgba(251, 191, 36, 0.1); color: #f59e0b; border-color: rgba(251, 191, 36, 0.2); }
-.t9th-type-unv .t9th-type-icon   { background: rgba(164, 190, 226, 0.12); color: var(--brand); border-color: rgba(164, 190, 226, 0.25); }
+.t9th-type-check .t9th-type-icon { background: rgba(52,211,153,0.1); color: #34d399; border-color: rgba(52,211,153,0.2); }
+.t9th-type-alt   .t9th-type-icon { background: rgba(251,191,36,0.1);  color: #f59e0b; border-color: rgba(251,191,36,0.2); }
+.t9th-type-unv   .t9th-type-icon { background: var(--brand-muted); color: var(--brand); border-color: var(--brand-ripple); }
 
 .t9th-type-body { flex: 1; min-width: 0; }
 .t9th-type-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 15px; font-weight: 600; color: var(--text-primary);
   margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
 .t9th-link-badge {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--brand);
-  background: var(--brand-muted);
-  border: 1px solid rgba(164, 190, 226, 0.3);
-  border-radius: 6px;
-  padding: 2px 8px;
+  font-size: 12px; font-weight: 500;
+  color: var(--brand); background: var(--brand-muted);
+  border: 1px solid var(--brand-strong); border-radius: 6px; padding: 2px 8px;
 }
-.t9th-type-link:hover .t9th-link-badge {
-  background: rgba(164, 190, 226, 0.2);
-}
-.t9th-type-text {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.55;
-  margin-bottom: 10px;
-}
-.t9th-type-examples {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+.t9th-type-link:hover .t9th-link-badge { background: var(--brand-medium); }
+.t9th-type-text { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 10px; }
+.t9th-type-examples { display: flex; flex-wrap: wrap; gap: 8px; }
 .t9th-ex {
   font-size: 13px;
-  font-family: inherit;
   background: var(--bg-primary);
   border: 1px solid var(--glass-border);
   border-radius: 6px;
@@ -215,22 +161,114 @@
 }
 .t9th-ex strong { color: var(--brand); }
 
-/* ── Подсказка ── */
+/* ── Подсказка с иконкой (отличается от .th-tip flex-структурой) ── */
 .t9th-tip {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  display: flex; align-items: flex-start; gap: 12px;
   background: var(--brand-muted);
-  border: 1px solid rgba(164, 190, 226, 0.25);
+  border: 1px solid var(--brand-ripple);
   border-radius: 10px;
   padding: 16px 18px;
 }
 .t9th-tip-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-.t9th-tip-text {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
+.t9th-tip-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
 .t9th-tip-text strong { color: var(--text-primary); }
 .t9th-tip-text em { color: var(--brand); font-style: normal; font-weight: 600; }
+
+/* ── Замок / разблокировка ── */
+.t9th-lock-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: 6px; padding: 2px 8px;
+}
+.t9th-lockable { cursor: pointer; user-select: none; }
+.t9th-lockable.is-locked { opacity: 0.75; }
+.t9th-lockable.is-unlocked .t9th-lock-badge { display: none; }
+.t9th-lockable.is-unlocked .t9th-badge-open { display: inline-flex !important; }
+
+/* ── Модал подтверждения ── */
+.theory-unlock-modal {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.theory-unlock-box {
+  background: var(--bg-primary); border: 1px solid var(--glass-border);
+  border-radius: 16px; padding: 28px 24px 22px;
+  max-width: 340px; width: 100%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.theory-unlock-icon { font-size: 32px; text-align: center; }
+.theory-unlock-title { font-size: 16px; font-weight: 700; color: var(--text-primary); text-align: center; margin: 0; }
+.theory-unlock-desc { font-size: 13px; color: var(--text-secondary); text-align: center; line-height: 1.5; margin: 0; }
+.theory-unlock-actions { display: flex; gap: 10px; margin-top: 4px; }
+.theory-unlock-actions .btn { flex: 1; justify-content: center; border-radius: 50px; }
 </style>
+
+<!-- Модал разблокировки -->
+<div id="theory-unlock-modal" class="theory-unlock-modal" style="display:none">
+  <div class="theory-unlock-box">
+    <div class="theory-unlock-icon">📖</div>
+    <h3 class="theory-unlock-title" id="theory-unlock-title">Открыть раздел теории?</h3>
+    <p class="theory-unlock-desc">Он появится в твоём плане изучения. Ты сможешь вернуться к нему в любой момент.</p>
+    <div class="theory-unlock-actions">
+      <button class="btn btn-ghost" id="theory-unlock-cancel">Отмена</button>
+      <button class="btn btn-primary" id="theory-unlock-confirm">Открыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function initTheoryLocks() {
+  const LS_KEY = 'theory_unlocked';
+  function lsGet() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; } }
+  function lsAdd(key) { const arr = lsGet(); if (!arr.includes(key)) { arr.push(key); localStorage.setItem(LS_KEY, JSON.stringify(arr)); } }
+
+  let unlocked = [...lsGet()];
+
+  function applyCardStates() {
+    document.querySelectorAll('.t9th-lockable').forEach(card => {
+      const key = card.dataset.theoryKey;
+      if (unlocked.includes(key)) {
+        card.classList.add('is-unlocked'); card.classList.remove('is-locked');
+      } else {
+        card.classList.add('is-locked');
+      }
+    });
+  }
+
+  applyCardStates();
+  fetch('/api/theory/unlocks').then(r => r.ok ? r.json() : {}).then(d => {
+    (d.unlocked || []).forEach(k => { if (!unlocked.includes(k)) unlocked.push(k); });
+    applyCardStates();
+  }).catch(() => {});
+
+  function doUnlock(key) {
+    lsAdd(key);
+    fetch('/api/theory/unlock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theory_key: key }) }).catch(() => {});
+  }
+
+  document.querySelectorAll('.t9th-lockable').forEach(card => {
+    card.addEventListener('click', () => {
+      const key = card.dataset.theoryKey;
+      const href = card.dataset.href;
+      if (card.classList.contains('is-unlocked')) { location.href = href; return; }
+
+      const modal = document.getElementById('theory-unlock-modal');
+      modal.style.display = 'flex';
+
+      const onConfirm = () => { cleanup(); doUnlock(key); card.classList.remove('is-locked'); card.classList.add('is-unlocked'); location.href = href; };
+      const onCancel  = () => { cleanup(); modal.style.display = 'none'; };
+      function cleanup() {
+        document.getElementById('theory-unlock-confirm').removeEventListener('click', onConfirm);
+        document.getElementById('theory-unlock-cancel').removeEventListener('click', onCancel);
+      }
+      document.getElementById('theory-unlock-confirm').addEventListener('click', onConfirm);
+      document.getElementById('theory-unlock-cancel').addEventListener('click', onCancel);
+    });
+  });
+})();
+fetch('/api/progress/theory/view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ task_key: 'task9' }) }).catch(() => {});
+</script>

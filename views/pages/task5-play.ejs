@@ -42,9 +42,9 @@
   text-underline-offset: 3px;
 }
 
-.t5-sentence-item.state-error  { border-color: #D69295; }
+.t5-sentence-item.state-error  { border-color: #e05c65; }
 .t5-sentence-item.state-ok     { border-color: var(--brand); }
-.t5-sentence-item.state-error .t5-sentence-num { background: rgba(214,146,149,.2); color: #D69295; }
+.t5-sentence-item.state-error .t5-sentence-num { background: rgba(224,92,101,.2); color: #e05c65; }
 .t5-sentence-item.state-ok    .t5-sentence-num { background: var(--brand-muted); color: var(--brand); }
 </style>
 
@@ -75,7 +75,7 @@ function renderSentencesHtml(items, resultItems) {
       const ri = resultItems.find(r => r.item_index === it.item_index);
       if (ri && ri.is_error) {
         stateClass = 'state-error';
-        extraHtml = `<div style="margin-top:8px;font-size:13px;color:#D69295;">
+        extraHtml = `<div style="margin-top:8px;font-size:13px;color:#e05c65;">
           Ошибка: «${escHtml(ri.highlighted_word)}» → правильно: <strong style="color:var(--brand)">${escHtml(ri.correct_word)}</strong>
           <br><small style="color:var(--text-secondary)">Группа: ${escHtml(ri.group_title)}</small>
         </div>`;
@@ -120,7 +120,7 @@ async function loadTask() {
     initCard();
   } catch (e) {
     container.innerHTML = `<div class="task-card task17-card"><div class="task-content">
-      <p style="color:#D69295;margin:0;">${escHtml(e.message)}</p>
+      <p style="color:#e05c65;margin:0;">${escHtml(e.message)}</p>
     </div></div>`;
   }
 }

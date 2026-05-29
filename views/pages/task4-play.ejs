@@ -25,7 +25,7 @@
 .t4-item.selected       { border-color: var(--brand);        background: var(--brand-muted); }
 .t4-item.result-correct { border-color: var(--brand);        background: var(--brand-muted); }
 .t4-item.result-missed  { border-color: #f59e0b;             background: rgba(245,158,11,0.06); }
-.t4-item.result-wrong   { border-color: #D69295;             background: rgba(214,146,149,0.08); }
+.t4-item.result-wrong   { border-color: #e05c65;             background: rgba(224,92,101,0.08); }
 .t4-item.result-neutral { border-color: var(--glass-border); opacity: 0.65; }
 
 .t4-num {
@@ -105,7 +105,7 @@
   background: rgba(255,255,255,0.06);
 }
 .t4-tut-highlight {
-  outline: 2px solid var(--brand);
+  outline: 1px solid var(--brand);
   outline-offset: 2px;
   background: rgba(245,158,11,0.20);
 }
@@ -275,7 +275,7 @@ function initPlayCard(taskId, task) {
 
     let itemsHtml = '';
     data.items.forEach(item => {
-      const color = item.item_ok ? 'var(--brand)' : '#D69295';
+      const color = item.item_ok ? 'var(--brand)' : '#e05c65';
       const icon  = item.item_ok ? '✓' : '✗';
       const ci    = item.correct_stress_index;
       const correctDisplay =
@@ -478,7 +478,7 @@ async function loadTask() {
   const res = await fetch('/api/task4/tasks/' + TASK_ID + '/play');
   if (!res.ok) {
     container.innerHTML =
-      '<div class="task-card task17-card"><div class="task-content"><p style="color:#D69295;margin:0;">Задание не найдено.</p></div></div>';
+      '<div class="task-card task17-card"><div class="task-content"><p style="color:#e05c65;margin:0;">Задание не найдено.</p></div></div>';
     return;
   }
   const task = await res.json();

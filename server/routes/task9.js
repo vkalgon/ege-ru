@@ -78,15 +78,48 @@ router.get('/words', (req, res) => {
 
 // POST /api/task9/words
 router.post('/words', (req, res) => {
-  const { word_display, correct_vowel, vowel_pair, category, verification_word, alternation_rule, word_group_id } = req.body;
+  const { word_display, correct_vowel, vowel_pair, category, verification_word, alternation_rule, word_group_id, auto_group } = req.body;
   if (!word_display || !correct_vowel || !vowel_pair || !category)
     return res.status(400).json({ error: 'Все поля обязательны' });
-  const { lastInsertRowid } = db.prepare(
-    'INSERT INTO task9_words (word_display, correct_vowel, vowel_pair, category, verification_word, alternation_rule, word_group_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).run(word_display.trim(), correct_vowel.trim(), vowel_pair.trim(), category,
-    verification_word?.trim() || null, alternation_rule || null,
-    word_group_id ? Number(word_group_id) : null);
-  res.json({ id: lastInsertRowid });
+
+  const insertAndGroup = db.transaction(() => {
+    const { lastInsertRowid } = db.prepare(
+      'INSERT INTO task9_words (word_display, correct_vowel, vowel_pair, category, verification_word, alternation_rule, word_group_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).run(word_display.trim(), correct_vowel.trim(), vowel_pair.trim(), category,
+      verification_word?.trim() || null, alternation_rule || null,
+      word_group_id ? Number(word_group_id) : null);
+
+    // Auto-group by verification_word (verifiable) or root (unverifiable)
+    if (auto_group && verification_word?.trim() && (category === 'verifiable' || category === 'unverifiable') && !word_group_id) {
+      const vw = verification_word.trim();
+      const related = db.prepare(
+        'SELECT id, word_group_id FROM task9_words WHERE verification_word = ? AND id != ?'
+      ).all(vw, lastInsertRowid);
+      if (related.length > 0) {
+        const existingGid = related.find(w => w.word_group_id)?.word_group_id;
+        if (existingGid) {
+          db.prepare('UPDATE task9_words SET word_group_id = ? WHERE id = ?').run(existingGid, lastInsertRowid);
+        } else {
+          const { mx } = db.prepare('SELECT MAX(word_group_id) AS mx FROM task9_words').get();
+          const newGid = (mx || 0) + 1;
+          db.prepare('UPDATE task9_words SET word_group_id = ? WHERE id IN (' + related.map(() => '?').join(',') + ')')
+            .run(newGid, ...related.map(w => w.id));
+          db.prepare('UPDATE task9_words SET word_group_id = ? WHERE id = ?').run(newGid, lastInsertRowid);
+        }
+      }
+    }
+
+    // Propagate verification_word to all group members
+    const finalGid = db.prepare('SELECT word_group_id FROM task9_words WHERE id = ?').get(lastInsertRowid)?.word_group_id;
+    if (finalGid && verification_word?.trim()) {
+      db.prepare('UPDATE task9_words SET verification_word = ? WHERE word_group_id = ?')
+        .run(verification_word.trim(), finalGid);
+    }
+
+    return lastInsertRowid;
+  });
+
+  res.json({ id: insertAndGroup() });
 });
 
 // PUT /api/task9/words/:id
@@ -101,6 +134,13 @@ router.put('/words/:id', (req, res) => {
     word_group_id ? Number(word_group_id) : null,
     req.params.id);
   if (r.changes === 0) return res.status(404).json({ error: 'Слово не найдено' });
+
+  // Propagate verification_word to all group members
+  if (word_group_id && verification_word?.trim()) {
+    db.prepare('UPDATE task9_words SET verification_word = ? WHERE word_group_id = ?')
+      .run(verification_word.trim(), Number(word_group_id));
+  }
+
   res.json({ ok: true });
 });
 

@@ -11,6 +11,11 @@
     const params = new URLSearchParams(location.search);
     const type = params.get('type') || 1;
 
+    // Интерактивные задания имеют собственные страницы
+    const INTERACTIVE = { 6: '/task6', 8: '/task8', 9: '/task9', 10: '/task10', 11: '/task11',
+                          12: '/task12', 16: '/task16', 17: '/task17', 18: '/task18', 19: '/task19' };
+    if (INTERACTIVE[Number(type)]) { location.replace(INTERACTIVE[Number(type)]); return; }
+
     let subtopics;
     try{
       const res = await fetch(`/api/subtopics/with-count?type=${type}`);

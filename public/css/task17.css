@@ -1,0 +1,726 @@
+/* ===== TASK 17 STYLES ===== */
+
+/* Уменьшаем отступы у карточки для задания 17 */
+.task17-wrapper .task-card,
+.task-card.task17-card {
+  padding: 20px !important; /* Уменьшено с 32px */
+  margin-bottom: 24px !important; /* Нормальный отступ между карточками */
+}
+
+/* Отступ между мета-информацией и контентом */
+.task17-wrapper .task-card .task-meta,
+.task-card.task17-card .task-meta {
+  margin-bottom: 8px;
+}
+
+/* Базовые отступы для задания 17 */
+.task17-wrapper .task-card .task-content {
+  gap: 8px !important;
+}
+
+/* Отступ для контейнера с заданием (task-prompt) от остального контента */
+.task17-wrapper .task-card .task-prompt {
+  margin-top: 0; /* Базовый отступ управляется через gap в task-content */
+}
+
+/* Формулировка задания внутри task-prompt */
+.task17-wrapper .task-card .task-prompt > div:first-child {
+  margin-bottom: 12px;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* Базовые скругления для элементов задания 17 */
+.task17-wrapper .task17-text-editable {
+  border-radius: var(--radius-lg) !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: left;
+  word-spacing: normal;
+  letter-spacing: normal;
+}
+
+/* Кликабельные цифры задания 17 */
+.task17-digit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6em;
+  height: 1.6em;
+  cursor: pointer;
+  margin: 0 1px;
+  border-radius: 4px;
+  color: #aaa;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid #aaa;
+  user-select: none;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+.task17-digit:hover {
+  background: transparent;
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.task17-digit.selected {
+  background: transparent;
+  color: var(--brand);
+  border-color: var(--brand);
+  outline: 1px solid var(--brand);
+  outline-offset: -1px;
+}
+
+.task17-digit.correct {
+  background: transparent !important;
+  color: var(--color-success) !important;
+  border-color: var(--color-success) !important;
+  outline: 1px solid var(--color-success) !important;
+  outline-offset: -1px;
+}
+
+.task17-digit.correct-selected {
+  background: transparent !important;
+  color: var(--color-success) !important;
+  border-color: var(--color-success) !important;
+  outline: 1px solid var(--color-success) !important;
+  outline-offset: -1px;
+}
+
+.task17-digit.extra-selected {
+  background: transparent !important;
+  color: #e05c65 !important;
+  border-color: #e05c65 !important;
+  outline: 1px solid #e05c65 !important;
+  outline-offset: -1px;
+}
+
+/* Кликабельные пробелы (режим запятых) */
+.task17-space {
+  display: inline-block;
+  min-width: 8px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 2px;
+  transition: background 0.15s ease;
+}
+
+.task17-space:hover {
+  background-color: var(--brand-hover) !important;
+}
+
+.task17-space-with-comma {
+  min-width: 12px;
+}
+
+/* .task17-wrapper .task-input наследует общий стиль (9999px pill) */
+
+/* task17 наследует стили .task-send / .task-solution / .task-like из общих правил */
+
+/* Блоки результатов проверки */
+.task17-wrapper .task-solution-block > div,
+.task17-wrapper .task-solution-block > div > div {
+  border-radius: var(--radius-lg) !important; /* 12px - блоки результатов */
+}
+
+/* Переключатели в панели управления */
+.task17-wrapper .task17-control-panel label > div {
+  border-radius: var(--radius-lg) !important; /* 12px - переключатели */
+}
+
+.task17-wrapper .task17-control-panel label > div > div {
+  border-radius: 50% !important; /* Круглые элементы переключателей */
+}
+
+/* Причастный оборот — волнистая линия (единая непрерывная линия, концы скруглены автоматически) */
+.span-participle {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--span-participle-color) !important;
+  text-underline-offset: 2px;
+  text-decoration-skip-ink: none;
+  -webkit-text-decoration-color: var(--span-participle-color) !important;
+  color: var(--text-primary);
+  display: inline;
+  padding: 2px 4px 6px 4px; /* padding-bottom 6px — как у gerund, выравниваем высоту строк */
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  box-decoration-break: clone; /* Обеспечивает повторение подчеркивания и фона на каждой строке */
+  -webkit-box-decoration-break: clone;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Подсветка при наведении на причастный оборот */
+.span-participle:hover {
+  opacity: 0.75;
+}
+
+/* Для многострочных спанов в объяснении - позволяем переносы, но сохраняем подчеркивание */
+.editor-content .span-participle {
+  white-space: normal; /* Разрешаем переносы в объяснении */
+}
+
+/* Деепричастный оборот — точка-тире (единая непрерывная линия с паттерном) */
+.span-gerund {
+  position: relative;
+  text-decoration: none;
+  display: inline;
+  color: var(--text-primary);
+  padding: 2px 4px 6px 4px; /* Такой же отступ как у главного слова, но с нижним отступом для линии */
+  border-radius: 4px;
+  /* Тёмная тема: фирменный A4BEE2 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='%23A4BEE2' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='%23A4BEE2'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='%23A4BEE2' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 36px 4px;
+  background-repeat: repeat-x;
+  background-position: left bottom;
+  box-decoration-break: clone; /* Обеспечивает повторение фона и линии на каждой строке */
+  -webkit-box-decoration-break: clone;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* Подсветка при наведении на деепричастный оборот */
+.span-gerund:hover {
+  opacity: 0.75;
+}
+
+/* Светлая тема: фирменный синий dash-dot для деепричастного */
+[data-theme="light"] .span-gerund {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='%234d7db5' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='%234d7db5'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='%234d7db5' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* Для многострочных спанов в объяснении */
+.editor-content .span-gerund {
+  white-space: normal; /* Разрешаем переносы в объяснении */
+}
+
+/* Подлежащее — прямая линия */
+.span-subject {
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--span-subject-color);
+  text-underline-offset: 2px;
+  text-decoration-skip-ink: none;
+  color: var(--text-primary);
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  cursor: pointer;
+  position: relative;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* Подсветка при наведении на подлежащее */
+.span-subject:hover {
+  opacity: 0.75;
+}
+
+/* Сказуемое — две прямые линии */
+.span-predicate {
+  text-decoration: underline;
+  text-decoration-style: double;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--span-predicate-color);
+  text-underline-offset: 2px;
+  text-decoration-skip-ink: none;
+  color: var(--text-primary);
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  cursor: pointer;
+  position: relative;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* Подсветка при наведении на сказуемое */
+.span-predicate:hover {
+  opacity: 0.75;
+}
+
+/* Главное слово — цвет текста + крестик сверху */
+.span-main-word {
+  position: relative;
+  display: inline;
+  padding: 0 2px;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+/* Крестик над главным словом */
+.span-main-word::before {
+  content: '×';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--mw-color, var(--text-secondary));
+  pointer-events: none;
+}
+
+.span-main-word:hover {
+  opacity: 0.85;
+}
+
+/* Поддержка вложенных оборотов */
+.span-participle .span-gerund,
+.span-gerund .span-participle,
+.span-participle .span-main-word,
+.span-gerund .span-main-word {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── ВНЕШНИЙ оборот (большой) — сдвигаем его линию вниз ─────────────────
+   :has() применяется только когда внутри есть вложенный оборот.
+   Внешний деепричастный: padding-bottom ↑ → background-image опускается ниже. */
+.span-gerund:has(.span-participle),
+.span-gerund:has(.span-gerund) {
+  padding-bottom: 14px;
+}
+
+/* Внешний причастный: text-underline-offset ↑ → волнистая линия опускается ниже. */
+.span-participle:has(.span-gerund),
+.span-participle:has(.span-participle) {
+  text-underline-offset: 12px;
+}
+
+/* ─── ВНУТРЕННИЙ оборот (маленький) — линия близко к тексту (выше) ────────
+   Явно сбрасываем в норму, чтобы не унаследовать сдвиг внешнего. */
+
+/* Внутренний причастный: стандартный offset 2px */
+.span-gerund .span-participle,
+.span-participle .span-participle {
+  text-underline-offset: 2px !important;
+  z-index: 2;
+}
+
+/* Внутренний деепричастный: стандартный padding-bottom 6px */
+.span-participle .span-gerund,
+.span-gerund .span-gerund {
+  padding-bottom: 6px !important;
+  z-index: 2;
+}
+
+/* Для многострочных вложенных оборотов */
+.editor-content .span-participle .span-gerund,
+.editor-content .span-gerund .span-participle,
+.editor-content .span-participle .span-participle,
+.editor-content .span-gerund .span-gerund {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Плавающая панель инструментов выделения */
+.task17-floating-toolbar,
+.text-selection-toolbar {
+  position: fixed;
+  display: none;
+  flex-direction: row;
+  gap: 4px;
+  padding: 8px;
+  background: var(--bg-primary);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+  z-index: 10000;
+  animation: slideDown 0.2s ease;
+  pointer-events: auto;
+}
+
+.task17-floating-toolbar.show,
+.text-selection-toolbar.show {
+  display: flex;
+}
+
+.task17-floating-toolbar button,
+.text-selection-toolbar button {
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-primary);
+  color: var(--brand);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  line-height: 1;
+}
+
+.task17-floating-toolbar button svg,
+.text-selection-toolbar button svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.task17-floating-toolbar button:hover,
+.text-selection-toolbar button:hover {
+  border-color: var(--brand);
+  box-shadow: none;
+  background: var(--brand-muted);
+}
+
+.task17-floating-toolbar button.remove,
+.text-selection-toolbar button.remove {
+  border-color: rgba(224, 92, 101, 0.5);
+  color: #e05c65;
+}
+
+.task17-floating-toolbar button.remove:hover,
+.text-selection-toolbar button.remove:hover {
+  border-color: #e05c65;
+  background: rgba(224, 92, 101, 0.15);
+  box-shadow: none;
+}
+
+/* Слоты для запятых */
+.comma-slot {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.comma-slot:hover {
+  background-color: var(--brand-hover);
+}
+
+.comma-slot.has-comma::before {
+  content: ",";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  color: var(--neon-cyan);
+  font-weight: bold;
+}
+
+/* Кликабельные цифры */
+.digit-marker {
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.digit-marker:hover {
+  background-color: var(--brand-hover);
+}
+
+.digit-marker.selected {
+  background-color: var(--brand-medium);
+  color: var(--brand);
+  outline: 1px solid var(--brand-dim);
+  outline-offset: -1px;
+}
+
+/* Правильные и лишние цифры после проверки */
+.digit-marker.correct {
+  background-color: transparent !important;
+  color: var(--color-success) !important;
+  outline: 1px solid var(--color-success) !important;
+  outline-offset: -1px;
+}
+
+.digit-marker.correct.selected {
+  background-color: rgba(164, 226, 208, 0.12) !important;
+  color: var(--color-success) !important;
+  outline: 1px solid var(--color-success) !important;
+  outline-offset: -1px;
+}
+
+.digit-marker.extra.selected {
+  background-color: #e05c65 !important;
+  color: #0f1117 !important;
+}
+
+/* ===== TASK 17 ADMIN EDITOR STYLES ===== */
+
+.task17-explanation-editor {
+  outline: none;
+}
+
+.task17-explanation-editor:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 2px var(--brand-muted);
+}
+
+.task17-explanation-editor p {
+  margin: 0 0 8px 0;
+}
+
+.task17-explanation-editor p:last-child {
+  margin-bottom: 0;
+}
+
+/* Стили для цифр в редакторе (как у учеников) */
+.task17-editor-digit {
+  cursor: default;
+  padding: 2px 6px;
+  margin: 0 2px;
+  border-radius: 4px;
+  display: inline-block;
+  color: var(--neon-cyan);
+  font-weight: 600;
+  background: var(--brand-hover);
+  border: 1px solid var(--brand-strong);
+  user-select: none;
+  transition: all 0.2s;
+}
+
+.task17-editor-digit:hover {
+  background-color: var(--brand-medium);
+  box-shadow: 0 0 10px var(--brand-strong);
+}
+
+/* Placeholder для contenteditable */
+.task17-explanation-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-secondary);
+  pointer-events: none;
+  display: block;
+}
+
+.task17-spans-toolbar .btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Боковая панель инструментов для задания №17 */
+.task17-sidebar-toolbar {
+  flex-shrink: 0;
+}
+
+.task17-sidebar-toolbar .btn-sm {
+  padding: 8px 12px;
+  font-size: 13px;
+  height: auto;
+}
+
+/* Стили для режима рисования стрелок */
+.task17-explanation-editor[style*="crosshair"] {
+  user-select: none;
+}
+
+.task17-explanation-editor[style*="crosshair"] .span-main-word,
+.task17-explanation-editor[style*="crosshair"] .span-participle,
+.task17-explanation-editor[style*="crosshair"] .span-gerund {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.task17-explanation-editor[style*="crosshair"] .span-main-word:hover {
+  background: rgba(106, 140, 184, 0.1);
+  border-radius: 2px;
+}
+
+.task17-explanation-editor[style*="crosshair"] .span-participle:hover,
+.task17-explanation-editor[style*="crosshair"] .span-gerund:hover {
+  background: var(--brand-hover);
+  border-radius: 2px;
+}
+
+/* Адаптивность для формы задания №17 */
+@media (max-width: 768px) {
+  .form-group > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* Панель инструментов для учеников */
+.task17-student-toolbar,
+.task17-student-toolbar-left {
+  transition: all 0.3s ease;
+}
+
+.task17-student-toolbar .btn-sm,
+.task17-student-toolbar-left .btn-sm {
+  padding: 8px 12px;
+  font-size: 13px;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .task17-student-toolbar {
+    bottom: 10px !important;
+    right: 10px !important;
+    width: 200px !important;
+    padding: 12px !important;
+  }
+  
+  .task17-student-toolbar-left {
+    left: 10px !important;
+    width: 180px !important;
+    padding: 12px !important;
+    top: auto !important;
+    bottom: 100px !important;
+    transform: none !important;
+  }
+  
+  .task17-wrapper > .task-card {
+    max-width: 100%;
+  }
+  
+  .task17-control-panel {
+    position: fixed !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    top: auto !important;
+    width: 200px !important;
+    padding: 12px !important;
+    transform: none !important;
+    max-height: auto !important;
+  }
+}
+
+/* Обертка для задания №17 с панелью управления */
+.task17-wrapper {
+  position: relative;
+}
+
+.task17-wrapper > .task-card {
+  max-width: 800px;
+  width: 100%;
+}
+
+/* Панель управления заданием №17 */
+.task17-control-panel {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 240px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  transition: all 0.3s ease;
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.task17-control-panel label {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.task17-control-panel label:hover {
+  opacity: 0.9;
+}
+
+/* Кнопки панели инструментов для задания №17 - стиль сайта */
+.task17-toolbar-btn {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-backdrop) !important;
+  -webkit-backdrop-filter: var(--glass-backdrop) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--shadow-glass) !important;
+  color: var(--text-primary) !important;
+  transition: all 0.3s ease !important;
+}
+
+.task17-toolbar-btn:hover {
+  border-color: var(--neon-cyan) !important;
+  box-shadow: var(--glow-cyan), var(--shadow-glass) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-1px);
+}
+
+.task17-toolbar-btn-participle {
+  border-color: rgba(138, 170, 212, 0.3) !important;
+}
+
+.task17-toolbar-btn-participle:hover {
+  border-color: var(--neon-purple) !important;
+  box-shadow: 0 0 20px rgba(138, 170, 212, 0.5), var(--shadow-glass) !important;
+}
+
+.task17-toolbar-btn-gerund {
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.task17-toolbar-btn-gerund:hover {
+  border-color: var(--neon-blue) !important;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), var(--shadow-glass) !important;
+}
+
+/* Убеждаемся что все input поля в форме задания №17 используют единый стиль */
+#task17-form input[type="text"],
+#task17-form textarea {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-backdrop) !important;
+  -webkit-backdrop-filter: var(--glass-backdrop) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-glass) !important;
+  color: var(--text-primary) !important;
+  padding: 12px 16px !important;
+  font: 400 16px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  transition: all 0.3s ease !important;
+}
+
+#task17-form input[type="text"]:focus,
+#task17-form textarea:focus {
+  outline: none !important;
+  border-color: var(--neon-cyan) !important;
+  box-shadow: var(--glow-cyan), var(--shadow-glass) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+#task17-form input[type="text"]::placeholder,
+#task17-form textarea::placeholder {
+  color: var(--text-disabled) !important;
+}
+
+/* Поле для нового источника */
+#task17-source-new {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-backdrop) !important;
+  -webkit-backdrop-filter: var(--glass-backdrop) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-glass) !important;
+  color: var(--text-primary) !important;
+  padding: 12px 16px !important;
+  font: 400 16px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  transition: all 0.3s ease !important;
+}
+
+#task17-source-new:focus {
+  outline: none !important;
+  border-color: var(--neon-cyan) !important;
+  box-shadow: var(--glow-cyan), var(--shadow-glass) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+#task17-source-new::placeholder {
+  color: var(--text-disabled) !important;
+}

@@ -6,56 +6,62 @@
   <link rel="icon" type="image/svg+xml" href="/images/logo.svg">
   <link rel="stylesheet" href="/styles.css">
   <script>
-    // Устанавливаем тему синхронно перед загрузкой страницы для избежания мерцания
     (function() {
       const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
+      if (localStorage.getItem('sidebar-collapsed') === 'true') {
+        document.documentElement.classList.add('sidebar-collapsed');
+      }
     })();
   </script>
 </head>
 <body>
-  <%- include('../partials/header') %>
+  <%- include('../partials/sidebar') %>
 
-  <main class="container">
-    <% if (typeof breadcrumbs !== 'undefined' && breadcrumbs) { %>
-      <%- include('../partials/breadcrumbs', { breadcrumbs: breadcrumbs }) %>
-    <% } %>
-    <%- body %>
-  </main>
+  <div class="page-wrapper">
+    <%- include('../partials/header') %>
 
-  <%- include('../partials/footer') %>
-  
+    <main class="container">
+      <% if (typeof breadcrumbs !== 'undefined' && breadcrumbs) { %>
+        <%- include('../partials/breadcrumbs', { breadcrumbs: breadcrumbs }) %>
+      <% } %>
+      <%- body %>
+    </main>
+
+    <%- include('../partials/footer') %>
+  </div>
+
   <script>
-    // Проверка авторизации при загрузке страницы
     async function checkAuth() {
       try {
         const response = await fetch('/api/auth/me');
         const result = await response.json();
-        
         if (result.success) {
           showUserAuth(result.user);
         } else {
           showGuestAuth();
         }
       } catch (error) {
-        console.error('Ошибка проверки авторизации:', error);
         showGuestAuth();
       }
     }
-    
+
     function showUserAuth(user) {
       document.getElementById('guest-auth').style.display = 'none';
       document.getElementById('user-auth').style.display = 'flex';
-      
-      // Заполняем информацию о пользователе
+      const startBtn = document.getElementById('hero-start-btn');
+      if (startBtn) startBtn.href = '/profile';
+
       const name = user.first_name || user.username || 'Пользователь';
       const contact = user.phone || user.username || '';
-      
+      const initial = name.charAt(0).toUpperCase();
+
       document.getElementById('user-name').textContent = name;
       document.getElementById('user-contact').textContent = contact;
+
+      // Header avatar
       const avatarSpan = document.getElementById('user-avatar');
       const avatarImg = document.getElementById('user-avatar-img');
-      const initial = name.charAt(0).toUpperCase();
       if (user.avatar && (user.avatar.startsWith('data:image/') || user.avatar.startsWith('/images/'))) {
         avatarImg.src = user.avatar;
         avatarImg.style.display = 'block';
@@ -66,18 +72,36 @@
         avatarSpan.style.display = 'flex';
         avatarSpan.textContent = user.avatar?.startsWith('emoji:') ? user.avatar.slice(6) : initial;
       }
+
+      // Sidebar user card
+      const sidebarUser = document.getElementById('sidebar-user');
+      const sidebarAvatarImg = document.getElementById('sidebar-avatar-img');
+      const sidebarAvatarInitial = document.getElementById('sidebar-avatar-initial');
+      const sidebarUserName = document.getElementById('sidebar-user-name');
+      if (sidebarUser) {
+        sidebarUser.style.display = 'flex';
+        sidebarUserName.textContent = name.split(' ')[0];
+        if (user.avatar && (user.avatar.startsWith('data:image/') || user.avatar.startsWith('/images/'))) {
+          sidebarAvatarImg.src = user.avatar;
+          sidebarAvatarImg.style.display = 'block';
+          sidebarAvatarInitial.style.display = 'none';
+        } else {
+          sidebarAvatarImg.style.display = 'none';
+          sidebarAvatarInitial.style.display = 'flex';
+          sidebarAvatarInitial.textContent = user.avatar?.startsWith('emoji:') ? user.avatar.slice(6) : initial;
+        }
+      }
     }
-    
+
     function showGuestAuth() {
       document.getElementById('guest-auth').style.display = 'flex';
       document.getElementById('user-auth').style.display = 'none';
     }
-    
+
     async function logout() {
       try {
         const response = await fetch('/api/auth/logout', { method: 'POST' });
         const result = await response.json();
-        
         if (result.success) {
           showGuestAuth();
           window.location.href = '/';
@@ -85,31 +109,27 @@
           alert('Ошибка выхода: ' + result.error);
         }
       } catch (error) {
-        console.error('Ошибка выхода:', error);
         alert('Ошибка выхода');
       }
     }
-    
-    // Переключение меню пользователя
+
     document.addEventListener('DOMContentLoaded', () => {
       checkAuth();
-      
+
       const authSection = document.getElementById('auth-section');
       const userMenu = document.getElementById('user-menu');
-      
-            authSection.addEventListener('click', (e) => {
-              const chevron = authSection.querySelector('.site-auth__chevron');
-              
-              if (userMenu.style.display === 'none') {
-                userMenu.style.display = 'block';
-                chevron.classList.add('rotated');
-              } else {
-                userMenu.style.display = 'none';
-                chevron.classList.remove('rotated');
-              }
-            });
-      
-      // Закрытие меню при клике вне его
+
+      authSection.addEventListener('click', (e) => {
+        const chevron = authSection.querySelector('.site-auth__chevron');
+        if (userMenu.style.display === 'none') {
+          userMenu.style.display = 'block';
+          chevron.classList.add('rotated');
+        } else {
+          userMenu.style.display = 'none';
+          chevron.classList.remove('rotated');
+        }
+      });
+
       document.addEventListener('click', (e) => {
         if (!authSection.contains(e.target)) {
           userMenu.style.display = 'none';

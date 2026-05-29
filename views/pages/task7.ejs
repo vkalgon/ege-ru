@@ -7,6 +7,10 @@
     </p>
   </div>
 
+  <div style="margin-bottom:20px;">
+    <a href="/task7/theory" class="btn btn-secondary">Теория</a>
+  </div>
+
   <div id="task7-list" class="task-cards-grid">
     <div class="loading-stub">Загрузка заданий…</div>
   </div>
@@ -45,8 +49,7 @@
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function highlightCaps(phrase) {
-  // Выделяем слова в ВЕРХНЕМ регистре
-  return esc(phrase).replace(/\b([А-ЯЁA-Z]{2,})\b/g, '<span class="hl">$1</span>');
+  return esc(phrase).replace(/[А-ЯЁA-Z]{2,}/g, '<span class="hl">$&</span>');
 }
 
 (async () => {

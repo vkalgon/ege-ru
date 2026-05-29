@@ -72,6 +72,15 @@
                 <a href="/admin/passages" class="btn" style="text-align:center;">
                   Задания №1–3 — Тексты-пассажи
                 </a>
+                <a href="/admin/task6" class="btn btn-secondary" style="text-align:center;">
+                  Задание №6 — Лексические нормы
+                </a>
+                <a href="/admin/task7" class="btn btn-secondary" style="text-align:center;">
+                  Задание №7 — Морфологические нормы
+                </a>
+                <a href="/admin/task8" class="btn btn-secondary" style="text-align:center;">
+                  Задание №8 — Синтаксические нормы (соответствие)
+                </a>
                 <a href="/admin/task9" class="btn btn-secondary" style="text-align:center;">
                   Задание №9 — Гласные в корне
                 </a>
@@ -438,8 +447,11 @@
             // Интерактивные задания — переходим на отдельную страницу
             if (typeId === 1 || typeId === 2 || typeId === 3) { location.href = '/admin/passages'; return; }
             if (typeId === 17) { location.href = '/admin/task17'; return; }
+            if (typeId === 6)  { location.href = '/admin/task6';  return; }
+            if (typeId === 7)  { location.href = '/admin/task7';  return; }
             if (typeId === 4)  { location.href = '/admin/task4';  return; }
             if (typeId === 5)  { location.href = '/admin/task5';  return; }
+            if (typeId === 8)  { location.href = '/admin/task8';  return; }
             if (typeId === 9)  { location.href = '/admin/task9';  return; }
             if (typeId === 10) { location.href = '/admin/task10'; return; }
             if (typeId === 11) { location.href = '/admin/task11'; return; }
@@ -2531,13 +2543,13 @@
 
     // Палитра цветов для главных слов (глобальная константа)
     const COLOR_PALETTE = [
-      { bg: 'rgba(59, 130, 246, 0.3)', border: 'rgba(59, 130, 246, 0.8)', text: 'rgba(59, 130, 246, 1)' }, // Синий
+      { bg: 'rgba(244, 63, 94, 0.3)', border: 'rgba(244, 63, 94, 0.8)', text: 'rgba(244, 63, 94, 1)' }, // Коралловый
       { bg: 'rgba(34, 197, 94, 0.3)', border: 'rgba(34, 197, 94, 0.8)', text: 'rgba(34, 197, 94, 1)' }, // Зеленый
       { bg: 'rgba(236, 72, 153, 0.3)', border: 'rgba(236, 72, 153, 0.8)', text: 'rgba(236, 72, 153, 1)' }, // Розовый
       { bg: 'rgba(251, 191, 36, 0.3)', border: 'rgba(251, 191, 36, 0.8)', text: 'rgba(251, 191, 36, 1)' }, // Желтый
       { bg: 'rgba(168, 85, 247, 0.3)', border: 'rgba(168, 85, 247, 0.8)', text: 'rgba(168, 85, 247, 1)' }, // Фиолетовый
       { bg: 'rgba(239, 68, 68, 0.3)', border: 'rgba(239, 68, 68, 0.8)', text: 'rgba(239, 68, 68, 1)' }, // Красный
-      { bg: 'rgba(14, 165, 233, 0.3)', border: 'rgba(14, 165, 233, 0.8)', text: 'rgba(14, 165, 233, 1)' }, // Голубой
+      { bg: 'rgba(132, 204, 22, 0.3)', border: 'rgba(132, 204, 22, 0.8)', text: 'rgba(132, 204, 22, 1)' }, // Лаймовый
       { bg: 'rgba(245, 158, 11, 0.3)', border: 'rgba(245, 158, 11, 0.8)', text: 'rgba(245, 158, 11, 1)' }, // Оранжевый
     ];
 
@@ -2819,12 +2831,8 @@
         
         const color = COLOR_PALETTE[freeIndex % COLOR_PALETTE.length];
         span.setAttribute('data-color-id', freeIndex);
-        span.style.backgroundColor = color.bg;
-        // Используем обычный border для обводки главного слова
-        span.style.border = `2px solid ${color.border}`;
-        span.style.borderStyle = 'solid';
-        span.style.borderWidth = '2px';
-        span.style.borderColor = color.border;
+        span.style.setProperty('--mw-color', color.text);
+        span.style.color = color.text;
       }
       
       try {
@@ -2865,11 +2873,8 @@
           if (colorId !== null && colorId !== '') {
             const colorIndex = parseInt(colorId);
             const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
-            span.style.backgroundColor = color.bg;
-            span.style.border = `2px solid ${color.border}`;
-            span.style.borderStyle = 'solid';
-            span.style.borderWidth = '2px';
-            span.style.borderColor = color.border;
+            span.style.setProperty('--mw-color', color.text);
+            span.style.color = color.text;
           }
         });
       }
@@ -2916,30 +2921,56 @@
 
     // Инициализация цветового кодирования для главных слов (как на сайте)
     const colorPalette = [
-      { bg: 'rgba(59, 130, 246, 0.3)', border: 'rgba(59, 130, 246, 0.8)', text: 'rgba(59, 130, 246, 1)' }, // Синий
+      { bg: 'rgba(244, 63, 94, 0.3)', border: 'rgba(244, 63, 94, 0.8)', text: 'rgba(244, 63, 94, 1)' }, // Коралловый
       { bg: 'rgba(34, 197, 94, 0.3)', border: 'rgba(34, 197, 94, 0.8)', text: 'rgba(34, 197, 94, 1)' }, // Зеленый
       { bg: 'rgba(236, 72, 153, 0.3)', border: 'rgba(236, 72, 153, 0.8)', text: 'rgba(236, 72, 153, 1)' }, // Розовый
       { bg: 'rgba(251, 191, 36, 0.3)', border: 'rgba(251, 191, 36, 0.8)', text: 'rgba(251, 191, 36, 1)' }, // Желтый
       { bg: 'rgba(168, 85, 247, 0.3)', border: 'rgba(168, 85, 247, 0.8)', text: 'rgba(168, 85, 247, 1)' }, // Фиолетовый
       { bg: 'rgba(239, 68, 68, 0.3)', border: 'rgba(239, 68, 68, 0.8)', text: 'rgba(239, 68, 68, 1)' }, // Красный
-      { bg: 'rgba(14, 165, 233, 0.3)', border: 'rgba(14, 165, 233, 0.8)', text: 'rgba(14, 165, 233, 1)' }, // Голубой
+      { bg: 'rgba(132, 204, 22, 0.3)', border: 'rgba(132, 204, 22, 0.8)', text: 'rgba(132, 204, 22, 1)' }, // Лаймовый
       { bg: 'rgba(245, 158, 11, 0.3)', border: 'rgba(245, 158, 11, 0.8)', text: 'rgba(245, 158, 11, 1)' }, // Оранжевый
     ];
 
+    function colorToSvgEncoded(rgba) {
+      const m = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (!m) return '%23A4BEE2';
+      const r = (+m[1]).toString(16).padStart(2, '0');
+      const g = (+m[2]).toString(16).padStart(2, '0');
+      const b = (+m[3]).toString(16).padStart(2, '0');
+      return `%23${r}${g}${b}`;
+    }
+
     // Применяем цвет к элементу
     function applyColor(element, color) {
-      element.style.backgroundColor = color.bg;
+      element.style.backgroundColor = '';
+      element.style.border = '';
+      element.style.borderWidth = '';
+      element.style.borderStyle = '';
+      element.style.borderColor = '';
+      element.style.outline = '';
+      element.style.outlineOffset = '';
       if (element.classList.contains('span-main-word')) {
-        // Используем обычный border для обводки главного слова
-        element.style.border = `2px solid ${color.border}`;
-        element.style.borderStyle = 'solid';
-        element.style.borderWidth = '2px';
-        element.style.borderColor = color.border;
+        element.style.setProperty('--mw-color', color.text);
+        element.style.color = color.text;
+        element.querySelectorAll('.span-participle, .span-subject, .span-predicate').forEach(child => {
+          if (child.classList.contains('span-participle')) child.style.setProperty('--span-participle-color', color.text);
+          else if (child.classList.contains('span-subject')) child.style.setProperty('--span-subject-color', color.text);
+          else if (child.classList.contains('span-predicate')) child.style.setProperty('--span-predicate-color', color.text);
+        });
+        element.querySelectorAll('.span-gerund').forEach(child => {
+          const hex = colorToSvgEncoded(color.text);
+          child.style.backgroundImage = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='${hex}' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='${hex}'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='${hex}' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`;
+        });
       } else {
-        // Для оборотов - только фон, текст остается белым
-        element.style.color = 'var(--text-primary)';
-        element.style.borderWidth = '0';
-        element.style.borderStyle = 'none';
+        element.style.color = '';
+        if (element.classList.contains('span-gerund')) {
+          const hex = colorToSvgEncoded(color.text);
+          element.style.backgroundImage = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='4' viewBox='0 0 36 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='8' y2='2' stroke='${hex}' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='2' r='1.5' fill='${hex}'/%3E%3Cline x1='22' y1='2' x2='36' y2='2' stroke='${hex}' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`;
+        } else {
+          if (element.classList.contains('span-participle')) element.style.setProperty('--span-participle-color', color.text);
+          else if (element.classList.contains('span-subject')) element.style.setProperty('--span-subject-color', color.text);
+          else if (element.classList.contains('span-predicate')) element.style.setProperty('--span-predicate-color', color.text);
+        }
       }
     }
 
@@ -2985,7 +3016,7 @@
       // Включаем режим связывания
       selectedMainWord = mainWord;
       isLinkingMode = true;
-      mainWord.style.outline = '3px solid rgba(236, 72, 153, 0.8)';
+      mainWord.style.outline = '1px solid rgba(236, 72, 153, 0.8)';
       mainWord.style.outlineOffset = '2px';
       
       // Настраиваем подсветку оборотов при наведении
@@ -3083,15 +3114,15 @@
         
         const enterHandler = function() {
           if (isLinkingMode && this.getAttribute('data-linked-to') !== colorId) {
-            this.style.backgroundColor = color.bg;
-            this.style.opacity = '0.8';
+            this.style.outline = `2px dashed ${color.border}`;
+            this.style.outlineOffset = '2px';
           }
         };
-        
+
         const leaveHandler = function() {
           if (this.getAttribute('data-linked-to') !== colorId) {
-            this.style.backgroundColor = '';
-            this.style.opacity = '';
+            this.style.outline = '';
+            this.style.outlineOffset = '';
           }
         };
         
@@ -3114,13 +3145,14 @@
         }
         turn.style.cursor = '';
         turn.style.opacity = '';
-        
+
         // НЕ удаляем цвет у уже связанных оборотов (которые имеют data-linked-to)
         // Удаляем только временную подсветку при наведении
         const linkedTo = turn.getAttribute('data-linked-to');
         if (!linkedTo || linkedTo === '') {
           // Если оборот не связан, убираем временную подсветку
-          turn.style.backgroundColor = '';
+          turn.style.outline = '';
+          turn.style.outlineOffset = '';
         } else {
           // Если оборот связан, восстанавливаем его цвет из главного слова
           const colorId = linkedTo;
@@ -3137,6 +3169,17 @@
 
     // Загружаем цвета из HTML при загрузке
     function loadColorsFromHTML() {
+      // Сбрасываем старые инлайн-фоны/рамки у всех спанов
+      editor.querySelectorAll('.span-participle, .span-gerund, .span-subject, .span-predicate, .span-main-word').forEach(el => {
+        el.style.backgroundColor = '';
+        el.style.border = '';
+        el.style.borderWidth = '';
+        el.style.borderStyle = '';
+        el.style.borderColor = '';
+        el.style.outline = '';
+        el.style.outlineOffset = '';
+      });
+
       // Обрабатываем главные слова с data-color-id
       const mainWords = editor.querySelectorAll('.span-main-word[data-color-id]');
       mainWords.forEach(mainWord => {

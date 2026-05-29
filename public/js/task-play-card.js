@@ -71,11 +71,11 @@
     h += '<div class="task-meta"><span class="task-meta__number">Решение</span></div>';
     h += '<div class="task-content task9-solution-body" style="gap:14px;">';
     h +=
-      '<p class="task-prompt" style="margin:0;font-size:15px;line-height:1.5;"><strong>Отметить строки:</strong> ' +
+      '<p class="task-prompt" style="margin:0;font-size:15px;line-height:1.5;"><strong>Ответ:</strong> ' +
       (data.correct_line_numbers && data.correct_line_numbers.length
-        ? data.correct_line_numbers.join(', ')
+        ? data.correct_line_numbers.join('')
         : '—') +
-      '. В отмеченных строках во всех словах в корне одна и та же буква.</p>';
+      '</p>';
     for (const row of data.rows) {
       h += '<div class="task9-solution-row">';
       h +=
@@ -100,11 +100,11 @@
     h += '<div class="task-meta"><span class="task-meta__number">Решение</span></div>';
     h += '<div class="task-content task9-solution-body" style="gap:14px;">';
     h +=
-      '<p class="task-prompt" style="margin:0;font-size:15px;line-height:1.5;"><strong>Отметить строки:</strong> ' +
+      '<p class="task-prompt" style="margin:0;font-size:15px;line-height:1.5;"><strong>Ответ:</strong> ' +
       (data.correct_line_numbers && data.correct_line_numbers.length
-        ? data.correct_line_numbers.join(', ')
+        ? data.correct_line_numbers.join('')
         : '—') +
-      '.</p>';
+      '</p>';
     for (const row of data.rows) {
       h += '<div class="task9-solution-row">';
       h +=
@@ -164,7 +164,7 @@
       correctField: 'correct_vowel',
       instructionHtml:
         'Вставьте пропущенную букву в суффиксе каждого слова и отметьте строки,\n' +
-        'в которых во всех трёх словах пишется <strong>одна и та же буква</strong>.',
+        'в которых в обоих словах пишется <strong>одна и та же буква</strong>.',
       showSolutionButton: true,
     },
     task12: {
@@ -208,11 +208,11 @@
 
     const instruction = preset.instructionHtml.replace(/\n/g, ' ');
 
-    const solutionBtnHtml = preset.showSolutionButton
+    const solutionBtnHtml = (preset.showSolutionButton && !o.hideSolutionBtn)
       ? `<button type="button" class="btn btn-secondary task9-back-btn" id="${preset.key}-solution-btn-${taskId}">Решение</button>`
       : '';
 
-    const solutionWrapHtml = preset.showSolutionButton
+    const solutionWrapHtml = (preset.showSolutionButton && !o.hideSolutionBtn)
       ? `<div class="task9-solution-wrap" id="${preset.key}-solution-wrap-${taskId}" style="display:none;margin-top:16px;"></div>`
       : '';
 
@@ -221,6 +221,7 @@
         <div class="task-meta">
           <span class="task-meta__number">№ ${preset.num}</span>
           <span class="task-meta__source">Задание #${taskId}</span>
+          <span class="task-status-pill" id="${preset.key}-status-${taskId}">Не решено</span>
         </div>
         <div class="task-content">
           <p class="task-prompt task9-instruction" style="margin:0;">${instruction}</p>
@@ -234,7 +235,7 @@
               type="text"
               id="${preset.key}-answer-${taskId}"
               class="task-input"
-              placeholder="Номера строк — впишите вручную или отметьте квадраты слева"
+              placeholder="Введите ответ"
               inputmode="numeric"
               autocomplete="off"
             />
@@ -327,6 +328,8 @@
     function submitCheck() {
       if (state.selectedRowIndices.size === 0) {
         showValidationWarning('Отметьте номера строк, прежде чем проверять');
+        const resultDiv = root.querySelector('#' + preset.key + '-result-' + taskId);
+        if (resultDiv) resultDiv.style.display = 'none';
         if (answerEl) {
           answerEl.classList.add('input-shake');
           answerEl.addEventListener('animationend', () => answerEl.classList.remove('input-shake'), { once: true });
@@ -361,7 +364,7 @@
       if (result.error) {
         if (resultDiv) {
           resultDiv.style.display = 'block';
-          resultDiv.innerHTML = '<p style="color:#D69295;margin:0;">' + escHtml(result.error) + '</p>';
+          resultDiv.innerHTML = '<p style="color:#e05c65;margin:0;">' + escHtml(result.error) + '</p>';
         }
         return;
       }
@@ -395,59 +398,38 @@
         });
       });
 
-      const pct = Math.round((result.letters_correct / result.letters_total) * 100);
       const allOk = result.rows_correct && result.letters_correct === result.letters_total;
+      if (answerEl) answerEl.classList.add(allOk ? 'input-correct' : 'input-incorrect');
+
+      const statusPill = root.querySelector('#' + preset.key + '-status-' + taskId);
+      if (statusPill) {
+        statusPill.textContent = allOk ? 'Верно' : 'Неверно';
+        statusPill.className = 'task-status-pill ' + (allOk ? 'task-status-pill--correct' : 'task-status-pill--incorrect');
+      }
+
       if (!resultDiv) return;
       resultDiv.style.display = 'block';
 
-      const correctAnswer = result.rows
-        .filter((r) => r.is_correct)
-        .map((r) => r.row_index)
-        .sort((a, b) => a - b)
-        .join('') || '—';
-      const userAnswer = result.rows
-        .filter((r) => r.user_selected)
-        .map((r) => r.row_index)
-        .sort((a, b) => a - b)
-        .join('') || '—';
-      const rowsOk = result.rows_correct;
-
-      const backToListLink = standalone
-        ? `<a href="${preset.listPath}" class="btn btn-secondary" style="margin-top:16px;">← Другое задание</a>`
+      const backToListLink = (standalone && !o.hideBackLink)
+        ? `<a href="${preset.listPath}" class="btn btn-secondary" style="margin-top:8px;">← Другое задание</a>`
         : '';
 
-      resultDiv.innerHTML = `
-        <div class="task-card task17-card">
-          <div class="task-meta">
-            <span class="task-meta__number">${allOk ? '✓ Верно' : 'Результат'}</span>
-          </div>
-          <div class="task-content">
-            <div class="task-prompt" style="display:flex;flex-direction:column;gap:10px;">
-              <div class="play-answer-row">
-                <span class="play-answer-label">Правильный ответ:</span>
-                <span class="play-answer-value play-answer-correct">${escHtml(correctAnswer)}</span>
-              </div>
-              <div class="play-answer-row">
-                <span class="play-answer-label">Ваш ответ:</span>
-                <span class="play-answer-value ${rowsOk ? 'play-answer-ok' : 'play-answer-wrong'}">${escHtml(userAnswer)}</span>
-              </div>
-              <div style="color:var(--text-secondary);font-size:13px;padding-top:4px;border-top:1px solid var(--border);">
-                Буквы: ${result.letters_correct} / ${result.letters_total} (${pct}%)
-              </div>
-              ${backToListLink}
-            </div>
-          </div>
-        </div>
-      `;
-      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      let bodyHtml;
+      if (allOk) {
+        resultDiv.style.display = 'none';
+        if (o.onChecked) o.onChecked(result, resultDiv, checkBtn);
+        return;
+      }
+
+      resultDiv.style.display = 'none';
 
       // Callback for practice session mode
-      if (o.onChecked) o.onChecked(result, resultDiv);
+      if (o.onChecked) o.onChecked(result, resultDiv, checkBtn);
     }
 
     if (checkBtn) checkBtn.addEventListener('click', submitCheck);
 
-    if (preset.showSolutionButton) {
+    if (preset.showSolutionButton && !o.hideSolutionBtn) {
       const solBtn = root.querySelector('#' + preset.key + '-solution-btn-' + taskId);
       const solWrap = root.querySelector('#' + preset.key + '-solution-wrap-' + taskId);
       if (solBtn && solWrap) {

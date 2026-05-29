@@ -97,7 +97,7 @@
         if (body && body.error) {
           if (resultDiv) {
             resultDiv.innerHTML =
-              '<span style="color:#D69295;">' + AT.escHtml(body.error) + '</span>';
+              '<span style="color:#e05c65;">' + AT.escHtml(body.error) + '</span>';
           }
           return;
         }
@@ -110,7 +110,7 @@
         if (data.error) {
           if (resultDiv) {
             resultDiv.innerHTML =
-              '<span style="color:#D69295;">' + AT.escHtml(data.error) + '</span>';
+              '<span style="color:#e05c65;">' + AT.escHtml(data.error) + '</span>';
           }
           return;
         }
@@ -119,7 +119,7 @@
       } catch (err) {
         if (resultDiv) {
           resultDiv.innerHTML =
-            '<span style="color:#D69295;">Ошибка: ' + AT.escHtml(err.message) + '</span>';
+            '<span style="color:#e05c65;">Ошибка: ' + AT.escHtml(err.message) + '</span>';
         }
       } finally {
         btn.disabled = false;

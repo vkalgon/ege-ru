@@ -6,7 +6,7 @@ const router = Router();
 // ── helpers ─────────────────────────────────────────────────────────────────
 
 function buildPhrase(beforeText, form, afterText) {
-  const parts = [beforeText.trim(), form.trim(), afterText.trim()].filter(Boolean);
+  const parts = [beforeText.trim(), form.trim().toUpperCase(), afterText.trim()].filter(Boolean);
   return parts.join(' ');
 }
 
@@ -191,10 +191,14 @@ router.post('/generate', (req, res) => {
   }
 
   // Только слова с хотя бы одним контекстом
-  const validWords = allWords.filter(w => (contextsByWord[w.id] || []).length > 0);
+  const validWords    = allWords.filter(w => (contextsByWord[w.id] || []).length > 0);
+  // Для ошибочной позиции нужна непустая error_form
+  const errorCandidates = validWords.filter(w => w.error_form && w.error_form.trim());
 
   if (validWords.length < 5)
     return res.status(400).json({ error: 'Нужно минимум 5 слов с контекстами в банке' });
+  if (errorCandidates.length < 1)
+    return res.status(400).json({ error: 'Нужно хотя бы одно слово с заполненной ошибочной формой' });
 
   function pickRandomContext(wordId) {
     const pool = contextsByWord[wordId] || [];
@@ -215,9 +219,8 @@ router.post('/generate', (req, res) => {
 
   const generate = db.transaction(() => {
     for (let i = 0; i < count; i++) {
-      const shuffled = shuffle(validWords);
-      const errorWord   = shuffled[0];
-      const correctWords = shuffled.slice(1, 5);
+      const errorWord    = shuffle(errorCandidates)[0];
+      const correctWords = shuffle(validWords.filter(w => w.id !== errorWord.id)).slice(0, 4);
 
       const five = shuffle([
         { word: errorWord, isError: true },
@@ -239,6 +242,74 @@ router.post('/generate', (req, res) => {
 
   generate();
   res.json({ ids: createdIds, count: createdIds.length });
+});
+
+// POST /api/task7/import — создать задание из вставленного текста
+router.post('/import', (req, res) => {
+  const { items } = req.body;
+  if (!Array.isArray(items) || items.length !== 5)
+    return res.status(400).json({ error: 'Нужно ровно 5 элементов' });
+  if (items.filter(it => it.is_error).length !== 1)
+    return res.status(400).json({ error: 'Должен быть ровно один элемент с ошибкой' });
+
+  const insertWord = db.prepare('INSERT INTO task7_words (correct_form, error_form) VALUES (?, ?)');
+  const insertCtx  = db.prepare('INSERT INTO task7_contexts (word_id, before_text, after_text) VALUES (?, ?, ?)');
+  const insertTask = db.prepare('INSERT INTO task7_tasks (is_generated) VALUES (0)');
+  const insertItem = db.prepare(
+    'INSERT INTO task7_items (task_id, item_index, word_id, is_error, display_phrase, correct_form) VALUES (?, ?, ?, ?, ?, ?)'
+  );
+
+  const run = db.transaction(() => {
+    const resolved = [];
+    for (const it of items) {
+      const before = (it.before_text || '').trim();
+      const after  = (it.after_text  || '').trim();
+      const form   = (it.form || '').trim().toUpperCase();
+      let { word_id, is_error } = it;
+
+      if (!word_id) {
+        let correct_form, error_form;
+        if (is_error) {
+          correct_form = (it.correct_form || '').trim().toUpperCase();
+          error_form   = form;
+          if (!correct_form) throw new Error('Нет правильной формы для «' + form + '»');
+        } else {
+          correct_form = form;
+          error_form   = (it.error_form || '').trim().toUpperCase();
+          // error_form может быть пустой — слово добавляется в банк без ошибочной формы
+        }
+        const { lastInsertRowid } = insertWord.run(correct_form, error_form);
+        word_id = Number(lastInsertRowid);
+        insertCtx.run(word_id, before, after);
+      } else {
+        const ctxExists = db.prepare(
+          'SELECT id FROM task7_contexts WHERE word_id=? AND before_text=? AND after_text=?'
+        ).get(word_id, before, after);
+        if (!ctxExists) insertCtx.run(word_id, before, after);
+      }
+
+      const w = db.prepare('SELECT * FROM task7_words WHERE id=?').get(word_id);
+      const disp = is_error ? w.error_form : w.correct_form;
+      resolved.push({
+        item_index:     it.item_index,
+        word_id,
+        is_error:       is_error ? 1 : 0,
+        display_phrase: buildPhrase(before, disp, after),
+        correct_form:   w.correct_form,
+      });
+    }
+
+    const { lastInsertRowid: taskId } = insertTask.run();
+    for (const r of resolved)
+      insertItem.run(taskId, r.item_index, r.word_id, r.is_error, r.display_phrase, r.correct_form);
+    return Number(taskId);
+  });
+
+  try {
+    res.json({ task_id: run() });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
 });
 
 export default router;

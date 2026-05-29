@@ -4,28 +4,6 @@
   <div class="task17-wrapper">
     <div class="task9-column task9-feed-inner">
 
-      <h3 class="task10-section-title">Сгенерировать задание</h3>
-      <div class="task10-generate-wrap" style="margin-bottom:32px;">
-        <div class="task10-generate-grid task9-generate-grid">
-          <div class="form-group" style="margin:0;">
-            <label>Правильных слов</label>
-            <div class="task10-check-grid task10-count-grid">
-              <label><input type="checkbox" class="task4-count-checkbox" value="2" checked> 2</label>
-              <label><input type="checkbox" class="task4-count-checkbox" value="3"> 3</label>
-              <label><input type="checkbox" class="task4-count-checkbox" value="4"> 4</label>
-            </div>
-          </div>
-          <div class="form-group" style="margin:0;">
-            <label>Количество заданий</label>
-            <input type="number" id="task4-tasks-count" min="1" max="20" value="1">
-          </div>
-        </div>
-        <div class="task10-generate-actions">
-          <button class="btn" id="btn-generate-task4" type="button">Сгенерировать</button>
-        </div>
-      </div>
-
-      <h3 class="task10-section-title">Все задания</h3>
       <div id="tasks-feed" class="task9-task-feed">
         <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
       </div>
@@ -50,7 +28,7 @@
 .t4-item.selected       { border-color: var(--brand);        background: var(--brand-muted); }
 .t4-item.result-correct { border-color: var(--brand);        background: var(--brand-muted); }
 .t4-item.result-missed  { border-color: #f59e0b;             background: rgba(245,158,11,0.06); }
-.t4-item.result-wrong   { border-color: #D69295;             background: rgba(214,146,149,0.08); }
+.t4-item.result-wrong   { border-color: #e05c65;             background: rgba(224,92,101,0.08); }
 .t4-item.result-neutral { border-color: var(--glass-border); opacity: 0.65; }
 
 .t4-num {
@@ -134,7 +112,7 @@
   background: rgba(255,255,255,0.06);
 }
 .t4-tut-highlight {
-  outline: 2px solid var(--brand);
+  outline: 1px solid var(--brand);
   outline-offset: 2px;
   background: rgba(245,158,11,0.20);
 }
@@ -223,6 +201,7 @@ function renderPlayCard(taskId, task) {
       <div class="task-meta">
         <span class="task-meta__number">№ 4</span>
         <span class="task-meta__source">Задание #${taskId}</span>
+        <span class="task-status-pill" id="t4-status-${taskId}">Не решено</span>
       </div>
       <div class="task-content">
         <p class="task-prompt task9-instruction" style="margin:0 0 18px;">
@@ -580,9 +559,15 @@ function renderResult(taskId, data, resultEl) {
   const allOk      = data.all_correct;
   const correctStr = data.correct_indices.join(', ');
 
+  const pill = document.getElementById('t4-status-' + taskId);
+  if (pill) {
+    pill.textContent = allOk ? 'Верно' : 'Неверно';
+    pill.className = 'task-status-pill ' + (allOk ? 'task-status-pill--correct' : 'task-status-pill--incorrect');
+  }
+
   let html = `<div class="task-card task17-card" style="padding:16px 20px;">
     <div class="task-meta" style="margin-bottom:14px;">
-      <span class="task-meta__number" style="color:${allOk ? 'var(--brand)' : '#D69295'};">
+      <span class="task-meta__number" style="color:${allOk ? 'var(--brand)' : '#e05c65'};">
         ${allOk ? '✓ Верно' : '✗ Есть ошибки'}
       </span>
       <span class="task-meta__source">Правильный ответ: <strong>${correctStr}</strong></span>
@@ -590,7 +575,7 @@ function renderResult(taskId, data, resultEl) {
     <div class="t4-result-block">`;
 
   data.items.forEach(item => {
-    const color = item.item_ok ? 'var(--brand)' : '#D69295';
+    const color = item.item_ok ? 'var(--brand)' : '#e05c65';
     const icon  = item.item_ok ? '✓' : '✗';
     const ci    = item.correct_stress_index;
     const correctDisplay =
@@ -640,7 +625,7 @@ async function loadFeed() {
     if (!res.ok) throw new Error();
     tasks = await res.json();
   } catch {
-    feed.innerHTML = '<p style="color:#D69295;margin:0;">Не удалось загрузить задания.</p>';
+    feed.innerHTML = '<p style="color:#e05c65;margin:0;">Не удалось загрузить задания.</p>';
     return;
   }
   if (!Array.isArray(tasks) || !tasks.length) {
@@ -687,56 +672,6 @@ window.t4ShowTutorialList = function () {
     startTutorialForTask(ref.id, ref.task);
   }
 };
-
-document.getElementById('btn-generate-task4').addEventListener('click', async () => {
-  const btn = document.getElementById('btn-generate-task4');
-  btn.disabled = true;
-  btn.textContent = 'Генерируем...';
-  try {
-    const correctCounts = Array.from(document.querySelectorAll('.task4-count-checkbox:checked'))
-      .map(el => el.value);
-    if (!correctCounts.length) { alert('Выберите количество правильных слов'); return; }
-    const body = {
-      correct_counts: correctCounts,
-      tasks_count: +document.getElementById('task4-tasks-count').value || 1,
-    };
-    const res = await fetch('/api/task4/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (data.error) { alert(data.error); return; }
-
-    const ids = Array.isArray(data.ids) ? data.ids : [data.id];
-    const feed = document.getElementById('tasks-feed');
-
-    for (const id of ids) {
-      if (document.getElementById('task4-feed-' + id)) continue;
-      const wrapper = document.createElement('div');
-      wrapper.className = 'task9-feed-item';
-      wrapper.id = 'task4-feed-' + id;
-      feed.prepend(wrapper);
-      await loadAndInsertTask(id, wrapper);
-    }
-
-    const firstId = ids[0];
-    const firstEl = document.getElementById('task4-feed-' + firstId);
-    if (firstEl) firstEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Сгенерировать';
-  }
-});
-
-document.querySelectorAll('.task4-count-checkbox').forEach(cb => {
-  cb.addEventListener('change', () => {
-    if (!cb.checked) return;
-    document.querySelectorAll('.task4-count-checkbox').forEach(other => {
-      if (other !== cb) other.checked = false;
-    });
-  });
-});
 
 loadFeed();
 </script>

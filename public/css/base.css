@@ -1,0 +1,94 @@
+/* ===== RESET & BASE STYLES ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: 400 var(--body)/var(--body-lh) "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ===== LAYOUT ===== */
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 80px;
+}
+
+/* ===== BREADCRUMBS ===== */
+.breadcrumbs {
+  margin-bottom: 24px;
+}
+
+.breadcrumbs__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.breadcrumbs__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumbs__separator {
+  color: var(--text-disabled);
+  font-size: 14px;
+  user-select: none;
+}
+
+.breadcrumbs__link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font: 500 14px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.3s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.breadcrumbs__link:hover {
+  color: var(--neon-cyan);
+  background: var(--brand-hover);
+}
+
+.breadcrumbs__current {
+  color: var(--text-primary);
+  font: 500 14px/20px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 4px 8px;
+}
+
+.assignment {
+  max-width: 737px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+/* ===== TYPOGRAPHY ===== */
+.text-heading {
+  font: var(--h2-fw) var(--h2)/var(--h2-lh) "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+}
+
+.text-meta {
+  color: var(--text-secondary);
+  font: 500 20px/28px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.text-body {
+  font: 400 16px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+}

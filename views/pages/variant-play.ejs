@@ -53,13 +53,6 @@
 /* ── Footer ─────────────────────────────────────────────── */
 .vplay-footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--glass-border); }
 
-/* ── Task 17 digit styles (needed inline) ───────────────── */
-.task17-digit { cursor: pointer; padding: 1px 4px; margin: 0 1px; border-radius: 4px; transition: all .2s; display: inline-block; position: relative; }
-.task17-digit:hover:not(.selected):not(.correct-selected):not(.extra-selected):not(.correct) { background-color: var(--brand-muted); }
-.task17-digit.selected       { background-color: rgba(164,190,226,.2); color: var(--brand); outline: 1.5px solid var(--brand-dim); outline-offset: -1px; }
-.task17-digit.correct        { background-color: transparent !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; }
-.task17-digit.correct-selected { background-color: rgba(164,226,208,0.12) !important; color: #A4E2D0 !important; outline: 1.5px solid #A4E2D0 !important; outline-offset: -1px; font-weight: bold; }
-.task17-digit.extra-selected { background-color: #D69295 !important; color: #0f1117 !important; font-weight: bold; }
 /* Task19 bracket handles */
 .bracket-handle { display:inline-block; font-weight:bold; font-size:1.15em; line-height:1; padding:0 2px; border-radius:3px; cursor:grab; user-select:none; transition:background .15s, transform .1s; }
 .bracket-handle:hover { transform:scale(1.2); }
@@ -74,27 +67,62 @@
 /* Task18 word cards */
 .task18-word-card { padding:10px 14px; border-radius:8px; border:1px solid var(--glass-border); font-size:.9rem; margin-bottom:8px; }
 .task18-word-card.ok  { border-color:rgba(164,226,208,.5); background:rgba(164,226,208,.07); }
-.task18-word-card.err { border-color:rgba(214,146,149,.5); background:rgba(214,146,149,.07); }
+.task18-word-card.err { border-color:rgba(224,92,101,.5); background:rgba(224,92,101,.07); }
 .task18-word-card__phrase { font-weight:700; font-size:1rem; }
 .task18-word-card__type   { font-size:.8rem; color:var(--text-secondary); margin-left:6px; }
 .task18-word-card__rule   { margin-top:4px; color:var(--text-secondary); font-size:.88rem; }
 /* Task5/7 styles */
 .t5-sentences-wrap,.t7-phrases-wrap { display:flex; flex-direction:column; gap:12px; }
 .t5-sentence-item,.t7-phrase-item { display:flex; gap:14px; align-items:flex-start; background:var(--bg-secondary); border:1px solid var(--glass-border); border-radius:8px; padding:14px 16px; font-size:15px; line-height:1.6; transition:border-color .25s,background .25s; }
-.t5-sentence-item.state-error,.t7-phrase-item.state-error { border-color:#D69295; }
+.t5-sentence-item.state-error,.t7-phrase-item.state-error { border-color:#e05c65; }
 .t5-sentence-item.state-ok,.t7-phrase-item.state-ok       { border-color:var(--brand); }
 .t5-sentence-num,.t7-phrase-num { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--glass-border); color:var(--text-secondary); font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; }
-.t5-sentence-item.state-error .t5-sentence-num,.t7-phrase-item.state-error .t7-phrase-num { background:rgba(214,146,149,.2); color:#D69295; }
+.t5-sentence-item.state-error .t5-sentence-num,.t7-phrase-item.state-error .t7-phrase-num { background:rgba(224,92,101,.2); color:#e05c65; }
 .t5-sentence-item.state-ok    .t5-sentence-num,.t7-phrase-item.state-ok    .t7-phrase-num { background:var(--brand-muted); color:var(--brand); }
 .t5-sentence-text,.t7-phrase-text { flex:1; }
 .t5-hl,.t7-hl { font-weight:700; font-variant:small-caps; letter-spacing:.04em; text-decoration:underline dotted; text-underline-offset:3px; }
+/* Task 8 styles */
+.t8-errors{display:flex;flex-direction:column;gap:6px;margin-bottom:24px;}
+.t8-error-row{display:flex;gap:10px;align-items:baseline;font-size:14px;line-height:1.6;color:var(--text-primary);}
+.t8-error-letter{min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:var(--brand-muted);color:var(--brand);border:1px solid var(--glass-border);border-radius:50%;font:700 12px/1 Inter,sans-serif;flex-shrink:0;margin-top:2px;}
+.t8-sentences{display:flex;flex-direction:column;gap:0;margin-bottom:24px;}
+.t8-sentences .t8-sentence:first-child{border-top:1px solid var(--glass-border);}
+.t8-sentence{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--glass-border);transition:opacity .2s;}
+.t8-sentence.used{opacity:.4;}
+.t8-pos{font:700 13px/1 Inter,sans-serif;flex-shrink:0;min-width:18px;transition:color .2s;color:var(--text-secondary);}
+.t8-pos.selected{color:var(--color-error);}
+.t8-pos.ok{color:var(--color-success);}
+.t8-pos.err{color:var(--color-error);}
+.t8-sentence-text{flex:1;font-size:14px;color:var(--text-primary);line-height:1.6;}
+.t8-answer-table{width:100%;border-collapse:collapse;margin-bottom:8px;table-layout:fixed;}
+.t8-answer-table th{padding:10px 6px;text-align:center;background:var(--brand-muted);color:var(--brand);font:700 15px/1 Inter,sans-serif;border:1px solid var(--glass-border);}
+.t8-answer-table td{padding:6px;border:1px solid var(--glass-border);background:var(--bg-secondary);}
+.t8-answer-table td.ok{background:rgba(164,226,208,.12);border-color:rgba(164,226,208,.4);}
+.t8-answer-table td.err{background:rgba(224,92,101,.1);border-color:rgba(224,92,101,.4);}
+.t8-ans-input{display:block;width:100%;box-sizing:border-box;text-align:center;padding:8px 4px;font:700 18px/1 Inter,sans-serif;background:transparent;border:none;outline:none;color:var(--text-primary);-moz-appearance:textfield;}
+.t8-ans-input::-webkit-inner-spin-button,.t8-ans-input::-webkit-outer-spin-button{-webkit-appearance:none;}
+.t8-ans-input:disabled{opacity:.7;cursor:default;}
+.t8-ans-correct{display:none;text-align:center;font:600 13px/1 Inter,sans-serif;color:var(--color-success);padding:4px 0 2px;}
+.t8-banner{padding:12px 16px;border-radius:10px;margin-top:12px;font:600 15px/1.4 Inter,sans-serif;text-align:center;}
+.t8-banner.perfect{background:rgba(164,226,208,.12);border:1px solid rgba(164,226,208,.35);color:var(--color-success);}
+.t8-banner.good{background:var(--brand-muted);border:1px solid var(--glass-border);color:var(--brand);}
+.t8-banner.fail{background:rgba(224,92,101,.08);border:1px solid rgba(224,92,101,.3);color:var(--color-error);}
+.t8-solution-panel{margin-bottom:16px;border:1px solid var(--glass-border);border-radius:10px;overflow:hidden;}
+.t8-sol-row{padding:14px 16px;border-bottom:1px solid var(--glass-border);display:flex;flex-direction:column;gap:8px;}
+.t8-sol-row:last-child{border-bottom:none;}
+.t8-sol-header{display:flex;align-items:center;gap:10px;}
+.t8-sol-slot{min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:var(--brand-muted);color:var(--brand);border:1px solid var(--glass-border);border-radius:50%;font:700 12px/1 Inter,sans-serif;flex-shrink:0;}
+.t8-sol-pos{font:700 18px/1 Inter,sans-serif;color:var(--brand);min-width:20px;}
+.t8-sol-title{font-size:13px;color:var(--text-secondary);}
+.t8-sol-orig{font-size:14px;line-height:1.5;color:var(--text-primary);padding:8px 12px;background:rgba(224,92,101,.06);border-radius:6px;border-left:3px solid var(--color-error);}
+.t8-sol-correct{font-size:14px;line-height:1.5;color:var(--text-primary);padding:8px 12px;background:rgba(164,226,208,.06);border-radius:6px;border-left:3px solid var(--color-success);}
 /* Task4 styles */
 .t4-items { display:flex; flex-direction:column; gap:10px; }
 .t4-item  { display:flex; align-items:center; gap:14px; padding:12px 18px; background:var(--bg-secondary); border:1px solid var(--glass-border); border-radius:8px; transition:border-color .2s,background .2s; }
 .t4-item.selected        { border-color:var(--brand); background:var(--brand-muted); }
 .t4-item.result-correct  { border-color:var(--brand); background:var(--brand-muted); }
 .t4-item.result-missed   { border-color:#f59e0b; background:rgba(245,158,11,.06); }
-.t4-item.result-wrong    { border-color:#D69295; background:rgba(214,146,149,.08); }
+.t4-item.result-wrong    { border-color:#e05c65; background:rgba(224,92,101,.08); }
 .t4-item.result-neutral  { border-color:var(--glass-border); opacity:.65; }
 .t4-num  { width:32px; height:32px; border-radius:6px; border:1px solid var(--glass-border); background:none; cursor:pointer; font-size:14px; font-weight:700; color:var(--text-secondary); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:border-color .2s,color .2s,background .2s; }
 .t4-num:hover:not(:disabled) { border-color:var(--brand); color:var(--brand); }
@@ -124,7 +152,7 @@ window._VL = {}; // VariantLoaders namespace
 
 const _esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function _errCard(msg) {
-  return `<div class="task-card task17-card"><div class="task-content"><p style="color:#D69295;margin:0;">${_esc(msg)}</p></div></div>`;
+  return `<div class="task-card task17-card"><div class="task-content"><p style="color:#e05c65;margin:0;">${_esc(msg)}</p></div></div>`;
 }
 
 /* ── Tasks 9/10/11/12 — shared task-play-card.js ─────────── */
@@ -188,7 +216,7 @@ window._VL.task4 = async (slot, taskId) => {
     const correctStr = data.correct_indices.join(', ');
     let itemsHtml = '';
     data.items.forEach(item => {
-      const color = item.item_ok ? 'var(--brand)' : '#D69295';
+      const color = item.item_ok ? 'var(--brand)' : '#e05c65';
       const icon  = item.item_ok ? '✓' : '✗';
       const ci = item.correct_stress_index;
       const correctDisplay = esc(item.word.slice(0,ci)) + `<strong>${item.word[ci].toUpperCase()}</strong>` + esc(item.word.slice(ci+1));
@@ -258,7 +286,7 @@ window._VL.task5 = async (slot, taskId) => {
       let stateClass='', extraHtml='';
       if (resultItems) {
         const ri = resultItems.find(r => r.item_index===it.item_index);
-        if (ri && ri.is_error) { stateClass='state-error'; extraHtml=`<div style="margin-top:8px;font-size:13px;color:#D69295;">«${esc(ri.highlighted_word)}» → <strong style="color:var(--brand)">${esc(ri.correct_word)}</strong></div>`; }
+        if (ri && ri.is_error) { stateClass='state-error'; extraHtml=`<div style="margin-top:8px;font-size:13px;color:#e05c65;">«${esc(ri.highlighted_word)}» → <strong style="color:var(--brand)">${esc(ri.correct_word)}</strong></div>`; }
         else stateClass='state-ok';
       }
       return `<div class="t5-sentence-item ${stateClass}"><div class="t5-sentence-num">${it.item_index}</div><div class="t5-sentence-text">${rendered}${extraHtml}</div></div>`;
@@ -305,7 +333,7 @@ window._VL.task7 = async (slot, taskId) => {
       let stateClass='', extraHtml='';
       if (resultItems) {
         const ri = resultItems.find(r => r.item_index===it.item_index);
-        if (ri && ri.is_error) { stateClass='state-error'; extraHtml=`<div style="margin-top:8px;font-size:13px;color:#D69295;">Ошибка → <strong style="color:var(--brand)">${esc(ri.correct_form)}</strong></div>`; }
+        if (ri && ri.is_error) { stateClass='state-error'; extraHtml=`<div style="margin-top:8px;font-size:13px;color:#e05c65;">Ошибка → <strong style="color:var(--brand)">${esc(ri.correct_form)}</strong></div>`; }
         else stateClass='state-ok';
       }
       const hl = esc(it.display_phrase).replace(/\b([А-ЯЁA-Z]{2,})\b/g, '<span class="t7-hl">$1</span>');
@@ -342,6 +370,189 @@ window._VL.task7 = async (slot, taskId) => {
   } catch(e) { slot.innerHTML = _errCard(e.message); }
 };
 
+/* ── Task 8 — Синтаксические нормы ──────────────────────── */
+window._VL.task8 = async (slot, taskId) => {
+  const uid = 't8v-' + taskId;
+  const esc = _esc;
+  const t8vSt = {};
+
+  try {
+    const res = await fetch(`/api/task8/tasks/${taskId}/play`);
+    if (!res.ok) { slot.innerHTML = _errCard('Задание не найдено'); return; }
+    const task = await res.json();
+
+    const errorsHTML = task.errors.map(e =>
+      `<div class="t8-error-row">
+        <span class="t8-error-letter">${esc(e.slot)}</span>
+        <span>${esc(e.error_title)}</span>
+      </div>`
+    ).join('');
+
+    const sentencesHTML = task.sentences.map(s =>
+      `<div class="t8-sentence" id="t8vs-${taskId}-${s.position}">
+        <span class="t8-pos" id="t8vp-${taskId}-${s.position}">${s.position}</span>
+        <span class="t8-sentence-text">${esc(s.text)}</span>
+      </div>`
+    ).join('');
+
+    const thCells = task.errors.map(e => `<th>${esc(e.slot)}</th>`).join('');
+    const tdCells = task.errors.map(e =>
+      `<td id="t8vtd-${taskId}-${e.slot}">
+        <input class="t8-ans-input" type="number" min="1" max="9"
+               id="t8vi-${taskId}-${e.slot}" placeholder="—"
+               data-tid="${taskId}" data-slot="${esc(e.slot)}">
+        <span class="t8-ans-correct" id="t8vc-${taskId}-${e.slot}"></span>
+      </td>`
+    ).join('');
+
+    const bodyHtml =
+      `<p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin:0 0 16px;">Установите соответствие между грамматическими ошибками и предложениями, в которых они допущены: к каждой позиции первого столбца подберите соответствующую позицию из второго столбца.</p>
+      <div style="font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:10px;">Грамматические ошибки</div>
+      <div class="t8-errors">${errorsHTML}</div>
+      <div style="font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:10px;">Предложения</div>
+      <div class="t8-sentences">${sentencesHTML}</div>
+      <table class="t8-answer-table"><thead><tr>${thCells}</tr></thead><tbody><tr>${tdCells}</tr></tbody></table>
+      <div class="t8-banner" id="t8vban-${taskId}" style="display:none;"></div>
+      <div class="t8-solution-panel" id="t8vsol-${taskId}" style="display:none;"></div>`;
+
+    const controlsHtml = `
+      <button type="button" class="task-send" id="t8vcheck-${taskId}">Проверить</button>
+      <button type="button" class="task-solution" id="t8vsolbtn-${taskId}">
+        <span>Решение</span>
+        <img src="/images/eye off.svg" alt="" width="16" height="16" id="t8vsoleye-${taskId}">
+      </button>`;
+    slot.innerHTML = TaskCardShell.buildCardShell({ taskNum: 8, taskId, bodyHtml, controlsHtml, uid });
+
+    // Input highlighting
+    task.errors.forEach(e => {
+      const inp = document.getElementById(`t8vi-${taskId}-${e.slot}`);
+      if (!inp) return;
+      inp.addEventListener('input', function() {
+        const sl = this.dataset.slot, tid = this.dataset.tid;
+        if (!t8vSt[tid]) t8vSt[tid] = {};
+        const prev = t8vSt[tid][sl];
+        const pos  = parseInt(this.value);
+        if (prev) {
+          const still = Object.entries(t8vSt[tid]).some(([s, p]) => s !== sl && p === prev);
+          if (!still) {
+            document.getElementById(`t8vp-${tid}-${prev}`)?.classList.remove('selected');
+            document.getElementById(`t8vs-${tid}-${prev}`)?.classList.remove('used');
+          }
+        }
+        if (pos >= 1 && pos <= 9) {
+          t8vSt[tid][sl] = pos;
+          document.getElementById(`t8vp-${tid}-${pos}`)?.classList.add('selected');
+          document.getElementById(`t8vs-${tid}-${pos}`)?.classList.add('used');
+        } else { delete t8vSt[tid][sl]; }
+      });
+    });
+
+    // Check
+    document.getElementById(`t8vcheck-${taskId}`).addEventListener('click', async () => {
+      const answers = {};
+      for (const e of task.errors) {
+        const v = parseInt(document.getElementById(`t8vi-${taskId}-${e.slot}`)?.value);
+        if (!v || v < 1 || v > 9) { alert(`Введите номер предложения для слота ${e.slot}`); return; }
+        answers[e.slot] = v;
+      }
+      if (new Set(Object.values(answers)).size < Object.values(answers).length) {
+        alert('Каждому слоту должно соответствовать разное предложение'); return;
+      }
+      const result = await fetch(`/api/task8/tasks/${taskId}/check`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers })
+      }).then(r => r.json());
+
+      // Reset highlights
+      for (let p = 1; p <= 9; p++) {
+        document.getElementById(`t8vp-${taskId}-${p}`)?.classList.remove('selected');
+        document.getElementById(`t8vs-${taskId}-${p}`)?.classList.remove('used');
+      }
+      // Color cells & positions
+      for (const [sl, d] of Object.entries(result.details)) {
+        const td   = document.getElementById(`t8vtd-${taskId}-${sl}`);
+        const pe   = document.getElementById(`t8vp-${taskId}-${d.correct_position}`);
+        const corr = document.getElementById(`t8vc-${taskId}-${sl}`);
+        if (d.ok) {
+          td?.classList.add('ok'); pe?.classList.add('ok');
+        } else {
+          td?.classList.add('err'); pe?.classList.add('err');
+          if (corr) { corr.textContent = d.correct_position; corr.style.display = 'block'; }
+        }
+      }
+      // Banner
+      const { correct, total } = result;
+      const ban = document.getElementById(`t8vban-${taskId}`);
+      ban.style.display = '';
+      ban.className = `t8-banner ${correct===total ? 'perfect' : correct>=3 ? 'good' : 'fail'}`;
+      ban.textContent = correct===total ? `Верно! Все ${total} из ${total}.` : `${correct} из ${total} верно.`;
+      TaskCardShell.lockCard(uid);
+    });
+
+    const T8V_SUBTYPES = {
+      participial:'Причастный оборот', gerund:'Деепричастный оборот',
+      appositive:'Несогласованное приложение', subject_predicate:'Подлежащее и сказуемое',
+      case_form:'Предложно-падежная форма', indirect_speech:'Косвенная речь',
+      aspect_tense:'Видо-временная соотнесённость', complex_sentence:'Сложное предложение',
+      homogeneous:'Однородные члены', numeral:'Числительное',
+    };
+
+    // Diff helper
+    function t8vDiff(a, b) {
+      const ta = a.split(' '), tb = b.split(' ');
+      const m = ta.length, n = tb.length;
+      const dp = Array.from({length: m+1}, () => new Array(n+1).fill(0));
+      for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+          dp[i][j] = ta[i-1] === tb[j-1] ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
+      let i = m, j = n;
+      const ar = [], br = [];
+      while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && ta[i-1] === tb[j-1]) { ar.unshift([ta[i-1],0]); br.unshift([tb[j-1],0]); i--; j--; }
+        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { br.unshift([tb[j-1],1]); j--; }
+        else { ar.unshift([ta[i-1],1]); i--; }
+      }
+      const render = parts => parts.map(([w,ch]) => ch ? `<strong>${esc(w)}</strong>` : esc(w)).join(' ');
+      return { origHtml: render(ar), corrHtml: render(br) };
+    }
+
+    // Solution toggle
+    let t8vSolCache = null;
+    document.getElementById(`t8vsolbtn-${taskId}`).addEventListener('click', async () => {
+      const panel  = document.getElementById(`t8vsol-${taskId}`);
+      const eye    = document.getElementById(`t8vsoleye-${taskId}`);
+      const isOpen = panel.style.display !== 'none';
+      if (isOpen) { panel.style.display = 'none'; eye.src = '/images/eye off.svg'; return; }
+
+      if (!t8vSolCache) {
+        panel.innerHTML = '<p style="color:var(--text-secondary);padding:16px;margin:0;">Загрузка…</p>';
+        panel.style.display = '';
+        t8vSolCache = await fetch(`/api/task8/tasks/${taskId}/solution`).then(r => r.json());
+      }
+
+      panel.innerHTML = t8vSolCache.slots.map(s => {
+        const diff   = s.error_text && s.correct_text ? t8vDiff(s.error_text, s.correct_text) : null;
+        const subtag = s.subtype && T8V_SUBTYPES[s.subtype]
+          ? `<span style="font-size:11px;padding:2px 7px;border-radius:4px;background:var(--brand-muted);color:var(--brand);border:1px solid var(--glass-border);white-space:nowrap;">${esc(T8V_SUBTYPES[s.subtype])}</span>`
+          : '';
+        return `
+        <div class="t8-sol-row">
+          <div class="t8-sol-header">
+            <span class="t8-sol-slot">${esc(s.slot)}</span>
+            <span class="t8-sol-pos">${s.correct_position}</span>
+            <span class="t8-sol-title">${esc(s.error_title)}</span>
+            ${subtag}
+          </div>
+          ${s.error_text   ? `<div class="t8-sol-orig">${diff ? diff.origHtml : esc(s.error_text)}</div>` : ''}
+          ${s.correct_text ? `<div class="t8-sol-correct">${diff ? diff.corrHtml : esc(s.correct_text)}</div>` : ''}
+        </div>`;
+      }).join('');
+      panel.style.display = '';
+      eye.src = '/images/eye on.svg';
+    });
+  } catch(e) { slot.innerHTML = _errCard(e.message); }
+};
+
 // Placeholders: React loaders set by Babel script below
 window._VL.task17 = null;
 window._VL.task18 = null;
@@ -352,10 +563,14 @@ window._VL.task19 = null;
 <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="/js/task17-app.js"></script>
 
 <script type="text/babel">
 (function() {
   const { useState, useEffect, useRef } = React;
+
+  // Task17Item is provided by task17-app.js (loaded above)
+  const Task17Item = window.Task17Item;
 
   function parseDigits(text) {
     const parts = []; const re = /\((\d+)\)/g; let last=0, m;
@@ -366,92 +581,6 @@ window._VL.task19 = null;
     }
     if (last<text.length) parts.push({text:text.substring(last),digit:null});
     return parts;
-  }
-
-  /* ── Task 17 ──────────────────────────────────────────── */
-  function Task17Item({ taskId }) {
-    const [taskData,setTaskData]=useState(null);
-    const [selDigits,setSelDigits]=useState(new Set());
-    const [answerInput,setAnswerInput]=useState('');
-    const [checkResult,setCheckResult]=useState(null);
-    const [correctDigits,setCorrectDigits]=useState(new Set());
-    const [extraDigits,setExtraDigits]=useState(new Set());
-    const [loading,setLoading]=useState(false);
-    const [error,setError]=useState(null);
-    const [showSolution,setShowSolution]=useState(false);
-    const inputRef=useRef(null);
-
-    useEffect(()=>{
-      (async()=>{
-        try { setLoading(true); setCorrectDigits(new Set()); setExtraDigits(new Set()); setCheckResult(null);
-          const r=await fetch(`/api/task17/${taskId}/play?mode=digits`);
-          if(!r.ok) throw new Error('Не удалось загрузить задание');
-          setTaskData(await r.json()); setError(null);
-        } catch(e){setError(e.message);} finally{setLoading(false);}
-      })();
-    },[taskId]);
-
-    useEffect(()=>{setAnswerInput(Array.from(selDigits).sort((a,b)=>a-b).join(''));},[selDigits]);
-
-    const handleDigit=(d)=>{ if(checkResult) return; setSelDigits(prev=>{const s=new Set(prev);s.has(d)?s.delete(d):s.add(d);return s;}); };
-    const handleInput=(e)=>{ const v=e.target.value; setAnswerInput(v); setSelDigits(new Set(v.split('').map(c=>parseInt(c,10)).filter(n=>!isNaN(n)&&n>0))); };
-    const handleCheck=async()=>{
-      if(!taskData) return;
-      const digits=Array.from(selDigits).sort((a,b)=>a-b);
-      if(!digits.length){alert('Выберите цифры или введите ответ');inputRef.current?.focus();return;}
-      try{
-        setLoading(true);
-        const r=await fetch(`/api/task17/${taskId}/check`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'digits',digits,spans:[]})});
-        if(!r.ok) throw new Error('Ошибка проверки');
-        const result=await r.json(); setCheckResult(result);
-        setCorrectDigits(new Set(result.correctAnswer||[]));
-        setExtraDigits(new Set((result.digits?.extra)||[]));
-      } catch(e){setError(e.message);} finally{setLoading(false);}
-    };
-
-    if(loading&&!taskData) return <div className="task-card task17-card task-play-card"><div className="task-content"><p>Загрузка…</p></div></div>;
-    if(error) return <div className="task-card task17-card task-play-card"><div className="task-content"><p style={{color:'red'}}>Ошибка: {error}</p></div></div>;
-    if(!taskData) return null;
-
-    const hasChecked=!!checkResult;
-
-    return (<div className="task-card task17-card task-play-card">
-      <div className="task-meta">
-        <span className="task-meta__number">№ {taskId}</span>
-        {taskData.source&&<span className="task-meta__source">{taskData.source}</span>}
-      </div>
-      <div className="task-content">
-        <div className="task-prompt">
-          <div className="task17-text-editable" style={{fontSize:'18px',lineHeight:'1.8',padding:'16px',border:'1px solid var(--glass-border)',borderRadius:'8px',background:'var(--bg-secondary)'}}>
-            <div style={{paddingBottom:'12px',marginBottom:'12px',borderBottom:'1px solid var(--glass-border)',fontSize:'16px',lineHeight:'1.6',fontWeight:'500'}}>
-              Укажите цифру(-ы), на месте которой(-ых) должна(-ы) стоять запятая(-ые).
-            </div>
-            {parseDigits(taskData.text).map((part,idx)=>{
-              if(part.digit!==null){
-                const isSel=selDigits.has(part.digit),isCorr=correctDigits.has(part.digit),isExtra=extraDigits.has(part.digit);
-                let cls='task17-digit';
-                if(hasChecked){if(isExtra&&isSel)cls+=' extra-selected';else if(isCorr&&isSel)cls+=' correct-selected';else if(isCorr)cls+=' correct';}
-                else if(isSel)cls+=' selected';
-                return <span key={`d17-${taskId}-${idx}`} className={cls} onClick={()=>handleDigit(part.digit)} style={{userSelect:'none',cursor:hasChecked?'default':'pointer'}}>{part.text}</span>;
-              }
-              return <span key={`t17-${taskId}-${idx}`}>{part.text}</span>;
-            })}
-          </div>
-        </div>
-        <div className="task-controls">
-          <input ref={inputRef} className="task-input" type="text" value={answerInput} onChange={handleInput} placeholder="Введите ответ" inputMode="numeric" disabled={hasChecked} onKeyPress={e=>{if(e.key==='Enter')handleCheck();}}/>
-          <button className="task-send" onClick={handleCheck} disabled={loading||hasChecked}><span>{loading?'Проверка…':'Отправить'}</span></button>
-          <button className="task-solution" onClick={()=>setShowSolution(s=>!s)}><span>Решение</span><img src={showSolution?'/images/eye on.svg':'/images/eye off.svg'} alt="Глаз" width="16" height="16"/></button>
-        </div>
-        {showSolution&&taskData.explanation&&(<div style={{marginTop:'24px'}}>
-          {taskData.explanation.answer_text&&<p style={{margin:'0 0 8px'}}><strong>Ответ:</strong> {taskData.explanation.answer_text}</p>}
-          {taskData.explanation.explanation_md&&<div dangerouslySetInnerHTML={{__html:taskData.explanation.explanation_md.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}} style={{fontSize:'16px',lineHeight:'1.7'}}/>}
-        </div>)}
-        {hasChecked&&(<div className="task-solution-block" style={{marginTop:'24px'}}>
-          {checkResult.digits?.isCorrect?(<div style={{display:'flex',alignItems:'center',gap:'12px',padding:'16px',background:'rgba(164,226,208,0.07)',border:'1px solid rgba(164,226,208,0.4)',borderRadius:'8px'}}><div style={{fontSize:'32px',color:'#A4E2D0'}}>✓</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>Верно!</div></div>):(<div><div style={{fontWeight:'bold',color:'#f6b462',marginBottom:'8px'}}>Неверно</div>{checkResult.correctAnswer&&<div style={{padding:'12px',background:'rgba(214,146,149,.1)',border:'1px solid rgba(214,146,149,.3)',borderRadius:'8px'}}><div style={{color:'var(--text-secondary)',fontSize:'14px'}}>Правильный ответ:</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>{checkResult.correctAnswer.join(', ')}</div></div>}</div>)}
-        </div>)}
-      </div>
-    </div>);
   }
 
   /* ── Task 18 ──────────────────────────────────────────── */
@@ -524,7 +653,7 @@ window._VL.task19 = null;
         </div>
         {showSolution&&taskData.explanation&&<div style={{marginTop:'24px'}} dangerouslySetInnerHTML={{__html:taskData.explanation.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}}/>}
         {hasChecked&&(<div className="task-solution-block" style={{marginTop:'24px'}}>
-          {checkResult.is_correct?(<div style={{display:'flex',alignItems:'center',gap:'12px',padding:'16px',background:'rgba(164,226,208,0.07)',border:'1px solid rgba(164,226,208,0.4)',borderRadius:'8px'}}><div style={{fontSize:'32px',color:'#A4E2D0'}}>✓</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>Всё верно!</div></div>):(<div><div style={{fontWeight:'bold',color:'#f6b462',marginBottom:'8px'}}>Неверно</div><div style={{padding:'12px',background:'rgba(214,146,149,.1)',border:'1px solid rgba(214,146,149,.3)',borderRadius:'8px'}}><div style={{color:'var(--text-secondary)',fontSize:'14px'}}>Правильный ответ:</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>{checkResult.comma_positions.join(', ')||'(нет запятых)'}</div></div></div>)}
+          {checkResult.is_correct?(<div style={{display:'flex',alignItems:'center',gap:'12px',padding:'16px',background:'rgba(164,226,208,0.07)',border:'1px solid rgba(164,226,208,0.4)',borderRadius:'8px'}}><div style={{fontSize:'32px',color:'#A4E2D0'}}>✓</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>Всё верно!</div></div>):(<div><div style={{fontWeight:'bold',color:'#f6b462',marginBottom:'8px'}}>Неверно</div><div style={{padding:'12px',background:'rgba(224,92,101,.1)',border:'1px solid rgba(224,92,101,.3)',borderRadius:'8px'}}><div style={{color:'var(--text-secondary)',fontSize:'14px'}}>Правильный ответ:</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>{checkResult.comma_positions.join(', ')||'(нет запятых)'}</div></div></div>)}
           {checkResult.word_results?.length>0&&(<div style={{marginTop:'12px'}}>{checkResult.word_results.map(wr=>(<div key={wr.word_id} className={`task18-word-card ${wr.word_correct?'ok':'err'}`}><span className="task18-word-card__phrase">«{wr.phrase}»</span><span className="task18-word-card__type">{INTRO_LABELS[wr.intro_type]||''}</span><div className="task18-word-card__rule">{wr.is_intro_in_task?(wr.rule_intro||'Вводное слово — выделяется запятыми.'):(wr.rule_not_intro||'Не вводное — запятыми не выделяется.')}</div></div>))}</div>)}
         </div>)}
       </div>
@@ -599,7 +728,7 @@ window._VL.task19 = null;
           <button className="task-send" onClick={handleCheck} disabled={loading||hasChecked}><span>{loading?'Проверка…':'Отправить'}</span></button>
         </div>
         {hasChecked&&(<div className="task-solution-block" style={{marginTop:'24px'}}>
-          {checkResult.is_correct?(<div style={{display:'flex',alignItems:'center',gap:'12px',padding:'16px',background:'rgba(164,226,208,0.07)',border:'1px solid rgba(164,226,208,0.4)',borderRadius:'8px'}}><div style={{fontSize:'32px',color:'#A4E2D0'}}>✓</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>Верно!</div></div>):(<div><div style={{fontWeight:'bold',color:'#f6b462',marginBottom:'8px'}}>Неверно</div><div style={{padding:'12px',background:'rgba(214,146,149,.1)',border:'1px solid rgba(214,146,149,.3)',borderRadius:'8px'}}><div style={{color:'var(--text-secondary)',fontSize:'14px'}}>Правильный ответ:</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>{checkResult.comma_positions.join(', ')||'(нет запятых)'}</div></div></div>)}
+          {checkResult.is_correct?(<div style={{display:'flex',alignItems:'center',gap:'12px',padding:'16px',background:'rgba(164,226,208,0.07)',border:'1px solid rgba(164,226,208,0.4)',borderRadius:'8px'}}><div style={{fontSize:'32px',color:'#A4E2D0'}}>✓</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>Верно!</div></div>):(<div><div style={{fontWeight:'bold',color:'#f6b462',marginBottom:'8px'}}>Неверно</div><div style={{padding:'12px',background:'rgba(224,92,101,.1)',border:'1px solid rgba(224,92,101,.3)',borderRadius:'8px'}}><div style={{color:'var(--text-secondary)',fontSize:'14px'}}>Правильный ответ:</div><div style={{fontSize:'18px',fontWeight:'bold',color:'#A4E2D0'}}>{checkResult.comma_positions.join(', ')||'(нет запятых)'}</div></div></div>)}
           {taskData.explanation_md&&<div style={{marginTop:'12px',padding:'12px',background:'var(--bg-secondary)',border:'1px solid var(--glass-border)',borderRadius:'8px'}} dangerouslySetInnerHTML={{__html:taskData.explanation_md.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}}/>}
         </div>)}
       </div>
@@ -607,7 +736,11 @@ window._VL.task19 = null;
   }
 
   // Expose React loaders
-  window._VL.task17 = (slot, taskId) => ReactDOM.createRoot(slot).render(<Task17Item taskId={taskId} />);
+  window._VL.task17 = (slot, taskId) => {
+    const T17 = window.Task17Item;
+    if (T17) ReactDOM.createRoot(slot).render(<T17 taskId={taskId} />);
+    else slot.innerHTML = _errCard('Компонент задания 17 не загружен');
+  };
   window._VL.task18 = (slot, taskId) => ReactDOM.createRoot(slot).render(<Task18Item taskId={taskId} />);
   window._VL.task19 = (slot, taskId) => ReactDOM.createRoot(slot).render(<Task19Item taskId={taskId} />);
   window._VL_REACT_READY = true;
@@ -628,8 +761,8 @@ window._VL.task19 = null;
 
   // ── Wait for React/Babel to initialise ──────────────────
   await new Promise(resolve => {
-    if (window._VL_REACT_READY) { resolve(); return; }
-    const iv = setInterval(() => { if (window._VL_REACT_READY) { clearInterval(iv); resolve(); } }, 30);
+    if (window._VL_REACT_READY && window.Task17Item) { resolve(); return; }
+    const iv = setInterval(() => { if (window._VL_REACT_READY && window.Task17Item) { clearInterval(iv); resolve(); } }, 30);
     setTimeout(() => { clearInterval(iv); resolve(); }, 4000);
   });
 
@@ -640,7 +773,7 @@ window._VL.task19 = null;
     if (data.error) throw new Error(data.error);
     tasks = data.tasks;
   } catch(e) {
-    listEl.innerHTML = `<p class="vplay-loading" style="color:#D69295">Ошибка: ${e.message}</p>`;
+    listEl.innerHTML = `<p class="vplay-loading" style="color:#e05c65">Ошибка: ${e.message}</p>`;
     return;
   }
 

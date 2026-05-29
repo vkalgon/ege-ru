@@ -1,33 +1,49 @@
+<!-- Модал предпросмотра аватара -->
+<div id="avatar-crop-modal" class="avatar-modal-overlay" style="display:none">
+  <div class="avatar-modal-box">
+    <h3 class="avatar-modal-title">Фото профиля</h3>
+    <div class="avatar-modal-preview">
+      <img id="avatar-crop-preview" src="" alt="Превью" />
+    </div>
+    <input type="range" id="avatar-zoom" min="1" max="3" step="0.05" value="1" class="avatar-zoom-slider">
+    <div class="avatar-modal-actions">
+      <button class="btn btn-ghost" id="avatar-cancel-btn">Отмена</button>
+      <button class="btn btn-primary" id="avatar-confirm-btn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <div class="profile-page">
   <div class="profile-header">
-    <div class="profile-avatar">
-      <img id="profile-avatar-img" alt="Аватар" style="display:none;width:48px;height:48px;border-radius:50%;object-fit:cover;" />
-      <span id="profile-avatar-fallback" style="width:48px;height:48px;border-radius:50%;background:var(--color-accent-soft);display:flex;align-items:center;justify-content:center;color:var(--color-accent);font-size:24px;font-weight:700;">?</span>
-    </div>
+    <label class="profile-avatar profile-avatar--upload" for="avatar-upload-input" title="Загрузить фото">
+      <img id="profile-avatar-img" alt="Аватар" style="display:none;width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+      <span id="profile-avatar-fallback">?</span>
+      <span class="profile-avatar__overlay">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </span>
+      <input type="file" id="avatar-upload-input" accept="image/png,image/jpeg,image/webp" style="display:none">
+    </label>
     <div class="profile-info">
-      <h1 id="profile-name">Загрузка...</h1>
+      <div class="profile-name-row">
+        <h1 id="profile-name">Загрузка...</h1>
+        <button class="btn-icon-edit" id="edit-name-btn" title="Изменить имя" style="display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+      </div>
+      <div id="profile-name-edit" style="display:none" class="profile-name-edit-row">
+        <input type="text" id="profile-name-input" class="form-input" maxlength="64" style="font-size:1.1rem;padding:6px 10px;max-width:220px">
+        <button class="btn btn-primary btn-sm" id="save-name-btn">Сохранить</button>
+        <button class="btn btn-ghost btn-sm" id="cancel-name-btn">Отмена</button>
+      </div>
       <div id="profile-role-badge" class="profile-role-badge"></div>
     </div>
     <button class="btn btn-ghost btn-sm" id="logout-btn" style="margin-left:auto">Выйти</button>
   </div>
 
-  <section class="profile-section">
-    <h2>Аватар профиля</h2>
-    <div class="join-teacher-form" style="align-items:flex-start;gap:10px;flex-wrap:wrap;">
-      <label class="btn btn-outline" for="avatar-upload-input">Загрузить изображение</label>
-      <input type="file" id="avatar-upload-input" accept="image/png,image/jpeg,image/webp" style="display:none">
-      <button class="btn btn-ghost" id="avatar-reset-btn" type="button">Сбросить</button>
-    </div>
-    <div id="avatar-presets" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="🎓">🎓</button>
-      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="📚">📚</button>
-      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="🧠">🧠</button>
-      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="✍️">✍️</button>
-      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="🚀">🚀</button>
-      <button type="button" class="btn btn-sm btn-outline avatar-preset-btn" data-emoji="✨">✨</button>
-    </div>
-    <div id="avatar-msg" class="join-msg" style="margin-top:8px;"></div>
-  </section>
+  <div id="avatar-msg" style="display:none"></div>
 
   <!-- ══════════════ УЧЕНИК ══════════════ -->
   <div id="student-section" style="display:none">
@@ -35,15 +51,19 @@
     <section class="profile-section">
       <h2>Практика</h2>
       <div class="practice-modes">
-        <a href="/tasks" class="practice-card">
-          <div class="practice-card-icon">📝</div>
+        <a href="/variant" class="practice-card">
+          <div class="practice-card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="28" height="28" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
+          </div>
           <div class="practice-card-body">
             <strong>Все задания</strong>
             <small>Выбери любой тип задания</small>
           </div>
         </a>
         <button class="practice-card" id="weak-practice-btn" disabled title="Решите ещё заданий, чтобы разблокировать">
-          <div class="practice-card-icon">🎯</div>
+          <div class="practice-card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="28" height="28" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
+          </div>
           <div class="practice-card-body">
             <strong>Тренировка слабых мест</strong>
             <small id="weak-practice-hint">Загрузка...</small>
@@ -55,14 +75,14 @@
     <!-- Прогресс -->
     <section class="profile-section">
       <h2>Задания для проработки</h2>
-      <p class="section-hint">Карточки отсортированы по количеству проблемных слов — начните с тех, где больше ошибок.</p>
+      <p class="section-hint" id="summary-hint" style="display:none">Карточки отсортированы по количеству проблемных слов — начните с тех, где больше ошибок.</p>
       <div id="summary-grid" class="task-review-grid">
         <div class="skeleton-loader">Загрузка статистики...</div>
       </div>
     </section>
 
     <!-- Домашние задания -->
-    <section class="profile-section">
+    <section class="profile-section" id="student-homework-section" style="display:none">
       <h2>Домашние задания</h2>
       <div id="homework-list"><div class="skeleton-loader">Загрузка...</div></div>
     </section>
@@ -75,12 +95,17 @@
 
     <!-- Код учителя -->
     <section class="profile-section" id="join-teacher-section">
-      <h2>Присоединиться к учителю</h2>
-      <p class="section-hint">Если у учителя есть код приглашения — введите его здесь.</p>
-      <div class="join-teacher-form">
-        <input type="text" id="join-teacher-code" placeholder="Код учителя (например: A3F2)" class="form-input" style="max-width:200px;text-transform:uppercase">
-        <button class="btn btn-outline" id="join-teacher-btn">Присоединиться</button>
-        <span id="join-teacher-msg" class="join-msg"></span>
+      <div class="hw-card join-teacher-card">
+        <div class="join-teacher-card-header">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <strong>Присоединиться к учителю</strong>
+        </div>
+        <p class="section-hint" style="margin:6px 0 12px">Если у учителя есть код приглашения — введите его здесь.</p>
+        <div class="join-teacher-form">
+          <input type="text" id="join-teacher-code" placeholder="Код (например: A3F2)" class="form-input" style="width:200px;text-transform:uppercase">
+          <button class="btn btn-outline" id="join-teacher-btn">Присоединиться</button>
+          <span id="join-teacher-msg" class="join-msg"></span>
+        </div>
       </div>
     </section>
 
@@ -550,13 +575,17 @@ let teacherStudents = [];
     ? currentUser.first_name + (currentUser.last_name ? ' ' + currentUser.last_name : '')
     : (currentUser.username || currentUser.login || 'Пользователь');
   document.getElementById('profile-name').textContent = name;
+  document.getElementById('edit-name-btn').style.display = '';
   renderProfileAvatar(currentUser);
   bindAvatarControls();
+  bindNameEditControls();
   initHomeworkDeadlineInputs();
 
   const isStudent = (currentUser.role || 'student') === 'student';
   const badge = document.getElementById('profile-role-badge');
-  badge.textContent = isStudent ? '🎓 Ученик' : '📚 Учитель';
+  const svgCap = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="14" height="14" style="vertical-align:-2px" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/></svg>';
+  const svgBook = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="14" height="14" style="vertical-align:-2px" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>';
+  badge.innerHTML = isStudent ? `${svgCap} Ученик` : `${svgBook} Учитель`;
   badge.className = 'profile-role-badge ' + (isStudent ? 'badge-student' : 'badge-teacher');
 
   if (isStudent) {
@@ -633,57 +662,124 @@ async function saveAvatarValue(avatarValue) {
   msg.className = 'join-msg join-msg-success';
 }
 
+function bindNameEditControls() {
+  const editBtn = document.getElementById('edit-name-btn');
+  const cancelBtn = document.getElementById('cancel-name-btn');
+  const saveBtn = document.getElementById('save-name-btn');
+  const nameEl = document.getElementById('profile-name');
+  const nameRow = document.getElementById('profile-name-edit');
+  const input = document.getElementById('profile-name-input');
+
+  editBtn.addEventListener('click', () => {
+    input.value = nameEl.textContent;
+    nameEl.style.display = 'none';
+    editBtn.style.display = 'none';
+    nameRow.style.display = 'flex';
+    input.focus();
+    input.select();
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    nameRow.style.display = 'none';
+    nameEl.style.display = '';
+    editBtn.style.display = '';
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    const newName = input.value.trim();
+    if (!newName) return;
+    saveBtn.disabled = true;
+    const r = await fetch('/api/auth/name', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName })
+    });
+    saveBtn.disabled = false;
+    if (r.ok) {
+      nameEl.textContent = newName;
+      nameRow.style.display = 'none';
+      nameEl.style.display = '';
+      editBtn.style.display = '';
+    }
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveBtn.click();
+    if (e.key === 'Escape') cancelBtn.click();
+  });
+}
+
 function bindAvatarControls() {
   if (window._avatarControlsBound) return;
   window._avatarControlsBound = true;
 
-  document.querySelectorAll('.avatar-preset-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      try {
-        await saveAvatarValue(`emoji:${btn.dataset.emoji || ''}`);
-      } catch (e) {
-        const msg = document.getElementById('avatar-msg');
-        msg.textContent = e.message || 'Ошибка';
-        msg.className = 'join-msg join-msg-error';
-      }
-    });
+  let _cropImage = null;
+
+  const modal      = document.getElementById('avatar-crop-modal');
+  const preview    = document.getElementById('avatar-crop-preview');
+  const zoomSlider = document.getElementById('avatar-zoom');
+  const confirmBtn = document.getElementById('avatar-confirm-btn');
+  const cancelBtn  = document.getElementById('avatar-cancel-btn');
+
+  function openCropModal(dataUrl) {
+    _cropImage = new Image();
+    _cropImage.src = dataUrl;
+    preview.style.transform = 'scale(1)';
+    zoomSlider.value = '1';
+    preview.src = dataUrl;
+    modal.style.display = 'flex';
+  }
+
+  zoomSlider.addEventListener('input', () => {
+    preview.style.transform = `scale(${zoomSlider.value})`;
   });
 
-  document.getElementById('avatar-reset-btn')?.addEventListener('click', async () => {
+  cancelBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    document.getElementById('avatar-upload-input').value = '';
+  });
+
+  confirmBtn.addEventListener('click', async () => {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Сохраняем...';
     try {
-      await saveAvatarValue(null);
-    } catch (e) {
-      const msg = document.getElementById('avatar-msg');
-      msg.textContent = e.message || 'Ошибка';
-      msg.className = 'join-msg join-msg-error';
+      const SIZE = 200;
+      const canvas = document.createElement('canvas');
+      canvas.width = SIZE; canvas.height = SIZE;
+      const ctx = canvas.getContext('2d');
+
+      // круговая маска
+      ctx.beginPath();
+      ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2, 0, Math.PI * 2);
+      ctx.clip();
+
+      const zoom = parseFloat(zoomSlider.value);
+      const img = _cropImage;
+      const side = Math.min(img.naturalWidth, img.naturalHeight);
+      const sx = (img.naturalWidth - side) / 2;
+      const sy = (img.naturalHeight - side) / 2;
+      const scaledSide = side / zoom;
+      const offset = (side - scaledSide) / 2;
+      ctx.drawImage(img, sx + offset, sy + offset, scaledSide, scaledSide, 0, 0, SIZE, SIZE);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      await saveAvatarValue(dataUrl);
+      modal.style.display = 'none';
+    } catch (err) {
+      alert(err.message || 'Ошибка сохранения');
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Сохранить';
+      document.getElementById('avatar-upload-input').value = '';
     }
   });
 
-  document.getElementById('avatar-upload-input')?.addEventListener('change', async (e) => {
+  document.getElementById('avatar-upload-input')?.addEventListener('change', (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 900000) {
-      const msg = document.getElementById('avatar-msg');
-      msg.textContent = 'Файл слишком большой (до 900 КБ)';
-      msg.className = 'join-msg join-msg-error';
-      e.target.value = '';
-      return;
-    }
-    try {
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ''));
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      await saveAvatarValue(dataUrl);
-    } catch (err) {
-      const msg = document.getElementById('avatar-msg');
-      msg.textContent = err.message || 'Ошибка загрузки аватара';
-      msg.className = 'join-msg join-msg-error';
-    } finally {
-      e.target.value = '';
-    }
+    const reader = new FileReader();
+    reader.onload = () => openCropModal(String(reader.result || ''));
+    reader.readAsDataURL(file);
   });
 }
 
@@ -703,6 +799,7 @@ function initHomeworkDeadlineInputs() {
 async function refreshStudentTeacherSection() {
   const joinSection = document.getElementById('join-teacher-section');
   const myTeacherSection = document.getElementById('my-teacher-section');
+  const homeworkSection = document.getElementById('student-homework-section');
   const teacherNameEl = document.getElementById('my-teacher-name');
   const teacherLoginEl = document.getElementById('my-teacher-login');
 
@@ -713,11 +810,13 @@ async function refreshStudentTeacherSection() {
   if (!teacher) {
     if (joinSection) joinSection.style.display = '';
     if (myTeacherSection) myTeacherSection.style.display = 'none';
+    if (homeworkSection) homeworkSection.style.display = 'none';
     return;
   }
 
   if (joinSection) joinSection.style.display = 'none';
   if (myTeacherSection) myTeacherSection.style.display = '';
+  if (homeworkSection) homeworkSection.style.display = '';
   if (teacherNameEl) teacherNameEl.textContent = teacher.name || teacher.login || 'Учитель';
   if (teacherLoginEl) teacherLoginEl.textContent = teacher.login ? `@${teacher.login}` : '';
 }
@@ -730,45 +829,201 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 
 /* ─── УЧЕНИК: данные ───────────────────────────────────────── */
 async function loadStudentData() {
-  const [sr, wr] = await Promise.all([
+  const [sr, wr, tr] = await Promise.all([
     fetch('/api/progress/summary'),
     fetch('/api/progress/weak-words'),
+    fetch('/api/progress/theory'),
   ]);
   const { summary } = await sr.json();
   const { weak_words } = await wr.json();
+  const { theory } = await tr.json();
   renderSummary(summary);
   updateWeakPracticeBtn(weak_words);
+  renderTheoryProgress(theory, summary);
 }
 
 function updateWeakPracticeBtn(weakWords) {
   const btn = document.getElementById('weak-practice-btn');
   const hint = document.getElementById('weak-practice-hint');
-  const hasWeak = (weakWords || []).some(g => g.words.length > 0);
+  const practiceSupportedTables = new Set([
+    'task9_words',
+    'task10_words',
+    'task11_words',
+    'task12_words',
+  ]);
+  const practiceCandidates = (weakWords || [])
+    .filter(g => practiceSupportedTables.has(g.word_table) && g.words.length > 0)
+    .sort((a, b) => b.words.length - a.words.length);
+  const hasWeak = practiceCandidates.length > 0;
+
   if (hasWeak) {
+    const topWeakGroup = practiceCandidates[0];
+    const taskType = topWeakGroup.word_table.replace('_words', '');
+    const taskLabel = (topWeakGroup.label || '').replace(/^Задание \d+ — /, '');
+
     btn.disabled = false;
     btn.title = '';
-    hint.textContent = 'Задания по вашим ошибкам';
-    btn.addEventListener('click', () => {
-      // Переходим к первому заданию со слабыми словами
-      const firstTable = weakWords.find(g => g.words.length > 0)?.word_table;
-      if (firstTable) {
-        const taskType = firstTable.replace('_words', '').replace('task', 'task');
-        window.location.href = `/${taskType}`;
-      }
-    });
+    hint.textContent = taskLabel
+      ? `Персональная тренировка: ${taskLabel.toLowerCase()}`
+      : 'Персональная тренировка по вашим ошибкам';
+    btn.onclick = () => {
+      window.location.href = `/practice?task=${taskType}`;
+    };
   } else {
     btn.disabled = true;
     btn.title = 'Решите ещё заданий, чтобы разблокировать';
-    hint.textContent = 'Решите ещё заданий, чтобы разблокировать';
+    hint.textContent = 'Решите ещё заданий 9–12, чтобы разблокировать';
+    btn.onclick = null;
   }
+}
+
+function renderTheoryProgress(theory, summary) {
+  const grid = document.getElementById('theory-progress-grid');
+  if (!grid) return;
+  if (!theory?.length) {
+    grid.innerHTML = '<p class="empty-state">Пока нет данных по теории. Начните с раздела «Теория».</p>';
+    return;
+  }
+
+  const summaryByTask = new Map(
+    (summary || []).map(s => [String(s.word_table || '').replace('_words', ''), s])
+  );
+
+  const prepared = theory.map(t => {
+    const stats = summaryByTask.get(t.task_key) || null;
+    const weakCount = Number(stats?.weak_count || 0);
+    const accuracy = Number(stats?.accuracy ?? 100);
+    const needsTheoryRepeat = t.viewed && weakCount > 0;
+    const priority = !t.viewed ? 0 : (needsTheoryRepeat ? 1 : 2);
+    return { ...t, weakCount, accuracy, needsTheoryRepeat, priority };
+  }).sort((a, b) => {
+    if (a.priority !== b.priority) return a.priority - b.priority;
+    if (a.priority === 0) return a.label.localeCompare(b.label, 'ru');
+    if (a.priority === 1) {
+      if (b.weakCount !== a.weakCount) return b.weakCount - a.weakCount;
+      return a.accuracy - b.accuracy;
+    }
+    return a.label.localeCompare(b.label, 'ru');
+  });
+
+  const renderCard = (t) => {
+    const viewedBadge = t.viewed
+      ? `<span class="theory-badge theory-badge--done">
+           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+           Изучено
+         </span>`
+      : `<span class="theory-badge theory-badge--lock">
+           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+           Не изучено
+         </span>`;
+
+    const practicedBadge = t.practiced
+      ? `<span class="theory-badge theory-badge--practiced">
+           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+           Практиковал
+         </span>`
+      : `<span class="theory-badge theory-badge--no-practice">Не практиковал</span>`;
+    const repeatBadge = t.needsTheoryRepeat
+      ? `<span class="theory-badge theory-badge--repeat">
+           Повторить: ${t.weakCount} ${pluralWords(t.weakCount)}
+         </span>`
+      : '';
+
+    const cta = t.viewed
+      ? `<a href="${t.practice_url}" class="btn btn-outline btn-sm">Практиковать</a>`
+      : `<a href="${t.theory_url}" class="btn btn-primary btn-sm">Изучить теорию</a>`;
+
+    const hasBlocks = t.blocks && t.blocks.length > 0;
+    const unlockedCount = hasBlocks ? t.blocks.filter(b => b.unlocked).length : 0;
+
+    const blocksHtml = hasBlocks ? `
+      <div class="theory-blocks-panel" style="display:none;">
+        <div class="theory-blocks-list">
+          ${t.blocks.map(b => `
+            <div class="theory-block-row">
+              ${b.unlocked
+                ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+                : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+              }
+              <span class="${b.unlocked ? '' : 'theory-block-row--locked'}">${b.label}</span>
+            </div>`).join('')}
+        </div>
+      </div>` : '';
+
+    const detailsBtn = hasBlocks ? `
+      <button class="btn btn-ghost btn-sm theory-details-btn" data-task="${t.task_key}">
+        Подробнее <span class="theory-details-count">${unlockedCount}/${t.blocks.length}</span>
+        <svg class="theory-details-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>` : '';
+
+    return `<div class="theory-progress-card${t.viewed ? '' : ' theory-progress-card--locked'}">
+      <div class="theory-progress-card__header">
+        ${t.viewed ? '' : `<svg class="theory-lock-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`}
+        <strong class="theory-progress-card__title">${t.label}</strong>
+      </div>
+      <div class="theory-progress-card__badges">${viewedBadge}${practicedBadge}${repeatBadge}</div>
+      <div class="theory-progress-card__actions">
+        ${cta}
+        ${detailsBtn}
+      </div>
+      ${blocksHtml}
+    </div>`;
+  };
+
+  const unseen = prepared.filter(t => !t.viewed);
+  const repeat = prepared.filter(t => t.needsTheoryRepeat);
+  const done = prepared.filter(t => t.viewed && !t.needsTheoryRepeat);
+
+  const statusListHtml = `<div class="theory-status-list">
+    ${prepared.map(t => {
+      const taskNum = String(t.task_key || '').replace('task', '');
+      const statusClass = !t.viewed ? 'theory-status-tag--new' : (t.needsTheoryRepeat ? 'theory-status-tag--repeat' : 'theory-status-tag--done');
+      const statusText = !t.viewed ? 'Не изучено' : (t.needsTheoryRepeat ? `Повторить (${t.weakCount})` : 'Изучено');
+      return `<div class="theory-status-item">
+        <span class="theory-status-name">Задание №${taskNum}</span>
+        <span class="theory-status-tag ${statusClass}">${statusText}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  const section = (title, items, emptyText) => `
+    <div class="theory-group">
+      <div class="theory-group-title">${title}</div>
+      ${items.length ? items.map(renderCard).join('') : `<p class="empty-state" style="margin:0">${emptyText}</p>`}
+    </div>
+  `;
+
+  grid.innerHTML = [
+    statusListHtml,
+    section('Не изучено', unseen, 'Все доступные теории уже изучены.'),
+    section('Повторить по теории (где больше ошибок)', repeat, 'Сейчас тем для повторения нет.'),
+    section('Изучено и закреплено', done, 'Пока нет закрепленных тем.')
+  ].join('');
+
+  grid.querySelectorAll('.theory-details-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.theory-progress-card');
+      const panel = card.querySelector('.theory-blocks-panel');
+      const arrow = btn.querySelector('.theory-details-arrow');
+      const open = panel.style.display !== 'none';
+      panel.style.display = open ? 'none' : 'block';
+      arrow.style.transform = open ? '' : 'rotate(180deg)';
+      btn.querySelector('.theory-details-count').style.display = open ? '' : 'none';
+    });
+  });
 }
 
 function renderSummary(summary) {
   const grid = document.getElementById('summary-grid');
   if (!summary?.length) {
-    grid.innerHTML = '<p class="empty-state">Вы ещё не выполняли заданий. Начните практику!</p>';
+    grid.innerHTML = `<div class="empty-state-goose-card">
+      <img src="/images/SVG/гусь грустный.svg" alt="Грустный гусь" class="empty-goose-img">
+      <p class="empty-goose-text">Пока заданий для проработки нет — больше практикуйся и изучай теорию!</p>
+      <a href="/theory" class="btn btn-primary btn-sm" style="margin-top:12px">Перейти к изучению теории</a>
+    </div>`;
     return;
   }
+  document.getElementById('summary-hint').style.display = '';
 
   const sorted = [...summary].sort((a, b) => {
     if (b.weak_count !== a.weak_count) return b.weak_count - a.weak_count;
@@ -1989,16 +2244,110 @@ async function getWeakWordsData() {
 async function openWordsModal(taskKey, taskLabel) {
   const overlay = document.getElementById('words-modal-overlay');
   const body = document.getElementById('words-modal-body');
-  document.getElementById('words-modal-title').textContent = taskLabel + ' — слова для повторения';
+  document.getElementById('words-modal-title').textContent = taskLabel + ' — статистика';
   body.innerHTML = '<div class="skeleton-loader">Загрузка...</div>';
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
+  if (taskKey === 'task9') {
+    const [statsRes, weakWords] = await Promise.all([
+      fetch('/api/progress/task9-stats'),
+      getWeakWordsData(),
+    ]);
+    const stats = statsRes.ok ? await statsRes.json() : { categories: [], roots: [] };
+    const group = weakWords.find(g => g.word_table === 'task9_words');
+    renderTask9StatsModal(body, stats, group?.words || []);
+    return;
+  }
+
   const wordTable = taskKey + '_words';
   const weakWords = await getWeakWordsData();
   const group = weakWords.find(g => g.word_table === wordTable);
-
+  document.getElementById('words-modal-title').textContent = taskLabel + ' — слова для повторения';
   renderWordsModalBody(body, group?.words || [], wordTable);
+}
+
+const CAT_LABELS = {
+  alternating:  'Чередующиеся',
+  verifiable:   'Проверяемые',
+  unverifiable: 'Непроверяемые',
+};
+
+function renderTask9StatsModal(body, stats, weakWords) {
+  const { categories, roots } = stats;
+
+  if (!categories.length) {
+    body.innerHTML = '<p class="empty-state">Вы ещё не решали задание 9. Начните практику!</p>';
+    return;
+  }
+
+  const sorted = [...categories].sort((a, b) => b.errors - a.errors);
+
+  const catHtml = sorted.map(c => {
+    const label = CAT_LABELS[c.category] || c.category;
+    const color = c.accuracy >= 70 ? 'var(--color-success)' : c.accuracy >= 50 ? 'var(--color-warning)' : 'var(--color-error)';
+    return `
+      <div class="t9s-cat-row">
+        <div class="t9s-cat-top">
+          <span class="t9s-cat-name">${label}</span>
+          <span class="t9s-cat-nums">
+            <span style="color:${color};font-weight:600">${c.accuracy}%</span>
+            <span class="t9s-dim">· ${c.errors} ${pluralErrors(c.errors)} из ${c.attempts}</span>
+          </span>
+        </div>
+        <div class="accuracy-bar">
+          <div class="accuracy-fill" style="width:${c.accuracy}%;background:${color}"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const rootsHtml = roots.length ? `
+    <div class="t9s-section-title">Проблемные корни (чередующиеся)</div>
+    <div class="t9s-roots-list">
+      ${roots.map(r => {
+        const color = r.accuracy >= 70 ? 'var(--color-success)' : r.accuracy >= 50 ? 'var(--color-warning)' : 'var(--color-error)';
+        return `
+          <div class="t9s-root-row">
+            <span class="t9s-root-name">${r.rule}</span>
+            <span class="t9s-root-right">
+              <span style="color:${color};font-weight:600">${r.accuracy}%</span>
+              <span class="t9s-dim">${r.errors} ${pluralErrors(r.errors)}</span>
+            </span>
+          </div>`;
+      }).join('')}
+    </div>` : '';
+
+  const wordsSection = weakWords.length ? `
+    <div class="t9s-words-toggle-row">
+      <button class="btn btn-sm btn-outline" id="t9s-toggle-words-btn" onclick="toggleTask9Words(this)">
+        Смотреть все слова с ошибками (${weakWords.length})
+      </button>
+    </div>
+    <div id="t9s-words-list" style="display:none"></div>` : '';
+
+  body.innerHTML = `
+    <div class="t9s-section-title">Точность по типам</div>
+    ${catHtml}
+    ${rootsHtml}
+    ${wordsSection}
+  `;
+
+  if (weakWords.length) {
+    body._weakWords = weakWords;
+  }
+}
+
+function toggleTask9Words(btn) {
+  const list = document.getElementById('t9s-words-list');
+  const body = document.getElementById('words-modal-body');
+  if (list.style.display === 'none') {
+    list.style.display = 'block';
+    renderWordsModalBody(list, body._weakWords || [], 'task9_words');
+    btn.textContent = 'Скрыть слова';
+  } else {
+    list.style.display = 'none';
+    btn.textContent = `Смотреть все слова с ошибками (${(body._weakWords || []).length})`;
+  }
 }
 
 function renderWordsModalBody(body, words, wordTable) {
@@ -2029,13 +2378,10 @@ function renderWordsModalBody(body, words, wordTable) {
 async function deleteWord(wordTable, wordId) {
   const r = await fetch(`/api/progress/words/${wordTable}/${wordId}`, { method: 'DELETE' });
   if (!r.ok) return;
-  _weakWordsCache = null; // сбросить кеш
+  _weakWordsCache = null;
   document.getElementById(`wm-word-${wordTable}-${wordId}`)?.remove();
-  const body = document.getElementById('words-modal-body');
-  if (!body.querySelector('.wm-word-item')) {
-    body.innerHTML = '<p class="empty-state">Слов для повторения нет — отличная работа!</p>';
-  }
-  loadStudentData(); // обновить карточки
+  _afterWordAction(wordTable);
+  loadStudentData();
 }
 
 async function masterWord(wordTable, wordId) {
@@ -2043,11 +2389,28 @@ async function masterWord(wordTable, wordId) {
   if (!r.ok) return;
   _weakWordsCache = null;
   document.getElementById(`wm-word-${wordTable}-${wordId}`)?.remove();
+  _afterWordAction(wordTable);
+  loadStudentData();
+}
+
+function _afterWordAction(wordTable) {
+  const list = document.getElementById('t9s-words-list');
+  if (list) {
+    // inside task9 stats modal
+    const remaining = list.querySelectorAll('.wm-word-item').length;
+    const toggleBtn = document.getElementById('t9s-toggle-words-btn');
+    if (remaining === 0) {
+      list.innerHTML = '<p class="empty-state" style="margin:0">Слов для повторения нет — отличная работа!</p>';
+      if (toggleBtn) toggleBtn.textContent = 'Слов с ошибками нет';
+    } else if (toggleBtn && list.style.display !== 'none') {
+      toggleBtn.textContent = `Скрыть слова`;
+    }
+    return;
+  }
   const body = document.getElementById('words-modal-body');
-  if (!body.querySelector('.wm-word-item')) {
+  if (body && !body.querySelector('.wm-word-item')) {
     body.innerHTML = '<p class="empty-state">Слов для повторения нет — отличная работа!</p>';
   }
-  loadStudentData();
 }
 
 function closeWordsModal(e) {

@@ -39,10 +39,6 @@
 
 <div class="login-page">
   <div class="login-container">
-    <div class="login-header">
-      <h1>Добро пожаловать!</h1>
-      <p>Войдите в систему, чтобы сохранять свой прогресс</p>
-    </div>
 
     <div class="login-tabs">
       <button class="login-tab active" data-tab="login">Вход</button>
@@ -53,12 +49,18 @@
     <div id="login-tab" class="login-tab-content active">
       <div class="login-form">
         <div class="form-group">
-          <label for="login-input">Логин</label>
-          <input type="text" id="login-input" placeholder="Введите логин" class="form-input" autocomplete="username">
+          <div class="password-field">
+            <input type="text" id="login-input" placeholder="Логин" class="form-input" autocomplete="username">
+          </div>
         </div>
         <div class="form-group">
-          <label for="password-input">Пароль</label>
-          <input type="password" id="password-input" placeholder="Введите пароль" class="form-input" autocomplete="current-password">
+          <div class="password-field">
+            <input type="password" id="password-input" placeholder="Пароль" class="form-input" autocomplete="current-password">
+            <button type="button" class="password-toggle" aria-label="Показать пароль" data-target="password-input">
+              <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
         <div id="login-error" class="form-error" style="display:none"></div>
         <button id="login-btn" class="btn btn-primary">Войти</button>
@@ -69,42 +71,61 @@
     <div id="register-tab" class="login-tab-content">
       <div class="login-form">
         <div class="form-group">
-          <label for="reg-login-input">Логин <span class="required">*</span></label>
-          <input type="text" id="reg-login-input" placeholder="Придумайте логин" class="form-input" autocomplete="username">
+          <div class="password-field">
+            <input type="text" id="reg-login-input" placeholder="Логин" class="form-input" autocomplete="username">
+          </div>
         </div>
         <div class="form-group">
-          <label for="reg-password-input">Пароль <span class="required">*</span> <small>(минимум 6 символов)</small></label>
-          <input type="password" id="reg-password-input" placeholder="Придумайте пароль" class="form-input" autocomplete="new-password">
+          <div class="password-field">
+            <input type="password" id="reg-password-input" placeholder="Пароль (минимум 6 символов)" class="form-input" autocomplete="new-password">
+            <button type="button" class="password-toggle" aria-label="Показать пароль" data-target="reg-password-input">
+              <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
         <div class="form-group">
-          <label for="reg-first-name">Имя <small>(необязательно)</small></label>
-          <input type="text" id="reg-first-name" placeholder="Ваше имя" class="form-input" autocomplete="given-name">
+          <div class="password-field">
+            <input type="text" id="reg-first-name" placeholder="Имя (необязательно)" class="form-input" autocomplete="given-name">
+          </div>
         </div>
         <div class="form-group">
-          <label for="reg-email">Email <small>(необязательно)</small></label>
-          <input type="email" id="reg-email" placeholder="your@email.com" class="form-input" autocomplete="email">
+          <div class="password-field">
+            <input type="email" id="reg-email" placeholder="Email (необязательно)" class="form-input" autocomplete="email">
+          </div>
         </div>
 
         <div class="form-group">
-          <label>Я регистрируюсь как</label>
+          <label>Кто вы?</label>
           <div class="role-selector">
             <label class="role-option">
               <input type="radio" name="reg-role" value="student" checked>
               <span class="role-label">
-                <span class="role-icon">🎓</span>
+                <span class="role-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                  </svg>
+                </span>
                 <span class="role-text">
                   <strong>Ученик</strong>
-                  <small>Выполняю задания и слежу за прогрессом</small>
+                  <span>Решаю задания и слежу за прогрессом</span>
                 </span>
               </span>
             </label>
             <label class="role-option">
               <input type="radio" name="reg-role" value="teacher">
               <span class="role-label">
-                <span class="role-icon">📚</span>
+                <span class="role-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                    <path d="M12 17v4M8 21h8"/>
+                    <path d="M8 8h4M8 11h6"/>
+                  </svg>
+                </span>
                 <span class="role-text">
                   <strong>Учитель</strong>
-                  <small>Создаю задания и слежу за учениками</small>
+                  <span>Создаю задания и слежу за учениками</span>
                 </span>
               </span>
             </label>
@@ -113,9 +134,9 @@
 
         <!-- Код учителя — показывается только для ученика -->
         <div class="form-group" id="teacher-code-group">
-          <label for="reg-teacher-code">Код учителя <small>(необязательно)</small></label>
-          <input type="text" id="reg-teacher-code" placeholder="Например: A3F2" class="form-input" style="text-transform:uppercase;max-width:160px">
-          <small class="hint-text">Введите код, если учитель уже пригласил вас</small>
+          <label for="reg-teacher-code">Код учителя</label>
+          <input type="text" id="reg-teacher-code" placeholder="Например: A3F2" class="form-input reg-teacher-code-input" style="text-transform:uppercase">
+          <span class="reg-hint">Введите код, если учитель уже пригласил вас</span>
         </div>
 
         <div id="register-error" class="form-error" style="display:none"></div>
@@ -139,15 +160,23 @@
 })();
 
 // Переключение вкладок
+function switchTab(tabName) {
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.login-tab-content').forEach(c => c.classList.remove('active'));
+  const tab = document.querySelector(`.login-tab[data-tab="${tabName}"]`);
+  if (tab) tab.classList.add('active');
+  const content = document.getElementById(`${tabName}-tab`);
+  if (content) content.classList.add('active');
+}
+
 document.querySelectorAll('.login-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    const tabName = tab.dataset.tab;
-    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.login-tab-content').forEach(c => c.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById(`${tabName}-tab`).classList.add('active');
-  });
+  tab.addEventListener('click', () => switchTab(tab.dataset.tab));
 });
+
+// Открыть вкладку регистрации если передан параметр ?tab=register
+if (new URLSearchParams(location.search).get('tab') === 'register') {
+  switchTab('register');
+}
 
 // Скрывать поле кода учителя для учителей
 document.querySelectorAll('input[name="reg-role"]').forEach(r => {
@@ -158,10 +187,15 @@ document.querySelectorAll('input[name="reg-role"]').forEach(r => {
 });
 
 // Показать ошибку
-function showError(elId, msg) {
+function showError(elId, msg, shake = false) {
   const el = document.getElementById(elId);
   el.textContent = msg;
   el.style.display = msg ? '' : 'none';
+  if (msg && shake) {
+    el.classList.remove('shake');
+    void el.offsetWidth; // reflow для перезапуска анимации
+    el.classList.add('shake');
+  }
 }
 
 // Вход
@@ -212,6 +246,7 @@ async function doRegister() {
 
   if (!login || !password) { showError('register-error', 'Введите логин и пароль'); return; }
   if (password.length < 6) { showError('register-error', 'Пароль должен содержать минимум 6 символов'); return; }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('register-error', 'Некорректный формат email', true); return; }
 
   const btn = document.getElementById('register-btn');
   btn.disabled = true; btn.textContent = 'Регистрируем...';
@@ -230,12 +265,8 @@ async function doRegister() {
     });
     const data = await r.json();
     if (r.ok && data.success) {
-      // Для ученика показываем онбординг, для учителя — сразу в кабинет
-      if (data.user.role === 'student' && !data.user.onboarding_done) {
-        showOnboarding();
-      } else {
-        window.location.href = '/profile';
-      }
+      // Временно отключаем опросник после регистрации: сразу ведем в кабинет
+      window.location.href = '/profile';
     } else {
       showError('register-error', data.error || 'Ошибка регистрации');
     }
@@ -250,6 +281,17 @@ async function doRegister() {
 function showOnboarding() {
   document.getElementById('onboarding-modal').style.display = 'flex';
 }
+
+// Показать/скрыть пароль
+document.querySelectorAll('.password-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.target);
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    btn.querySelector('.eye-open').style.display = isPassword ? 'none' : '';
+    btn.querySelector('.eye-closed').style.display = isPassword ? '' : 'none';
+  });
+});
 
 document.getElementById('ob-skip-btn').addEventListener('click', async () => {
   // Отмечаем как пройденный без данных

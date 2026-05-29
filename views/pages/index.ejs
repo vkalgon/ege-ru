@@ -3,10 +3,10 @@
   <!-- ══ HERO ══════════════════════════════════════════════════ -->
   <section class="lp-hero">
     <div class="lp-hero__content">
-      <h1 class="lp-hero__title">Переосмысленная<br>подготовка к ЕГЭ</h1>
-      <p class="lp-hero__sub">Генерируйте задания по нужным темам, работайте с текстом прямо в задании и отслеживайте прогресс</p>
+      <h1 class="lp-hero__title">Готовься к ЕГЭ<br>легко!</h1>
+      <p class="lp-hero__sub">Генерируйте задания по нужным темам, работайте с текстом прямо в&nbspзадании и отслеживайте прогресс</p>
       <div class="lp-hero__cta">
-        <a href="/task17" class="lp-btn lp-btn--primary">Начать подготовку</a>
+        <a href="/login?tab=register" class="lp-btn lp-btn--primary" id="hero-start-btn">Начать подготовку</a>
         <a href="#tasks"  class="lp-btn lp-btn--ghost">Все задания</a>
       </div>
     </div>
@@ -22,16 +22,16 @@
       <div class="lp-features__cards-wrap">
         <div class="lp-features__cards">
           <div class="lp-feat2-card">
-            <b class="lp-feat2-card__title">Учитесь на ошибках</b>
-            <p class="lp-feat2-card__desc">платформа не только запомнит слова и правила, где вы ошиблись, но и составит для вас индивидуальные задания для отработки</p>
+            <b class="lp-feat2-card__title">Учитесь на&nbsp;ошибках</b>
+            <p class="lp-feat2-card__desc">платформа запомнит слова и&nbsp;правила, где вы&nbsp;ошиблись, p;и&nbsp;составит для&nbsp;вас индивидуальные задания</p>
           </div>
           <div class="lp-feat2-card">
-            <b class="lp-feat2-card__title">Создавайте задания на нужную тему</b>
-            <p class="lp-feat2-card__desc">например, задание 11 только с приставками «пре/при» или задание 9 только со словарными словами</p>
+            <b class="lp-feat2-card__title">Создавайте задания </b>
+            <p class="lp-feat2-card__desc">например, задание 11 только с&nbsp;приставками «пре/при» или задание 9 только со&nbsp;словарными словами</p>
           </div>
           <div class="lp-feat2-card">
             <b class="lp-feat2-card__title">Отслеживайте прогресс</b>
-            <p class="lp-feat2-card__desc">Статистика по заданиям и темам помогает понять, что уже освоено, а что требует внимания</p>
+            <p class="lp-feat2-card__desc">Статистика по&nbsp;заданиям и&nbsp;темам помогает понять, что требует внимания</p>
           </div>
         </div>
       </div>
@@ -55,28 +55,71 @@
 
   <!-- ══ TASKS ═════════════════════════════════════════════════ -->
   <section id="tasks" class="lp-tasks-new">
-    <div class="lp-tasks-new__col">
-      <h3 class="lp-tasks-new__col-title">Пунктуация</h3>
-      <div class="lp-tasks-new__items">
-        <a href="/subtopics?type=16" class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">16</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Простое осложнённое</span></span></a>
-        <a href="/task17"            class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">17</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Запятые в тексте</span></span></a>
-        <a href="/task18"            class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">18</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Вводные слова</span></span></a>
-        <a href="/task19"            class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">19</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Знаки в СПП</span></span></a>
-        <a href="/subtopics?type=20" class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">20</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">ССП и БСП</span></span></a>
-        <a href="/subtopics?type=21" class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">21</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Обособленные члены</span></span></a>
+    <div class="lp-tasks-new__group">
+      <div class="lp-tasks-new__col">
+        <h3 class="lp-tasks-new__col-title">Орфография</h3>
+        <div class="lp-tasks-new__items">
+          <a href="/task9"             class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">9</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Правописание корней</span></span></a>
+          <a href="/task10"            class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">10</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Правописание приставок</span></span></a>
+          <a href="/task11"            class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">11</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Суффиксы (кроме нн)</span></span></a>
+          <a href="/subtopics?type=12" class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">12</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Окончания глаголов</span></span></a>
+        </div>
+      </div>
+      <div class="lp-tasks-new__col">
+        <h3 class="lp-tasks-new__col-title">Работа с текстом</h3>
+        <div class="lp-tasks-new__items">
+          <a href="/task1"            class="lp-task-chip lp-task-chip--text"><span class="lp-task-chip__num">1</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Смысловая обработка текста</span></span></a>
+          <a href="/subtopics?type=2"  class="lp-task-chip lp-task-chip--text"><span class="lp-task-chip__num">2</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Средства связи предложений</span></span></a>
+          <a href="/subtopics?type=3"  class="lp-task-chip lp-task-chip--text"><span class="lp-task-chip__num">3</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Лексическое значение слова</span></span></a>
+          <a href="/subtopics?type=23" class="lp-task-chip lp-task-chip--text"><span class="lp-task-chip__num">23</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Анализ содержания текста</span></span></a>
+          <a href="/subtopics?type=24" class="lp-task-chip lp-task-chip--text"><span class="lp-task-chip__num">24</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Лексический анализ</span></span></a>
+          <a href="/subtopics?type=25" class="lp-task-chip lp-task-chip--text"><span class="lp-task-chip__num">25</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Средства выразительности</span></span></a>
+          <a href="/subtopics?type=26" class="lp-task-chip lp-task-chip--text"><span class="lp-task-chip__num">26</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Анализ средств языка</span></span></a>
+          <a href="/subtopics?type=27" class="lp-task-chip lp-task-chip--text"><span class="lp-task-chip__num">27</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Сочинение</span></span></a>
+        </div>
       </div>
     </div>
-    <div class="lp-tasks-new__col lp-tasks-new__col--orth">
-      <h3 class="lp-tasks-new__col-title">Орфография</h3>
-      <div class="lp-tasks-new__items">
-        <a href="/task9"             class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">9</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Правописание корней</span></span></a>
-        <a href="/task10"            class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">10</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Правописание приставок</span></span></a>
-        <a href="/task11"            class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">11</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Суффиксы (кроме нн)</span></span></a>
-        <a href="/subtopics?type=12" class="lp-task-chip lp-task-chip--orth"><span class="lp-task-chip__num">12</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Окончания глаголов</span></span></a>
+    <div class="lp-tasks-new__group">
+      <div class="lp-howto-mobile lp-howto-mobile--mint" aria-hidden="true">
+        <div class="lp-howto__card lp-howto__card--mint">
+          <span class="lp-howto__label">разбирай предложения</span>
+          <img class="lp-howto__screen" src="/images/screen-task17.png" alt="">
+        </div>
+      </div>
+      <div class="lp-tasks-new__col">
+        <h3 class="lp-tasks-new__col-title">Пунктуация</h3>
+        <div class="lp-tasks-new__items">
+          <a href="/subtopics?type=16" class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">16</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Простое осложнённое</span></span></a>
+          <a href="/task17"            class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">17</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Запятые в тексте</span></span></a>
+          <a href="/task18"            class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">18</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Вводные слова</span></span></a>
+          <a href="/task19"            class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">19</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Знаки в СПП</span></span></a>
+          <a href="/subtopics?type=20" class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">20</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">ССП и БСП</span></span></a>
+          <a href="/subtopics?type=21" class="lp-task-chip lp-task-chip--punct"><span class="lp-task-chip__num">21</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Обособленные члены</span></span></a>
+        </div>
+      </div>
+      <div class="lp-tasks-new__col">
+        <h3 class="lp-tasks-new__col-title">Орфоэпия</h3>
+        <div class="lp-tasks-new__items">
+          <a href="/task4" class="lp-task-chip lp-task-chip--orfo"><span class="lp-task-chip__num">4</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Ударение</span></span></a>
+        </div>
+      </div>
+      <div class="lp-tasks-new__col">
+        <h3 class="lp-tasks-new__col-title">Словообразование</h3>
+        <div class="lp-tasks-new__items">
+          <a href="/subtopics?type=5" class="lp-task-chip lp-task-chip--word"><span class="lp-task-chip__num">5</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Морфемика и словообразование</span></span></a>
+          <a href="/subtopics?type=7" class="lp-task-chip lp-task-chip--word"><span class="lp-task-chip__num">7</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Морфология</span></span></a>
+        </div>
+      </div>
+      <div class="lp-tasks-new__col">
+        <h3 class="lp-tasks-new__col-title">Нормы употребления</h3>
+        <div class="lp-tasks-new__items">
+          <a href="/subtopics?type=6" class="lp-task-chip lp-task-chip--norm"><span class="lp-task-chip__num">6</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Лексические нормы</span></span></a>
+          <a href="/subtopics?type=8" class="lp-task-chip lp-task-chip--norm"><span class="lp-task-chip__num">8</span><span class="lp-task-chip__pill"><span class="lp-task-chip__label">Синтаксические нормы</span></span></a>
+        </div>
       </div>
     </div>
     <div class="lp-tasks-new__goose" aria-hidden="true">
-      <img src="/images/SVG/%D0%B3%D1%83%D1%81%D1%8C%20%D1%81%20%D0%B8%D0%B4%D0%B5%D0%B5%D0%B9.svg" alt="">
+      <img src="/images/SVG/%D0%B3%D1%83%D1%81%D1%8C%20%D1%81%20%D0%B8%D0%B4%D0%B5%D0%B9.svg" alt="">
     </div>
   </section>
 
@@ -90,4 +133,3 @@
   </section>
 
 </div>
-

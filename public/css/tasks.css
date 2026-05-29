@@ -1,0 +1,625 @@
+/* ===== TASK PAGE ===== */
+.task-page {
+  max-width: 800px;
+}
+
+.task-page__title {
+  font: var(--h2-fw) var(--h2)/var(--h2-lh) "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0 0 32px 0;
+  color: var(--text-primary);
+}
+
+/* ── Блок слабых слов на странице задания ───────────────── */
+.task-weak-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px 24px;
+  margin-bottom: 28px;
+}
+.task-weak-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.task-weak-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+.task-weak-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ── Модальное окно слабых слов ──────────────────────────── */
+.words-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.words-modal {
+  background: var(--bg-primary);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.words-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.words-modal-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.words-modal-body {
+  overflow-y: auto;
+  padding: 16px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* ── Task9 stats в модале ── */
+.t9s-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  margin-top: 4px;
+}
+.t9s-cat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.t9s-cat-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.t9s-cat-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.t9s-cat-nums {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.t9s-dim {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.t9s-roots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.t9s-root-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  gap: 8px;
+}
+.t9s-root-name {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.t9s-root-right {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+}
+.t9s-words-toggle-row {
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+#t9s-words-list {
+  border-top: 1px solid var(--glass-border);
+  padding-top: 10px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.words-modal-body {
+  gap: 8px;
+}
+.wm-word-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.wm-word-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.wm-word-text {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.wm-word-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+.wm-delete-btn {
+  color: var(--color-error) !important;
+}
+
+.task-card {
+  background: rgba(180, 180, 190, 0.05);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  box-shadow: var(--shadow-glass);
+  margin-bottom: 24px;
+  border: 1px solid var(--glass-border);
+}
+
+.task-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.task-prompt {
+  font: 400 16px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Стили для HTML, сгенерированного EditorRenderer на сайте */
+.task-prompt p,
+.task-fulltext p {
+  line-height: 1.7;
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: var(--text-primary);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.task-prompt h1,
+.task-prompt h2,
+.task-prompt h3,
+.task-prompt h4,
+.task-prompt h5,
+.task-prompt h6,
+.task-fulltext h1,
+.task-fulltext h2,
+.task-fulltext h3,
+.task-fulltext h4,
+.task-fulltext h5,
+.task-fulltext h6 {
+  margin: 0 0 16px 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.task-prompt h1,
+.task-fulltext h1 {
+  font-size: 28px;
+}
+
+.task-prompt h2,
+.task-fulltext h2 {
+  font-size: 24px;
+}
+
+.task-prompt h3,
+.task-fulltext h3 {
+  font-size: 20px;
+}
+
+.task-prompt h4,
+.task-fulltext h4 {
+  font-size: 18px;
+}
+
+.task-prompt h5,
+.task-fulltext h5 {
+  font-size: 16px;
+}
+
+.task-prompt h6,
+.task-fulltext h6 {
+  font-size: 14px;
+}
+
+.task-prompt blockquote,
+.task-fulltext blockquote {
+  margin: 0 0 16px 0;
+  padding: 16px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-left: 4px solid var(--neon-cyan);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+}
+
+.task-prompt blockquote cite,
+.task-fulltext blockquote cite {
+  display: block;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-style: normal;
+}
+
+.task-prompt ul,
+.task-prompt ol,
+.task-fulltext ul,
+.task-fulltext ol {
+  margin: 0 0 16px 0;
+  padding-left: 24px;
+}
+
+.task-prompt li,
+.task-fulltext li {
+  margin: 0 0 8px 0;
+  line-height: 1.7;
+}
+
+.task-prompt pre,
+.task-fulltext pre {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+  margin: 0 0 16px 0;
+  box-shadow: var(--shadow-glass);
+  border-left: 1px solid var(--neon-purple);
+}
+
+.task-prompt code,
+.task-fulltext code {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  background: var(--bg-tertiary);
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--neon-pink);
+  border: 1px solid rgba(106, 140, 184, 0.2);
+}
+
+.task-prompt pre code,
+.task-fulltext pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text-primary);
+  border: none;
+}
+
+.task-prompt hr,
+.task-fulltext hr {
+  border: none;
+  border-top: 1px solid var(--glass-border);
+  margin: 20px 0;
+  box-shadow: 0 0 10px var(--brand-medium);
+}
+
+.task-prompt table,
+.task-fulltext table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 16px 0;
+}
+
+.task-prompt table th,
+.task-prompt table td,
+.task-fulltext table th,
+.task-fulltext table td {
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.task-prompt table th,
+.task-fulltext table th {
+  background: var(--bg-tertiary);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  font-weight: 600;
+  color: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+}
+
+.task-prompt strong,
+.task-fulltext strong,
+.editor-content strong,
+.task-prompt b,
+.task-fulltext b,
+.editor-content b {
+  font-weight: 600;
+  color: inherit;
+}
+
+.task-prompt em,
+.task-fulltext em,
+.editor-content em,
+.task-prompt i,
+.task-fulltext i,
+.editor-content i {
+  font-style: italic;
+}
+
+.task-prompt mark,
+.task-fulltext mark,
+.editor-content mark {
+  background: var(--brand-medium);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--neon-cyan);
+  border: 1px solid var(--brand-strong);
+}
+
+.task-prompt del,
+.task-fulltext del,
+.editor-content del,
+.task-prompt s,
+.task-fulltext s,
+.editor-content s {
+  text-decoration: line-through;
+  color: var(--text-disabled);
+}
+
+.task-prompt u,
+.task-fulltext u,
+.editor-content u {
+  text-decoration: underline;
+}
+
+.task-prompt code,
+.task-fulltext code,
+.editor-content code {
+  font-family: 'Courier New', 'Courier', monospace;
+  font-size: 14px;
+  background: var(--bg-tertiary);
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--neon-pink);
+  border: 1px solid rgba(106, 140, 184, 0.2);
+}
+
+.task-prompt pre code,
+.task-fulltext pre code,
+.editor-content pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text-primary);
+  border: none;
+}
+
+.task-prompt .checklist,
+.task-fulltext .checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.task-prompt .checklist-item,
+.task-fulltext .checklist-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.task-prompt .checklist-item input[type="checkbox"],
+.task-fulltext .checklist-item input[type="checkbox"] {
+  margin-right: 8px;
+  margin-top: 4px;
+}
+
+.task-prompt .warning-block,
+.task-fulltext .warning-block {
+  background: rgba(106, 140, 184, 0.15);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-left: 4px solid var(--neon-pink);
+  padding: 16px;
+  margin: 0 0 16px 0;
+  border-radius: 0 8px 8px 0;
+  border: 1px solid rgba(106, 140, 184, 0.3);
+  box-shadow: 0 0 20px rgba(106, 140, 184, 0.2);
+}
+
+.task-prompt .warning-title,
+.task-fulltext .warning-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--neon-pink);
+  text-shadow: 0 0 10px rgba(106, 140, 184, 0.5);
+}
+
+.task-prompt .warning-message,
+.task-fulltext .warning-message {
+  color: var(--neon-pink);
+}
+
+.task-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.task-input {
+  flex: 1;
+  min-width: 240px;
+  height: 40px;
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 9999px !important;
+  padding: 0 20px;
+  color: var(--text-primary) !important;
+  font: 400 14px/1 "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: border-color 0.2s ease;
+  box-shadow: none;
+}
+
+.task-input::placeholder {
+  color: var(--text-disabled) !important;
+}
+
+.task-input:focus {
+  outline: none !important;
+  border-color: var(--brand) !important;
+  box-shadow: none !important;
+  background: var(--glass-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.task-input.empty {
+  animation: shake 0.5s ease-in-out;
+  border-color: var(--brand-subtle) !important;
+}
+
+.task-input.input-correct {
+  border-color: var(--color-success) !important;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234ecda4' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") no-repeat right 16px center !important;
+  padding-right: 44px;
+}
+
+.task-input.input-incorrect {
+  border-color: var(--color-error) !important;
+  background: rgba(224, 92, 101, 0.06) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23D69295' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E") no-repeat right 16px center !important;
+  padding-right: 44px;
+}
+
+/* Кнопка «Проверить» — primary action, выделена брендовым цветом */
+.task-send {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 9999px;
+  border: 1px solid var(--brand);
+  background: var(--bg-primary);
+  color: var(--brand);
+  font: 500 14px/1.14 "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  white-space: nowrap;
+}
+
+.task-send:hover {
+  background: var(--brand-muted);
+  border-color: var(--brand-light);
+  color: var(--brand-light);
+}
+
+.task-send:active { opacity: 0.75; }
+
+/* Кнопка «Показать решение» — secondary */
+.task-solution {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 9999px;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font: 500 14px/1.14 "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
+.task-solution:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  opacity: 1;
+}
+
+.task-solution:active { opacity: 0.75; }
+
+/* Кнопка «Лайк» — ghost icon */
+.task-like {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.task-like:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+  /* Блок с решением */
+  .task-solution-block {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-top: 20px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-glass);
+  }
+
+
+  .solution-answer {
+    font: 400 16px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    margin: 0;
+  }

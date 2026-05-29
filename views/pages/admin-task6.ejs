@@ -1,0 +1,238 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Задание №6 — Лексические нормы</h2>
+
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('all', this)">Все задания</button>
+    <button class="tab-btn" onclick="switchTab('exclude', this)">Исключить лишнее</button>
+    <button class="tab-btn" onclick="switchTab('replace', this)">Заменить слово</button>
+  </div>
+
+  <!-- ══ ФОРМА ДОБАВЛЕНИЯ / РЕДАКТИРОВАНИЯ ══════════════════ -->
+  <div class="admin-section">
+    <h3 id="form-title">Добавить задание</h3>
+    <form id="sent-form" class="admin-form" onsubmit="return false;">
+      <input type="hidden" id="sent-id">
+
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px;">
+        <div class="form-group" style="flex:0 0 auto;">
+          <label>Тип задания</label>
+          <select id="sent-subtype" required>
+            <option value="exclude">Исключить лишнее слово</option>
+            <option value="replace">Заменить неверное слово</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Предложение</label>
+        <textarea id="sent-sentence" rows="3"
+          style="width:100%;resize:vertical;font-size:14px;padding:10px;
+                 background:var(--bg-primary);border:1px solid var(--glass-border);
+                 border-radius:8px;color:var(--text-primary);font-family:inherit;line-height:1.6;"
+          placeholder="Посев семян хвойных пород необходимо проводить в очень оптимальные сроки…" required></textarea>
+      </div>
+
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <div class="form-group" style="flex:1;min-width:180px;">
+          <label>Основной ответ</label>
+          <input type="text" id="sent-answer" placeholder="очень" required autocomplete="off">
+        </div>
+        <div class="form-group" style="flex:2;min-width:220px;">
+          <label>Дополнительные ответы <span style="color:var(--text-secondary);font-weight:400;">(через запятую, необязательно)</span></label>
+          <input type="text" id="sent-alt" placeholder="очень, весьма" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Пояснение <span style="color:var(--text-secondary);font-weight:400;">(необязательно)</span></label>
+        <textarea id="sent-explanation" rows="2"
+          style="width:100%;resize:vertical;font-size:14px;padding:10px;
+                 background:var(--bg-primary);border:1px solid var(--glass-border);
+                 border-radius:8px;color:var(--text-primary);font-family:inherit;line-height:1.6;"
+          placeholder="«Очень оптимальные» — плеоназм: оптимальный и означает «наилучший»."></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="btn" onclick="saveSentence()">Сохранить</button>
+        <button class="btn btn-secondary" onclick="resetForm()">Сбросить</button>
+      </div>
+      <div id="form-msg" style="margin-top:8px;font-size:13px;"></div>
+    </form>
+  </div>
+
+  <!-- ══ СПИСОК ЗАДАНИЙ ══════════════════════════════════════ -->
+  <div class="admin-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <h3 style="margin:0;">Список заданий</h3>
+      <div style="font-size:13px;color:var(--text-secondary);" id="count-label"></div>
+    </div>
+    <div id="sent-list"></div>
+  </div>
+</div>
+
+<style>
+.t6-admin-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  flex-wrap: wrap;
+}
+.t6-admin-row:last-child { border-bottom: none; }
+.t6-admin-sentence {
+  flex: 1; min-width: 0;
+  font-size: 14px; line-height: 1.55; color: var(--text-primary);
+}
+.t6-admin-answer {
+  font-size: 13px; color: var(--brand); font-weight: 600; margin-top: 4px;
+}
+.t6-admin-alt {
+  font-size: 12px; color: var(--text-secondary); margin-top: 2px;
+}
+.t6-admin-expl {
+  font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;
+}
+.t6-badge {
+  flex-shrink: 0; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px;
+}
+.t6-badge-exclude { background: rgba(164,226,208,.15); color: #A4E2D0; }
+.t6-badge-replace  { background: rgba(246,180,98,.15);  color: #f6b462; }
+.t6-admin-actions { display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+</style>
+
+<script>
+let currentFilter = '';
+let allSentences = [];
+
+// ── Вкладки ──────────────────────────────────────────────────
+function switchTab(filter, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = filter === 'all' ? '' : filter;
+  renderList();
+}
+
+// ── Загрузка ─────────────────────────────────────────────────
+async function loadAll() {
+  allSentences = await fetch('/api/task6/sentences').then(r => r.json());
+  renderList();
+}
+
+function renderList() {
+  const wrap = document.getElementById('sent-list');
+  const label = document.getElementById('count-label');
+
+  const filtered = currentFilter
+    ? allSentences.filter(s => s.subtype === currentFilter)
+    : allSentences;
+
+  label.textContent = `Всего: ${filtered.length}`;
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<p style="color:var(--text-secondary);font-size:13px;">Заданий нет. Добавьте первое.</p>';
+    return;
+  }
+
+  wrap.innerHTML = filtered.map(s => {
+    let alt = '';
+    try { alt = s.alt_answers ? JSON.parse(s.alt_answers).join(', ') : ''; } catch {}
+    const badge = s.subtype === 'exclude'
+      ? '<span class="t6-badge t6-badge-exclude">Исключить</span>'
+      : '<span class="t6-badge t6-badge-replace">Заменить</span>';
+
+    return `<div class="t6-admin-row">
+      <div class="t6-admin-sentence">
+        <div>${esc(s.sentence)}</div>
+        <div class="t6-admin-answer">Ответ: ${esc(s.answer)}${alt ? ` <span class="t6-admin-alt">/ ${esc(alt)}</span>` : ''}</div>
+        ${s.explanation ? `<div class="t6-admin-expl">${esc(s.explanation)}</div>` : ''}
+      </div>
+      ${badge}
+      <div class="t6-admin-actions">
+        <a href="/task6/${s.id}" target="_blank" class="btn btn-sm">Открыть</a>
+        <button class="btn btn-sm btn-secondary" onclick="editSentence(${s.id})">Ред.</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteSentence(${s.id})">Удалить</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Сохранение ───────────────────────────────────────────────
+async function saveSentence() {
+  const id          = document.getElementById('sent-id').value;
+  const subtype     = document.getElementById('sent-subtype').value;
+  const sentence    = document.getElementById('sent-sentence').value.trim();
+  const answer      = document.getElementById('sent-answer').value.trim();
+  const altRaw      = document.getElementById('sent-alt').value.trim();
+  const explanation = document.getElementById('sent-explanation').value.trim();
+  const msgEl       = document.getElementById('form-msg');
+
+  if (!sentence) { msgEl.innerHTML = '<span style="color:#e05c65;">Введите предложение.</span>'; return; }
+  if (!answer)   { msgEl.innerHTML = '<span style="color:#e05c65;">Введите основной ответ.</span>'; return; }
+
+  const alt_answers = altRaw ? altRaw.split(',').map(a => a.trim()).filter(Boolean) : [];
+
+  const url    = id ? `/api/task6/sentences/${id}` : '/api/task6/sentences';
+  const method = id ? 'PUT' : 'POST';
+
+  msgEl.innerHTML = 'Сохранение…';
+  try {
+    const resp = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subtype, sentence, answer, alt_answers, explanation }),
+    }).then(r => r.json());
+
+    if (resp.error) {
+      msgEl.innerHTML = `<span style="color:#e05c65;">${esc(resp.error)}</span>`;
+      return;
+    }
+    msgEl.innerHTML = `<span style="color:var(--brand);">✓ Сохранено</span>`;
+    resetForm();
+    await loadAll();
+  } catch {
+    msgEl.innerHTML = '<span style="color:#e05c65;">Ошибка соединения.</span>';
+  }
+}
+
+// ── Редактирование ───────────────────────────────────────────
+function editSentence(id) {
+  const s = allSentences.find(x => x.id === id);
+  if (!s) return;
+
+  document.getElementById('form-title').textContent = `Редактировать задание #${id}`;
+  document.getElementById('sent-id').value = id;
+  document.getElementById('sent-subtype').value = s.subtype;
+  document.getElementById('sent-sentence').value = s.sentence;
+  document.getElementById('sent-answer').value = s.answer;
+  document.getElementById('sent-explanation').value = s.explanation || '';
+  document.getElementById('form-msg').innerHTML = '';
+
+  let alt = '';
+  try { alt = s.alt_answers ? JSON.parse(s.alt_answers).join(', ') : ''; } catch {}
+  document.getElementById('sent-alt').value = alt;
+
+  document.getElementById('sent-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Удаление ─────────────────────────────────────────────────
+async function deleteSentence(id) {
+  if (!confirm(`Удалить задание #${id}?`)) return;
+  await fetch(`/api/task6/sentences/${id}`, { method: 'DELETE' });
+  await loadAll();
+}
+
+// ── Сброс формы ──────────────────────────────────────────────
+function resetForm() {
+  document.getElementById('form-title').textContent = 'Добавить задание';
+  document.getElementById('sent-id').value = '';
+  document.getElementById('sent-subtype').value = 'exclude';
+  document.getElementById('sent-sentence').value = '';
+  document.getElementById('sent-answer').value = '';
+  document.getElementById('sent-alt').value = '';
+  document.getElementById('sent-explanation').value = '';
+  document.getElementById('form-msg').innerHTML = '';
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+loadAll();
+</script>

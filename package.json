@@ -8,7 +8,10 @@
         "seed:task17": "node server/db/seeds/task17.seed.js",
         "seed:task4": "node server/seeds/task4.seed.mjs",
         "seed:task5": "node server/seeds/task5.seed.js",
-        "seed:task7": "node server/db/seeds/task7.seed.js"
+        "seed:task5-extra": "node server/seeds/task5-extra.seed.js",
+        "seed:task7": "node server/db/seeds/task7.seed.js",
+        "seed:task7-theory": "node server/seeds/task7-theory.seed.js",
+        "seed:task16": "node server/seeds/task16.seed.js"
     },
     "dependencies": {
         "@editorjs/checklist": "^1.5.0",
@@ -27,7 +30,8 @@
         "@editorjs/table": "^2.4.5",
         "@editorjs/underline": "^1.1.0",
         "@editorjs/warning": "^1.4.1",
-        "better-sqlite3": "^12.4.1",
+        "bcryptjs": "^3.0.3",
+        "better-sqlite3": "^12.10.0",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
         "ejs": "^3.1.10",

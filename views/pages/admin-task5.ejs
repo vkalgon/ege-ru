@@ -40,17 +40,19 @@
         <div class="form-group">
           <label>Текст предложения
             <span style="font-size:12px;color:var(--text-secondary);margin-left:6px;">
-              Используйте <code>{{СЛОВО}}</code> для обозначения выделенного слова
+              Используйте <code>{{СЛОВО_КАПСОМ}}</code> для обозначения выделенного слова — группа и слово определятся автоматически
             </span>
           </label>
           <textarea id="sent-text" rows="3" placeholder="Хром и марганец являются {{КРАСОЧНЫМИ}} веществами, компонентами многих красок."
-                    style="resize:vertical;width:100%;" oninput="updateSentPreview()"></textarea>
+                    style="resize:vertical;width:100%;" oninput="detectFromSentence(this.value)"></textarea>
         </div>
 
         <div style="display:flex;gap:20px;flex-wrap:wrap;">
           <div class="form-group" style="flex:1;min-width:200px;">
-            <label>Выделенное слово (как написано в предложении)</label>
-            <input id="sent-hl" type="text" placeholder="КРАСОЧНЫМИ" autocomplete="off"
+            <label>Выделенное слово
+              <span id="hl-auto-badge" style="display:none;font-size:11px;color:var(--brand);margin-left:6px;">● авто</span>
+            </label>
+            <input id="sent-hl" type="text" placeholder="определится из {{СЛОВО}}" autocomplete="off"
                    oninput="updateSentPreview()">
           </div>
           <div class="form-group" style="flex:1;min-width:200px;">
@@ -148,7 +150,7 @@
 .group-chip:hover { border-color: var(--brand); }
 .group-chip.active { border-color: var(--brand); background: var(--brand-muted); }
 .group-chip__del { font-size: 16px; color: var(--text-secondary); cursor: pointer; line-height: 1; transition: color 0.15s; padding: 0 2px; }
-.group-chip__del:hover { color: #D69295; }
+.group-chip__del:hover { color: #e05c65; }
 
 .t5-sent-preview {
   background: var(--bg-secondary); border: 1px solid var(--glass-border);
@@ -162,7 +164,7 @@
 .sent-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
 .sent-table tr:last-child td { border-bottom: none; }
 .sent-table tr:hover td { background: var(--bg-tertiary); }
-.badge-error { background: rgba(214,146,149,.15); color: #D69295; border-radius: 4px; padding: 2px 6px; font-size: 11px; }
+.badge-error { background: rgba(224,92,101,.15); color: #e05c65; border-radius: 4px; padding: 2px 6px; font-size: 11px; }
 .badge-ok    { background: var(--brand-muted); color: var(--brand); border-radius: 4px; padding: 2px 6px; font-size: 11px; }
 
 .t5-task-slots { display: flex; flex-direction: column; gap: 10px; }
@@ -230,6 +232,49 @@ async function deleteGroup(id) {
 function filterByGroup(id, chip) {
   document.getElementById('filter-group').value = id;
   loadSentences();
+}
+
+// ── Автодетект слова и группы из предложения ─────────────────
+function detectFromSentence(text) {
+  const match = text.match(/\{\{([А-ЯЁа-яёA-Za-z]+)\}\}/);
+  const badge = document.getElementById('hl-auto-badge');
+
+  if (match) {
+    const detectedWord = match[1];
+    document.getElementById('sent-hl').value = detectedWord;
+    badge.style.display = 'inline';
+
+    // Стебель — первые 4 буквы (нижний регистр), для сопоставления с группами
+    const wordLow = detectedWord.toLowerCase();
+    const stemLen = Math.min(wordLow.length, 4);
+    const stem    = wordLow.slice(0, stemLen);
+
+    let bestGroupId  = null;
+    let bestMatchLen = 0;
+
+    for (const g of groups) {
+      // Разбиваем название группы (напр. «КРАСОЧНЫЙ – КРАСЯЩИЙ») на отдельные слова
+      const words = g.title.split(/[\s–—\-,\/|]+/).filter(Boolean);
+      for (const w of words) {
+        const wLow = w.toLowerCase();
+        // Ищем длину общего префикса
+        let common = 0;
+        while (common < wordLow.length && common < wLow.length && wordLow[common] === wLow[common]) common++;
+        if (common >= stemLen && common > bestMatchLen) {
+          bestMatchLen = common;
+          bestGroupId  = g.id;
+        }
+      }
+    }
+
+    if (bestGroupId) {
+      document.getElementById('sent-group').value = bestGroupId;
+    }
+  } else {
+    badge.style.display = 'none';
+  }
+
+  updateSentPreview();
 }
 
 // ── Предложения ──────────────────────────────────────────────
@@ -356,6 +401,7 @@ function resetSentForm() {
   document.getElementById('sent-correct').value = '';
   document.getElementById('sent-is-error').checked = false;
   document.getElementById('sent-preview-wrap').style.display = 'none';
+  document.getElementById('hl-auto-badge').style.display = 'none';
 }
 
 // ── Задания ──────────────────────────────────────────────────
@@ -394,8 +440,8 @@ function updateSlotBadge(sel) {
     return;
   }
   const isErr = opt.dataset.err === '1';
-  badge.style.background = isErr ? 'rgba(214,146,149,.15)' : 'var(--brand-muted)';
-  badge.style.color = isErr ? '#D69295' : 'var(--brand)';
+  badge.style.background = isErr ? 'rgba(224,92,101,.15)' : 'var(--brand-muted)';
+  badge.style.color = isErr ? '#e05c65' : 'var(--brand)';
   badge.textContent = isErr ? 'Ошибка' : 'Верное';
 }
 
@@ -476,7 +522,7 @@ async function generateTasks() {
     body: JSON.stringify({ count })
   }).then(r => r.json());
 
-  if (resp.error) { resultDiv.innerHTML = `<span style="color:#D69295;">Ошибка: ${esc(resp.error)}</span>`; return; }
+  if (resp.error) { resultDiv.innerHTML = `<span style="color:#e05c65;">Ошибка: ${esc(resp.error)}</span>`; return; }
   resultDiv.innerHTML = `<span style="color:var(--brand)">✓ Создано заданий: ${resp.count}</span>
     <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
       ${resp.ids.map(id => `<a href="/task5/${id}" target="_blank" class="btn btn-sm">Задание #${id}</a>`).join('')}

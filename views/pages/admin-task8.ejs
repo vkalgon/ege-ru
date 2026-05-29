@@ -1,0 +1,613 @@
+<div class="admin-page">
+  <h2 class="admin-page__title">Задание №8 — Синтаксические нормы (соответствие ошибок)</h2>
+
+  <div class="admin-task-tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('error-types', this)">Типы ошибок</button>
+    <button class="tab-btn" onclick="switchTab('tasks', this)">Задания</button>
+  </div>
+
+  <!-- ══ ВКЛАДКА: ТИПЫ ОШИБОК ══════════════════════════════════ -->
+  <div id="tab-error-types">
+
+    <div class="admin-section">
+      <h3 id="et-form-title">Добавить тип ошибки</h3>
+      <form id="et-form" class="admin-form" onsubmit="return false;">
+        <input type="hidden" id="et-id">
+        <div class="form-group">
+          <label>Название</label>
+          <input id="et-title" type="text" placeholder="Нарушение связи между подлежащим и сказуемым"
+                 style="width:100%;" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Описание <span style="font-size:12px;color:var(--text-secondary)">(необязательно)</span></label>
+          <textarea id="et-description" rows="2" style="resize:vertical;width:100%;"
+                    placeholder="Краткое пояснение к типу ошибки"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Подтип (категория из теории)</label>
+          <select id="et-subtype" style="width:100%;">
+            <option value="">— не указано —</option>
+            <option value="participial">Причастный оборот</option>
+            <option value="gerund">Деепричастный оборот</option>
+            <option value="appositive">Несогласованное приложение</option>
+            <option value="subject_predicate">Подлежащее и сказуемое</option>
+            <option value="case_form">Предложно-падежная форма</option>
+            <option value="indirect_speech">Косвенная речь</option>
+            <option value="aspect_tense">Видо-временная соотнесённость</option>
+            <option value="complex_sentence">Сложное предложение</option>
+            <option value="homogeneous">Однородные члены</option>
+            <option value="numeral">Числительное</option>
+          </select>
+        </div>
+        <div class="form-group" style="max-width:120px;">
+          <label>Порядок</label>
+          <input id="et-order" type="number" min="0" value="0">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn" onclick="saveErrorType()">Сохранить</button>
+          <button class="btn btn-secondary" onclick="resetEtForm()">Сбросить</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h3>Список типов ошибок</h3>
+      <div id="et-list"><p>Загрузка…</p></div>
+    </div>
+
+  </div><!-- /tab-error-types -->
+
+  <!-- ══ ВКЛАДКА: ЗАДАНИЯ ══════════════════════════════════════ -->
+  <div id="tab-tasks" style="display:none;">
+
+    <div class="admin-section">
+      <h3 id="task-form-title">Создать задание</h3>
+      <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">
+        Задание состоит из 5 слотов (А–Д) с типами ошибок и 9 предложений,
+        5 из которых содержат ошибки соответствующих типов.
+      </p>
+
+      <form id="task-form" class="admin-form" onsubmit="return false;">
+        <input type="hidden" id="task-id">
+
+        <div class="form-group">
+          <label>Источник <span style="font-size:12px;color:var(--text-secondary)">(необязательно)</span></label>
+          <input id="task-source" type="text" placeholder="ФИПИ" autocomplete="off">
+        </div>
+
+        <h4 style="margin:20px 0 12px;">Грамматические ошибки (А–Д)</h4>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+          Выберите тип ошибки для каждого слота и укажите номер предложения (1–9), в котором она допущена.
+          Карточки предложений обновятся автоматически.
+        </p>
+        <div id="slots-container" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+          <% ['А','Б','В','Г','Д'].forEach(s => { %>
+          <div style="display:flex;gap:12px;align-items:center;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:12px 16px;transition:border-color 0.2s;" id="slot-card-<%= s %>">
+            <span style="min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--brand-muted);color:var(--brand);border:1px solid var(--glass-border);border-radius:50%;font:700 13px/1 'Inter',sans-serif;flex-shrink:0;"><%= s %></span>
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+              <select class="slot-select" data-slot="<%= s %>" onchange="onSlotChange('<%= s %>')">
+                <option value="">— тип ошибки —</option>
+              </select>
+            </div>
+            <span style="color:var(--text-secondary);font-size:13px;white-space:nowrap;flex-shrink:0;">предл.</span>
+            <div class="form-group" style="width:64px;flex-shrink:0;margin-bottom:0;">
+              <input class="slot-pos" data-slot="<%= s %>" type="number" min="1" max="9"
+                     placeholder="№" style="text-align:center;padding:10px 8px;"
+                     oninput="onSlotChange('<%= s %>')">
+            </div>
+          </div>
+          <% }) %>
+        </div>
+        <p id="slots-error-msg" style="display:none;font-size:12px;color:var(--color-error);margin-bottom:8px;"></p>
+
+        <h4 style="margin:20px 0 12px;">Предложения (1–9)</h4>
+
+        <!-- ── Быстрый ввод ─────────────────────────────────── -->
+        <details id="bulk-input-details"
+                 style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden;">
+          <summary style="padding:12px 16px;cursor:pointer;font:500 14px/1.4 'Inter',sans-serif;color:var(--brand);list-style:none;display:flex;align-items:center;gap:8px;user-select:none;">
+            <span id="bulk-arrow" style="display:inline-block;transition:transform 0.2s;font-size:11px;">▶</span>
+            Быстрый ввод — вставить все предложения списком
+          </summary>
+          <div style="padding:0 16px 16px;">
+            <p style="font-size:12px;color:var(--text-secondary);margin:8px 0 10px;">
+              Вставьте предложения в формате <code>1) текст</code> или <code>1. текст</code> — по одному на строку.
+              Предложения с ошибками (назначенные слотам А–Д) попадут в поле «Текст с ошибкой», остальные — в «Правильный вариант».
+            </p>
+            <div class="form-group" style="margin-bottom:10px;">
+              <textarea id="bulk-input" rows="10"
+                        placeholder="1) Существование шаровой молнии...&#10;2) Рассуждая над проблемой...&#10;...&#10;9) Писатель, делая акцент..."></textarea>
+            </div>
+            <button class="btn btn-secondary" type="button" onclick="distributeBulkInput()" style="margin-top:0;">
+              Распределить по карточкам
+            </button>
+          </div>
+        </details>
+        <script>
+          document.getElementById('bulk-input-details').addEventListener('toggle', function() {
+            document.getElementById('bulk-arrow').style.transform = this.open ? 'rotate(90deg)' : '';
+          });
+        </script>
+
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+          Предложения с ошибками помечаются автоматически по слотам выше.
+          Для остальных введите только правильный вариант.
+        </p>
+        <div id="sentences-container">
+          <% for(let i=1; i<=9; i++) { %>
+          <div class="sent-row" data-pos="<%= i %>"
+               style="background:var(--glass-bg);backdrop-filter:var(--glass-backdrop);-webkit-backdrop-filter:var(--glass-backdrop);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px;transition:border-color 0.2s ease;">
+
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+              <span style="min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--brand-muted);color:var(--brand);border:1px solid var(--glass-border);border-radius:50%;font:600 13px/1 'Inter',sans-serif;flex-shrink:0;"><%= i %></span>
+              <div class="form-group" style="flex:1;margin-bottom:0;">
+                <select class="sent-error" data-pos="<%= i %>" onchange="onErrorTypeChange(this)" disabled>
+                  <option value="">— нет ошибки (правильное предложение) —</option>
+                </select>
+              </div>
+              <span class="sent-slot-badge" data-pos="<%= i %>"
+                    style="display:none;min-width:28px;height:28px;align-items:center;justify-content:center;background:var(--brand);color:var(--bg-primary);border-radius:50%;font:700 12px/1 'Inter',sans-serif;flex-shrink:0;"></span>
+            </div>
+
+            <div class="sent-error-block" data-pos="<%= i %>"
+                 style="display:none;margin-bottom:10px;padding:10px 12px;background:var(--warn-subtle);border:1px solid var(--warn-border);border-radius:8px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label style="font:500 12px/16px 'Inter',sans-serif;color:var(--text-secondary);margin-bottom:6px;display:block;">
+                  Текст с ошибкой <span style="color:var(--text-disabled)">(как видит ученик)</span>
+                </label>
+                <textarea class="sent-error-text" data-pos="<%= i %>" rows="2"
+                          placeholder="Предложение с грамматической ошибкой"></textarea>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="sent-correct-label" data-pos="<%= i %>"
+                     style="font:500 12px/16px 'Inter',sans-serif;color:var(--text-secondary);margin-bottom:6px;display:block;">
+                Правильный вариант
+              </label>
+              <textarea class="sent-correct-text" data-pos="<%= i %>" rows="2"
+                        placeholder="Правильное предложение №<%= i %>"></textarea>
+            </div>
+
+          </div>
+          <% } %>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button class="btn" onclick="saveTask()">Сохранить задание</button>
+          <button class="btn btn-secondary" onclick="resetTaskForm()">Сбросить</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h3>Готовые задания</h3>
+      <div id="tasks-list"><p>Загрузка…</p></div>
+    </div>
+
+  </div><!-- /tab-tasks -->
+
+</div>
+
+<script>
+// ── Утилиты ──────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).style.display = '';
+  btn.classList.add('active');
+}
+
+// ── Состояние ─────────────────────────────────────────────────
+let errorTypes = [];
+
+const ET_SUBTYPES = {
+  participial:       'Причастный оборот',
+  gerund:            'Деепричастный оборот',
+  appositive:        'Несогласованное приложение',
+  subject_predicate: 'Подлежащее и сказуемое',
+  case_form:         'Предложно-падежная форма',
+  indirect_speech:   'Косвенная речь',
+  aspect_tense:      'Видо-временная соотнесённость',
+  complex_sentence:  'Сложное предложение',
+  homogeneous:       'Однородные члены',
+  numeral:           'Числительное',
+};
+
+// ── Загрузка типов ошибок ─────────────────────────────────────
+async function loadErrorTypes() {
+  const data = await fetch('/api/task8/error-types').then(r => r.json());
+  errorTypes = data;
+  renderEtList();
+  populateErrorSelects();
+}
+
+function renderEtList() {
+  const container = document.getElementById('et-list');
+  if (!errorTypes.length) { container.innerHTML = '<p>Типы ошибок не добавлены.</p>'; return; }
+  container.innerHTML = `
+    <table class="admin-table" style="width:100%;">
+      <thead><tr>
+        <th style="width:40px;">#</th>
+        <th>Название</th>
+        <th>Подтип</th>
+        <th style="width:60px;">Порядок</th>
+        <th style="width:100px;"></th>
+      </tr></thead>
+      <tbody>
+        ${errorTypes.map(et => `
+          <tr>
+            <td>${et.id}</td>
+            <td>
+              <strong>${escHtml(et.title)}</strong>
+              ${et.description ? `<br><span style="font-size:12px;color:var(--text-secondary)">${escHtml(et.description)}</span>` : ''}
+            </td>
+            <td>${et.subtype ? `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;background:var(--brand-muted);color:var(--brand);border:1px solid var(--glass-border);">${escHtml(ET_SUBTYPES[et.subtype]||et.subtype)}</span>` : '<span style="color:var(--text-disabled);font-size:12px;">—</span>'}</td>
+            <td style="text-align:center;">${et.order_index}</td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="editEt(${et.id})">Изменить</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteEt(${et.id})">Удалить</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function populateErrorSelects() {
+  document.querySelectorAll('.slot-select').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— тип ошибки —</option>' +
+      errorTypes.map(et => `<option value="${et.id}" ${et.id == cur ? 'selected' : ''}>${escHtml(et.title)}</option>`).join('');
+  });
+  document.querySelectorAll('.sent-error').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— нет ошибки (правильное предложение) —</option>' +
+      errorTypes.map(et => `<option value="${et.id}" ${et.id == cur ? 'selected' : ''}>${escHtml(et.title)}</option>`).join('');
+  });
+}
+
+// ── CRUD типов ошибок ─────────────────────────────────────────
+function resetEtForm() {
+  document.getElementById('et-id').value = '';
+  document.getElementById('et-title').value = '';
+  document.getElementById('et-description').value = '';
+  document.getElementById('et-subtype').value = '';
+  document.getElementById('et-order').value = '0';
+  document.getElementById('et-form-title').textContent = 'Добавить тип ошибки';
+}
+
+function editEt(id) {
+  const et = errorTypes.find(e => e.id === id);
+  if (!et) return;
+  document.getElementById('et-id').value = et.id;
+  document.getElementById('et-title').value = et.title;
+  document.getElementById('et-description').value = et.description || '';
+  document.getElementById('et-subtype').value = et.subtype || '';
+  document.getElementById('et-order').value = et.order_index;
+  document.getElementById('et-form-title').textContent = 'Редактировать тип ошибки';
+  document.getElementById('et-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function saveErrorType() {
+  const id      = document.getElementById('et-id').value;
+  const title   = document.getElementById('et-title').value.trim();
+  const desc    = document.getElementById('et-description').value.trim();
+  const subtype = document.getElementById('et-subtype').value || null;
+  const order   = parseInt(document.getElementById('et-order').value) || 0;
+  if (!title) { alert('Введите название типа ошибки'); return; }
+
+  const method = id ? 'PUT' : 'POST';
+  const url    = id ? `/api/task8/error-types/${id}` : '/api/task8/error-types';
+  const r = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description: desc || null, order_index: order, subtype })
+  });
+  if (!r.ok) { alert('Ошибка сохранения'); return; }
+  resetEtForm();
+  loadErrorTypes();
+}
+
+async function deleteEt(id) {
+  if (!confirm('Удалить тип ошибки?')) return;
+  await fetch(`/api/task8/error-types/${id}`, { method: 'DELETE' });
+  loadErrorTypes();
+}
+
+// ── Быстрый ввод — разбор списка и распределение по карточкам ─
+function distributeBulkInput() {
+  const raw = document.getElementById('bulk-input').value;
+  if (!raw.trim()) { alert('Вставьте текст предложений'); return; }
+
+  // Парсим: ищем строки вида «N) текст» или «N. текст» (N = 1–9)
+  // Каждый новый «N)» начинает новое предложение; остальные строки — продолжение
+  const map = {};
+  let cur = null;
+  for (const line of raw.split('\n')) {
+    const m = line.match(/^\s*([1-9])[).\.]\s*(.*)/);
+    if (m) {
+      cur = parseInt(m[1]);
+      map[cur] = m[2].trim();
+    } else if (cur && line.trim()) {
+      // Продолжение многострочного предложения
+      map[cur] += ' ' + line.trim();
+    }
+  }
+
+  if (!Object.keys(map).length) {
+    alert('Не удалось распознать предложения.\nОжидаемый формат: «1) текст», «1. текст» и т.п.');
+    return;
+  }
+
+  // Узнаём, какие позиции назначены слотам
+  const slotPositions = new Set();
+  ['А','Б','В','Г','Д'].forEach(s => {
+    const pos = parseInt(document.querySelector(`.slot-pos[data-slot="${s}"]`).value);
+    if (pos >= 1 && pos <= 9) slotPositions.add(pos);
+  });
+
+  let filled = 0;
+  for (const [pos, text] of Object.entries(map)) {
+    const p = parseInt(pos);
+    if (p < 1 || p > 9) continue;
+    if (slotPositions.has(p)) {
+      // Предложение с ошибкой → в «Текст с ошибкой»
+      const errTxt = document.querySelector(`.sent-error-text[data-pos="${p}"]`);
+      if (errTxt) errTxt.value = text;
+    } else {
+      // Правильное предложение → в «Правильный вариант»
+      const corrTxt = document.querySelector(`.sent-correct-text[data-pos="${p}"]`);
+      if (corrTxt) corrTxt.value = text;
+    }
+    filled++;
+  }
+
+  alert(`Распределено ${filled} из 9 предложений.${filled < 9 ? '\nОстальные карточки заполните вручную.' : ''}`);
+  document.getElementById('bulk-input-details').open = false;
+}
+
+// ── Показ/скрытие полей при изменении типа ошибки в карточке ─
+function onErrorTypeChange(sel) {
+  const pos   = sel.dataset.pos;
+  const row   = document.querySelector(`.sent-row[data-pos="${pos}"]`);
+  const block = document.querySelector(`.sent-error-block[data-pos="${pos}"]`);
+  const label = document.querySelector(`.sent-correct-label[data-pos="${pos}"]`);
+  if (sel.value) {
+    block.style.display = '';
+    label.textContent = 'Правильный вариант (для объяснения)';
+    row.style.borderColor = 'var(--brand)';
+    row.style.boxShadow = '0 0 0 1px var(--brand-dim)';
+  } else {
+    block.style.display = 'none';
+    label.textContent = 'Правильный вариант';
+    const errTxt = document.querySelector(`.sent-error-text[data-pos="${pos}"]`);
+    if (errTxt) errTxt.value = '';
+    row.style.borderColor = '';
+    row.style.boxShadow = '';
+  }
+}
+
+// ── Обработчик изменения слота А–Д ────────────────────────────
+function onSlotChange(slot) {
+  validateSlots();
+  rebuildSentenceCards();
+}
+
+// ── Проверка дублей позиций ────────────────────────────────────
+function validateSlots() {
+  const slots = ['А','Б','В','Г','Д'];
+  const positions = [];
+  let msg = '';
+  for (const s of slots) {
+    const pos = parseInt(document.querySelector(`.slot-pos[data-slot="${s}"]`).value);
+    if (!pos) continue;
+    if (positions.includes(pos)) { msg = `Предложение №${pos} назначено двум слотам — исправьте.`; break; }
+    positions.push(pos);
+  }
+  const errEl = document.getElementById('slots-error-msg');
+  errEl.textContent = msg;
+  errEl.style.display = msg ? '' : 'none';
+}
+
+// ── Синхронизация слотов → карточки предложений ───────────────
+function rebuildSentenceCards() {
+  const slots = ['А','Б','В','Г','Д'];
+
+  // Строим карту: номер предложения → {slot, error_type_id}
+  const posMap = {};
+  for (const s of slots) {
+    const errVal = document.querySelector(`.slot-select[data-slot="${s}"]`).value;
+    const posVal = parseInt(document.querySelector(`.slot-pos[data-slot="${s}"]`).value);
+    if (errVal && posVal >= 1 && posVal <= 9) posMap[posVal] = { slot: s, error_type_id: errVal };
+  }
+
+  for (let i = 1; i <= 9; i++) {
+    const errSel = document.querySelector(`.sent-error[data-pos="${i}"]`);
+    const badge  = document.querySelector(`.sent-slot-badge[data-pos="${i}"]`);
+    const slotData = posMap[i];
+
+    if (slotData) {
+      errSel.value    = slotData.error_type_id;
+      errSel.disabled = true;
+      badge.textContent   = slotData.slot;
+      badge.style.display = 'flex';
+    } else {
+      errSel.disabled = false;
+      badge.style.display = 'none';
+      // Сбрасываем только если карточка была от слота (не ручной выбор)
+      if (errSel.dataset.fromSlot) {
+        errSel.value = '';
+        delete errSel.dataset.fromSlot;
+      }
+    }
+    onErrorTypeChange(errSel);
+    if (slotData) errSel.dataset.fromSlot = '1';
+  }
+}
+
+// ── Загрузка заданий ──────────────────────────────────────────
+async function loadTasks() {
+  const data = await fetch('/api/task8/tasks').then(r => r.json());
+  const container = document.getElementById('tasks-list');
+  if (!data.length) { container.innerHTML = '<p>Заданий пока нет.</p>'; return; }
+  container.innerHTML = `
+    <table class="admin-table" style="width:100%;">
+      <thead><tr>
+        <th style="width:50px;">ID</th>
+        <th>Источник</th>
+        <th>Создано</th>
+        <th style="width:150px;"></th>
+      </tr></thead>
+      <tbody>
+        ${data.map(t => `
+          <tr>
+            <td>${t.id}</td>
+            <td>${escHtml(t.source || '—')}</td>
+            <td style="font-size:12px;">${t.created_at ? t.created_at.slice(0,16) : ''}</td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="loadTaskForEdit(${t.id})">Изменить</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteTask(${t.id})">Удалить</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ── Загрузить задание в форму для редактирования ──────────────
+async function loadTaskForEdit(id) {
+  const data = await fetch(`/api/task8/tasks/${id}`).then(r => r.json());
+
+  // Сбрасываем форму и ставим метку редактирования
+  resetTaskForm();
+  document.getElementById('task-id').value = id;
+  document.getElementById('task-source').value = data.source || '';
+  document.getElementById('task-form-title').textContent = `Редактировать задание #${id}`;
+
+  // Восстанавливаем слоты А–Д:
+  // находим позицию каждого слота по совпадению error_type_id в предложениях
+  const errTypeToPos = {};
+  for (const s of data.sentences) {
+    if (s.error_type_id) errTypeToPos[s.error_type_id] = s.position;
+  }
+  for (const e of data.errors) {
+    const sel = document.querySelector(`.slot-select[data-slot="${e.slot}"]`);
+    const posInput = document.querySelector(`.slot-pos[data-slot="${e.slot}"]`);
+    if (sel) sel.value = e.error_type_id;
+    if (posInput && errTypeToPos[e.error_type_id]) posInput.value = errTypeToPos[e.error_type_id];
+  }
+
+  // Синхронизируем карточки предложений по слотам
+  rebuildSentenceCards();
+
+  // Заполняем тексты предложений
+  for (const s of data.sentences) {
+    if (s.error_type_id && s.text) {
+      const errTxt = document.querySelector(`.sent-error-text[data-pos="${s.position}"]`);
+      if (errTxt) errTxt.value = s.text;
+    }
+    const corrTxt = document.querySelector(`.sent-correct-text[data-pos="${s.position}"]`);
+    if (corrTxt) corrTxt.value = s.correct_text || (!s.error_type_id ? s.text : '') || '';
+  }
+
+  switchTab('tasks', document.querySelector('.tab-btn:nth-child(2)'));
+  document.getElementById('task-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── Сохранить задание ─────────────────────────────────────────
+async function saveTask() {
+  const editId = document.getElementById('task-id').value;
+  const source = document.getElementById('task-source').value.trim();
+
+  const SLOTS = ['А','Б','В','Г','Д'];
+
+  // Собираем слоты и позиции
+  const errors = [];
+  const slotPosMap = {}; // pos → error_type_id
+  for (const slot of SLOTS) {
+    const errVal = document.querySelector(`.slot-select[data-slot="${slot}"]`).value;
+    const posVal = parseInt(document.querySelector(`.slot-pos[data-slot="${slot}"]`).value);
+    if (!errVal) { alert(`Выберите тип ошибки для слота ${slot}`); return; }
+    if (!posVal || posVal < 1 || posVal > 9) { alert(`Укажите номер предложения (1–9) для слота ${slot}`); return; }
+    errors.push({ slot, error_type_id: parseInt(errVal) });
+    slotPosMap[posVal] = parseInt(errVal);
+  }
+
+  // Проверяем дублей позиций
+  if (Object.keys(slotPosMap).length < 5) { alert('Два слота указывают на одно и то же предложение'); return; }
+
+  const sentences = [];
+  for (let i = 1; i <= 9; i++) {
+    const errTxtEl  = document.querySelector(`.sent-error-text[data-pos="${i}"]`);
+    const corrTxtEl = document.querySelector(`.sent-correct-text[data-pos="${i}"]`);
+    const errorTypeId = slotPosMap[i] || null;
+    const correctText = corrTxtEl.value.trim();
+
+    if (errorTypeId) {
+      const errorText = errTxtEl.value.trim();
+      if (!errorText)   { alert(`Введите текст с ошибкой для предложения №${i}`);   return; }
+      if (!correctText) { alert(`Введите правильный вариант для предложения №${i}`); return; }
+      sentences.push({ position: i, text: errorText, correct_text: correctText, error_type_id: errorTypeId });
+    } else {
+      if (!correctText) { alert(`Введите текст предложения №${i}`); return; }
+      sentences.push({ position: i, text: correctText, correct_text: null, error_type_id: null });
+    }
+  }
+
+  let r;
+  if (editId) {
+    r = await fetch(`/api/task8/tasks/${editId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: source || null, errors, sentences })
+    });
+  } else {
+    r = await fetch('/api/task8/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: source || null, errors, sentences })
+    });
+  }
+
+  if (!r.ok) { const err = await r.json().catch(() => ({})); alert('Ошибка: ' + (err.error || r.status)); return; }
+  const { id } = await r.json();
+  alert(editId ? `Задание #${id} обновлено!` : `Задание #${id} создано!`);
+  resetTaskForm();
+  loadTasks();
+}
+
+function resetTaskForm() {
+  document.getElementById('task-id').value = '';
+  document.getElementById('task-form-title').textContent = 'Создать задание';
+  document.getElementById('task-source').value = '';
+  document.querySelectorAll('.slot-select').forEach(s => s.value = '');
+  document.querySelectorAll('.slot-pos').forEach(s => s.value = '');
+  document.getElementById('slots-error-msg').style.display = 'none';
+  document.getElementById('bulk-input').value = '';
+  document.getElementById('bulk-input-details').open = false;
+  for (let i = 1; i <= 9; i++) {
+    const errSel = document.querySelector(`.sent-error[data-pos="${i}"]`);
+    errSel.value = '';
+    errSel.disabled = false;
+    delete errSel.dataset.fromSlot;
+    onErrorTypeChange(errSel);
+    const badge = document.querySelector(`.sent-slot-badge[data-pos="${i}"]`);
+    badge.style.display = 'none';
+    document.querySelector(`.sent-correct-text[data-pos="${i}"]`).value = '';
+  }
+}
+
+async function deleteTask(id) {
+  if (!confirm(`Удалить задание #${id}?`)) return;
+  await fetch(`/api/task8/tasks/${id}`, { method: 'DELETE' });
+  loadTasks();
+}
+
+// ── Служебное ─────────────────────────────────────────────────
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Инит ──────────────────────────────────────────────────────
+loadErrorTypes();
+loadTasks();
+</script>

@@ -55,28 +55,33 @@ router.get('/words', (req, res) => {
 
 router.post('/words', (req, res) => {
   const { prefix_display, correct_letter, rule } = req.body;
-  if (!prefix_display || !correct_letter || !rule)
+  if (!prefix_display || correct_letter == null || !rule)
     return res.status(400).json({ error: 'prefix_display, correct_letter и rule обязательны' });
   const { lastInsertRowid } = db.prepare(
     'INSERT INTO task10_words (prefix_display, correct_letter, rule) VALUES (?, ?, ?)'
-  ).run(prefix_display.trim(), correct_letter.trim().toLowerCase(), rule);
+  ).run(prefix_display.trim(), String(correct_letter).trim().toLowerCase(), rule);
   res.json({ id: lastInsertRowid });
 });
 
 router.put('/words/:id', (req, res) => {
   const { prefix_display, correct_letter, rule } = req.body;
-  if (!prefix_display || !correct_letter || !rule)
+  if (!prefix_display || correct_letter == null || !rule)
     return res.status(400).json({ error: 'prefix_display, correct_letter и rule обязательны' });
   const r = db.prepare(
     'UPDATE task10_words SET prefix_display=?, correct_letter=?, rule=? WHERE id=?'
-  ).run(prefix_display.trim(), correct_letter.trim().toLowerCase(), rule, req.params.id);
+  ).run(prefix_display.trim(), String(correct_letter).trim().toLowerCase(), rule, req.params.id);
   if (r.changes === 0) return res.status(404).json({ error: 'Слово не найдено' });
   res.json({ ok: true });
 });
 
 router.delete('/words/:id', (req, res) => {
-  const r = db.prepare('DELETE FROM task10_words WHERE id = ?').run(req.params.id);
-  if (r.changes === 0) return res.status(404).json({ error: 'Слово не найдено' });
+  const id = req.params.id;
+  const word = db.prepare('SELECT id FROM task10_words WHERE id = ?').get(id);
+  if (!word) return res.status(404).json({ error: 'Слово не найдено' });
+  db.transaction(() => {
+    db.prepare('DELETE FROM task10_cells WHERE word_id = ?').run(id);
+    db.prepare('DELETE FROM task10_words WHERE id = ?').run(id);
+  })();
   res.json({ ok: true });
 });
 

@@ -188,7 +188,7 @@ router.delete('/words/:id', (req, res) => {
 
 // GET /api/task4/tasks
 router.get('/tasks', (_req, res) => {
-  res.json(db.prepare('SELECT id, is_generated, created_at FROM task4_tasks ORDER BY created_at DESC').all());
+  res.json(db.prepare('SELECT id, is_generated, created_at FROM task4_tasks WHERE is_practice = 0 ORDER BY created_at DESC').all());
 });
 
 // POST /api/task4/tasks  — создать задание вручную
@@ -352,7 +352,8 @@ router.get('/tasks/:id/solution', (req, res) => {
 
 // POST /api/task4/generate
 router.post('/generate', (req, res) => {
-  let { correct_count, correct_counts, tasks_count = 1, category } = req.body;
+  let { correct_count, correct_counts, tasks_count = 1, category, is_practice = false } = req.body;
+  const practiceFlag = is_practice ? 1 : 0;
 
   let allowedCorrectCounts;
   if (Array.isArray(correct_counts) && correct_counts.length) {
@@ -397,8 +398,8 @@ router.post('/generate', (req, res) => {
         }));
 
         const { lastInsertRowid: taskId } = db.prepare(
-          'INSERT INTO task4_tasks (is_generated) VALUES (1)'
-        ).run();
+          'INSERT INTO task4_tasks (is_generated, is_practice) VALUES (1, ?)'
+        ).run(practiceFlag);
         const ins = db.prepare(
           'INSERT INTO task4_items (task_id, item_index, word_id, is_correct) VALUES (?, ?, ?, ?)'
         );

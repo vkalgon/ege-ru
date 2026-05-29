@@ -1,0 +1,105 @@
+<div class="task-page" id="task6-play">
+  <h2 class="task-page__title">Задание №6 — Лексические нормы</h2>
+  <div class="task17-wrapper">
+    <div class="task9-column">
+      <div id="task6-container">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/task-card-shell.js"></script>
+<script>
+const TASK_ID = <%- taskId %>;
+const UID = 't6-' + TASK_ID;
+const escHtml = TaskCardShell.escHtml;
+
+const SUBTYPE_LABELS = {
+  exclude: 'Отредактируйте предложение: исправьте лексическую ошибку, <strong>исключив лишнее слово</strong>. Выпишите это слово.',
+  replace: 'Отредактируйте предложение: исправьте лексическую ошибку, <strong>заменив употреблённое неверно слово</strong>. Запишите подобранное слово.',
+};
+
+async function loadTask() {
+  const container = document.getElementById('task6-container');
+  try {
+    const res = await fetch(`/api/task6/sentences/${TASK_ID}/play`);
+    if (!res.ok) throw new Error('Задание не найдено');
+    const data = await res.json();
+
+    const instruction = SUBTYPE_LABELS[data.subtype] || SUBTYPE_LABELS.exclude;
+    const bodyHtml = `
+      <p class="task-prompt" style="margin:0 0 16px;">${instruction}</p>
+      <div class="t6-sentence-block">${escHtml(data.sentence)}</div>`;
+
+    const controlsHtml = `
+      <input id="t6-input-${TASK_ID}" class="task-input" type="text"
+             placeholder="Введите слово…"
+             autocomplete="off" autocorrect="off" spellcheck="false">
+      <button id="t6-check-${TASK_ID}" class="task-send">Проверить</button>
+      <a href="/task6" class="btn btn-secondary task9-back-btn">← К списку</a>`;
+
+    container.innerHTML = TaskCardShell.buildCardShell({ taskNum: 6, taskId: TASK_ID, bodyHtml, controlsHtml, uid: UID });
+
+    const input = document.getElementById('t6-input-' + TASK_ID);
+    const btn   = document.getElementById('t6-check-' + TASK_ID);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); btn.click(); } });
+    btn.addEventListener('click', () => checkAnswer(data));
+  } catch (e) {
+    container.innerHTML = `<div class="task-card task17-card"><div class="task-content">
+      <p style="color:#e05c65;margin:0;">${escHtml(e.message)}</p>
+    </div></div>`;
+  }
+}
+
+async function checkAnswer(taskData) {
+  const input = document.getElementById('t6-input-' + TASK_ID);
+  const btn   = document.getElementById('t6-check-' + TASK_ID);
+  const answer = input.value.trim();
+  if (!answer) { input.focus(); return; }
+
+  btn.disabled = true;
+  try {
+    const resp = await fetch(`/api/task6/sentences/${TASK_ID}/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer }),
+    }).then(r => r.json());
+
+    TaskCardShell.lockCard(UID);
+
+    const allAnswers = [resp.correct_answer, ...(resp.alt_answers || [])];
+    const answerLabel = taskData.subtype === 'exclude' ? 'Лишнее слово:' : 'Правильное слово:';
+
+    let html = `<p style="margin:0;font-size:15px;">${escHtml(answerLabel)} <strong style="color:var(--brand);">${escHtml(allAnswers.join(' / '))}</strong></p>`;
+
+    if (resp.explanation) {
+      html += `<p style="margin:8px 0 0;font-size:14px;color:var(--text-secondary);line-height:1.6;">${escHtml(resp.explanation)}</p>`;
+    }
+
+    html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+      <a href="/task6" class="btn btn-secondary">← Другое задание</a>
+      <button class="btn btn-secondary" onclick="location.reload()">Попробовать ещё раз</button>
+    </div>`;
+
+    TaskCardShell.showResult(UID, resp.is_correct, html);
+  } catch {
+    btn.disabled = false;
+    alert('Ошибка при проверке. Попробуйте ещё раз.');
+  }
+}
+
+loadTask();
+</script>
+
+<style>
+.t6-sentence-block {
+  font-size: 16px;
+  line-height: 1.7;
+  padding: 16px 18px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+</style>

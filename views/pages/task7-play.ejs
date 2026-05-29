@@ -39,9 +39,9 @@
   letter-spacing: 0.03em;
 }
 
-.t7-phrase-item.state-error  { border-color: #D69295; }
+.t7-phrase-item.state-error  { border-color: #e05c65; }
 .t7-phrase-item.state-ok     { border-color: var(--brand); }
-.t7-phrase-item.state-error .t7-phrase-num { background: rgba(214,146,149,.2); color: #D69295; }
+.t7-phrase-item.state-error .t7-phrase-num { background: rgba(224,92,101,.2); color: #e05c65; }
 .t7-phrase-item.state-ok    .t7-phrase-num { background: var(--brand-muted); color: var(--brand); }
 </style>
 
@@ -54,7 +54,7 @@ let taskData = null;
 const escHtml = TaskCardShell.escHtml;
 
 function highlightCaps(phrase) {
-  return escHtml(phrase).replace(/\b([А-ЯЁA-Z]{2,})\b/g, '<span class="t7-hl">$1</span>');
+  return escHtml(phrase).replace(/[А-ЯЁA-Z]{2,}/g, '<span class="t7-hl">$&</span>');
 }
 
 function renderPhrasesHtml(items, resultItems) {
@@ -66,7 +66,7 @@ function renderPhrasesHtml(items, resultItems) {
       const ri = resultItems.find(r => r.item_index === it.item_index);
       if (ri && ri.is_error) {
         stateClass = 'state-error';
-        extraHtml = `<div style="margin-top:8px;font-size:13px;color:#D69295;">
+        extraHtml = `<div style="margin-top:8px;font-size:13px;color:#e05c65;">
           Ошибка → правильная форма: <strong style="color:var(--brand)">${escHtml(ri.correct_form)}</strong>
         </div>`;
       } else {
@@ -84,7 +84,7 @@ function renderPhrasesHtml(items, resultItems) {
 function renderCard(task) {
   const bodyHtml = `
     <p class="task-prompt" style="margin:0;">
-      В одном из выделенных ниже слов допущена ошибка в образовании формы слова.
+      В одном из выделенных ниже слов допущена грамматическая ошибка.
       Исправьте ошибку и запишите слово правильно.
     </p>
     <div class="t7-phrases-wrap" id="t7-phrases-${TASK_ID}">
@@ -111,7 +111,7 @@ async function loadTask() {
     initCard();
   } catch (e) {
     container.innerHTML = `<div class="task-card task17-card"><div class="task-content">
-      <p style="color:#D69295;margin:0;">${escHtml(e.message)}</p>
+      <p style="color:#e05c65;margin:0;">${escHtml(e.message)}</p>
     </div></div>`;
   }
 }
@@ -122,10 +122,10 @@ function initCard() {
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); btn.click(); }
   });
-  btn.addEventListener('click', checkAnswer);
+  btn.addEventListener('click', t7CheckAnswer);
 }
 
-async function checkAnswer() {
+async function t7CheckAnswer() {
   const input = document.getElementById('t7-input-' + TASK_ID);
   const btn   = document.getElementById('t7-check-' + TASK_ID);
   const answer = input.value.trim();

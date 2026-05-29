@@ -4,45 +4,7 @@
   <div class="task17-wrapper">
     <div class="task9-column">
 
-  <!-- Фильтры для генерации -->
-  <h3 class="task10-section-title">Сгенерировать задание</h3>
-  <div class="task10-generate-wrap" style="margin-bottom:32px;">
-    <div class="task10-generate-grid">
-      <div class="form-group" style="margin:0;min-width:320px;">
-        <label>Правила</label>
-        <div class="task10-check-grid">
-          <label><input type="checkbox" class="task10-rule-checkbox" value="ъ/ь"> ъ / ь</label>
-          <label><input type="checkbox" class="task10-rule-checkbox" value="з/с"> з / с</label>
-          <label><input type="checkbox" class="task10-rule-checkbox" value="пре/при"> пре / при</label>
-          <label><input type="checkbox" class="task10-rule-checkbox" value="пра/про"> пра / про</label>
-          <label><input type="checkbox" class="task10-rule-checkbox" value="ы/и"> ы / и</label>
-          <label><input type="checkbox" class="task10-rule-checkbox" value="неизменяемые гласные"> неизменяемые гласные</label>
-          <label><input type="checkbox" class="task10-rule-checkbox" value="неизменяемые согласные"> неизменяемые согласные</label>
-        </div>
-        <div style="margin-top:8px;color:var(--text-secondary);font-size:12px;">Если ничего не выбрать, будут использованы любые правила.</div>
-      </div>
-      <div class="form-group" style="margin:0;">
-        <label>Правильных строк</label>
-        <div class="task10-check-grid task10-count-grid">
-          <label><input type="checkbox" class="task10-count-checkbox" value="any_2_4" checked> любое от 2 до 4</label>
-          <label><input type="checkbox" class="task10-count-checkbox" value="2"> 2</label>
-          <label><input type="checkbox" class="task10-count-checkbox" value="3"> 3</label>
-          <label><input type="checkbox" class="task10-count-checkbox" value="4"> 4</label>
-        </div>
-      </div>
-      <div class="form-group" style="margin:0;">
-        <label>Количество заданий</label>
-        <input type="number" id="filter-tasks-count" min="1" max="20" value="1">
-      </div>
-    </div>
-    <div class="task10-generate-actions">
-      <button class="btn" id="btn-generate">Сгенерировать</button>
-    </div>
-  </div>
-
-  <!-- Список заданий -->
   <div>
-    <h3 class="task10-section-title">Все задания</h3>
     <div id="tasks-list" class="task10-task-feed">
       <p style="color:var(--text-secondary);">Загрузка...</p>
     </div>
@@ -129,6 +91,7 @@
 
 <script src="/js/task-play-card.js"></script>
 <script>
+/* ── Tasks feed ── */
 async function loadTasks() {
   const res = await fetch('/api/task10/tasks');
   const tasks = await res.json();
@@ -164,42 +127,6 @@ async function loadTasks() {
     if (root) initTask10Card(root, t.id, play, { standalone: false });
   }
 }
-
-document.getElementById('btn-generate').addEventListener('click', async () => {
-  const btn = document.getElementById('btn-generate');
-  btn.disabled = true;
-  btn.textContent = 'Генерируем...';
-  try {
-    const body = {};
-    const rules = Array.from(document.querySelectorAll('.task10-rule-checkbox:checked')).map(el => el.value);
-    const correctCounts = Array.from(document.querySelectorAll('.task10-count-checkbox:checked')).map(el => el.value);
-    if (rules.length) body.rules = rules;
-    if (!correctCounts.length) { alert('Выберите количество правильных строк'); return; }
-    body.correct_counts = correctCounts;
-    body.tasks_count = +document.getElementById('filter-tasks-count').value || 1;
-    const res = await fetch('/api/task10/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (data.error) { alert(data.error); return; }
-    await loadTasks();
-    location.href = `/task10/${data.id}`;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Сгенерировать';
-  }
-});
-
-document.querySelectorAll('.task10-count-checkbox').forEach((checkbox) => {
-  checkbox.addEventListener('change', () => {
-    if (!checkbox.checked) return;
-    document.querySelectorAll('.task10-count-checkbox').forEach((other) => {
-      if (other !== checkbox) other.checked = false;
-    });
-  });
-});
 
 loadTasks();
 </script>

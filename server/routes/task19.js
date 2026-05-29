@@ -15,6 +15,46 @@ function parseRuleTypes(json) {
   try { return JSON.parse(json || '[]') || []; } catch { return []; }
 }
 
+function autoExplanation(sourceText, positions) {
+  if (!sourceText?.trim() || !positions?.length) return null;
+  const posSet = new Set(positions.map(Number));
+
+  const sentence = sourceText
+    .replace(/\s*\((\d+)\)\s*/g, (_, n) => posSet.has(Number(n)) ? ', ' : ' ')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([.,;:!?])/g, '$1')
+    .replace(/,\s*,/g, ',')
+    .trim();
+
+  const markers = [];
+  const re = /\((\d+)\)/g;
+  let m;
+  while ((m = re.exec(sourceText)) !== null)
+    markers.push({ num: +m[1], start: m.index, end: m.index + m[0].length });
+
+  const pairs = [];
+  for (let i = 0; i < markers.length - 1; i++) {
+    const a = markers[i], b = markers[i + 1];
+    const between = sourceText.slice(a.end, b.start).trim().toLowerCase();
+    if (/^(и|или)$/.test(between) && !posSet.has(a.num) && !posSet.has(b.num))
+      pairs.push([a.num, b.num]);
+  }
+  const pairedSet = new Set(pairs.flat());
+
+  let html = `<p>${sentence}</p>`;
+
+  const commaOther = positions.filter(n => !pairedSet.has(n));
+  if (commaOther.length === 1)
+    html += `<p>На месте цифры ${commaOther[0]} нужна запятая.</p>`;
+  else if (commaOther.length > 1)
+    html += `<p>На месте цифр ${commaOther.slice(0, -1).join(', ')} и ${commaOther.at(-1)} нужны запятые.</p>`;
+
+  for (const [n, k] of pairs)
+    html += `<p>На месте цифр ${n} и ${k} запятая не нужна — придаточные предложения однородные, соединены одиночным союзом И.</p>`;
+
+  return html;
+}
+
 function getFullTask(taskId) {
   const task = db.prepare('SELECT * FROM task19_tasks WHERE id = ?').get(taskId);
   if (!task) return null;
@@ -31,7 +71,7 @@ function getFullTask(taskId) {
 // GET /api/task19/tasks
 router.get('/tasks', (_req, res) => {
   const tasks = db.prepare(`
-    SELECT t.id, t.source_text, t.source, t.rule_types_json, t.created_at,
+    SELECT t.id, t.source_text, t.source, t.rule_types_json, t.explanation_md, t.created_at,
            a.comma_positions_json
     FROM task19_tasks t
     LEFT JOIN task19_answer a ON a.task_id = t.id
@@ -112,18 +152,18 @@ router.delete('/tasks/:id', (req, res) => {
 
 // GET /api/task19/tasks/:id/play — задание без ответов
 router.get('/tasks/:id/play', (req, res) => {
-  const task = db.prepare(
-    'SELECT id, source_text, source, rule_types_json, explanation_md FROM task19_tasks WHERE id = ?'
-  ).get(req.params.id);
+  const task = getFullTask(req.params.id);
   if (!task) return res.status(404).json({ error: 'Задание не найдено' });
 
   const markers = (task.source_text.match(/\(\d+\)/g) || []).map(m => parseInt(m.slice(1, -1)));
   res.json({
-    id:          task.id,
-    source_text: task.source_text,
-    source:      task.source,
-    rule_types:  parseRuleTypes(task.rule_types_json),
+    id:              task.id,
+    source_text:     task.source_text,
+    source:          task.source,
+    rule_types:      task.rule_types,
     markers,
+    explanation_md:  task.explanation_md || autoExplanation(task.source_text, task.comma_positions),
+    comma_positions: task.comma_positions,
   });
 });
 
@@ -151,7 +191,7 @@ router.post('/tasks/:id/check', (req, res) => {
     is_correct:       positionResults.every(p => p.is_correct),
     comma_positions:  task.comma_positions,
     position_results: positionResults,
-    explanation_md:   task.explanation_md,
+    explanation_md:   task.explanation_md || autoExplanation(task.source_text, task.comma_positions),
   });
 });
 

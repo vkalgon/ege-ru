@@ -4,11 +4,11 @@
 </div>
 
 <style>
-  .t16-tabs { display:flex; gap:0; border-bottom:2px solid var(--glass-border); margin-bottom:24px; }
+  .t16-tabs { display:flex; gap:0; border-bottom:1px solid var(--glass-border); margin-bottom:24px; }
   .t16-tab {
     padding:8px 20px; cursor:pointer; font-size:14px;
     border:none; background:none; color:var(--text-secondary);
-    border-bottom:2px solid transparent; margin-bottom:-2px;
+    border-bottom:1px solid transparent; margin-bottom:-2px;
     font-family:inherit; transition:color 0.15s, border-color 0.15s;
   }
   .t16-tab.active { color:var(--brand); border-bottom-color:var(--brand); }
@@ -31,7 +31,7 @@
   .t16-btn { padding:8px 16px; border-radius:7px; border:none; cursor:pointer; font-size:14px; font-family:inherit; transition:opacity 0.15s; }
   .t16-btn:hover { opacity:0.85; }
   .t16-btn-primary { background:var(--brand); color:var(--bg-primary); }
-  .t16-btn-danger  { background:#D69295; color:#fff; padding:5px 10px; font-size:12px; }
+  .t16-btn-danger  { background:#e05c65; color:#fff; padding:5px 10px; font-size:12px; }
   .t16-btn-edit    { background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); padding:5px 10px; font-size:12px; }
 
   .t16-row {
@@ -65,11 +65,13 @@ const { useState, useEffect, useRef } = React;
 
 /* ── Константы ─────────────────────────────────────────────── */
 const RULE_TYPES = [
-  { value:'homogeneous',    label:'Однородные члены',           color:'#4a9eff' },
-  { value:'ssp',            label:'ССП',                        color:'#ff8c42' },
-  { value:'double_union',   label:'Двойной союз (как...так и)', color:'#A4E2D0' },
-  { value:'repeated_union', label:'Повторяющийся союз (и...и)', color:'#c084fc' },
-  { value:'none',           label:'Ловушка (запятая не нужна)', color:'#a0a0a0' },
+  { value:'homogeneous',    label:'Однородные члены',              color:'#4a9eff' },
+  { value:'ssp',            label:'ССП',                           color:'#ff8c42' },
+  { value:'double_union',   label:'Двойной союз (как...так и)',    color:'#A4E2D0' },
+  { value:'repeated_union', label:'Повторяющийся союз (и...и)',    color:'#c084fc' },
+  { value:'paired',         label:'Попарное соединение',           color:'#f4c542' },
+  { value:'adversative',    label:'Противительный союз (но, а)',   color:'#f87171' },
+  { value:'none',           label:'Ловушка (запятая не нужна)',    color:'#a0a0a0' },
 ];
 const RULE_COLORS = Object.fromEntries(RULE_TYPES.map(r => [r.value, r.color]));
 const RULE_LABELS = Object.fromEntries(RULE_TYPES.map(r => [r.value, r.label]));
@@ -152,9 +154,9 @@ function SentencesTab() {
     <div>
       {msg && (
         <div style={{ padding:'10px 14px', borderRadius:'8px', marginBottom:'16px',
-          background: msg.ok ? 'rgba(164,226,208,0.15)' : 'rgba(214,146,149,0.15)',
-          color: msg.ok ? '#A4E2D0' : '#D69295',
-          border:`1px solid ${msg.ok ? 'rgba(164,226,208,0.4)' : 'rgba(214,146,149,0.4)'}` }}>
+          background: msg.ok ? 'rgba(164,226,208,0.15)' : 'rgba(224,92,101,0.15)',
+          color: msg.ok ? '#A4E2D0' : '#e05c65',
+          border:`1px solid ${msg.ok ? 'rgba(164,226,208,0.4)' : 'rgba(224,92,101,0.4)'}` }}>
           {msg.t}
         </div>
       )}
@@ -186,7 +188,7 @@ function SentencesTab() {
                 <label key={r.value} style={{
                   display:'flex', alignItems:'center', gap:'6px', cursor:'pointer',
                   padding:'5px 12px', borderRadius:'20px', fontSize:'13px',
-                  border:`1.5px solid ${checked ? r.color : 'var(--glass-border)'}`,
+                  border:`1px solid ${checked ? r.color : 'var(--glass-border)'}`,
                   background: checked ? `${r.color}20` : 'var(--bg-primary)',
                   color: checked ? r.color : 'var(--text-primary)',
                   transition:'all 0.15s',
@@ -320,9 +322,9 @@ function TasksTab() {
     <div>
       {msg && (
         <div style={{ padding:'10px 14px', borderRadius:'8px', marginBottom:'16px',
-          background: msg.ok ? 'rgba(164,226,208,0.15)' : 'rgba(214,146,149,0.15)',
-          color: msg.ok ? '#A4E2D0' : '#D69295',
-          border:`1px solid ${msg.ok ? 'rgba(164,226,208,0.4)' : 'rgba(214,146,149,0.4)'}` }}>
+          background: msg.ok ? 'rgba(164,226,208,0.15)' : 'rgba(224,92,101,0.15)',
+          color: msg.ok ? '#A4E2D0' : '#e05c65',
+          border:`1px solid ${msg.ok ? 'rgba(164,226,208,0.4)' : 'rgba(224,92,101,0.4)'}` }}>
           {msg.t}
         </div>
       )}

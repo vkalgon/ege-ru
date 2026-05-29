@@ -1,0 +1,371 @@
+<div class="task-page">
+  <h2 class="task-page__title">Задание №8 — Синтаксические нормы</h2>
+  <div class="task17-wrapper">
+    <div class="task9-column task9-feed-inner">
+      <div style="margin-bottom:24px;">
+        <a href="/task8/theory" class="btn btn-secondary">Теория</a>
+      </div>
+      <div id="tasks-feed" style="display:flex;flex-direction:column;gap:32px;">
+        <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+
+/* ── Список ошибок ── */
+.t8-errors {
+  display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px;
+}
+.t8-error-row {
+  display: flex; gap: 10px; align-items: baseline;
+  font-size: 14px; line-height: 1.6; color: var(--text-primary);
+}
+.t8-error-letter {
+  min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  background: var(--brand-muted); color: var(--brand);
+  border: 1px solid var(--glass-border); border-radius: 50%;
+  font: 700 12px/1 'Inter',sans-serif; flex-shrink: 0; margin-top: 2px;
+}
+
+/* ── Предложения ── */
+.t8-sentences { display: flex; flex-direction: column; gap: 0; margin-bottom: 24px; }
+.t8-sentence {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--glass-border);
+  transition: opacity .2s;
+}
+.t8-sentences .t8-sentence:first-child { border-top: 1px solid var(--glass-border); }
+.t8-sentence.used { opacity: .4; }
+.t8-pos {
+  font: 700 13px/1 'Inter',sans-serif; flex-shrink: 0;
+  transition: color .2s;
+  color: var(--text-secondary);
+  min-width: 18px;
+}
+.t8-pos.selected { color: var(--color-error); }
+.t8-pos.ok  { color: var(--color-success); }
+.t8-pos.err { color: var(--color-error); }
+.t8-sentence-text { flex: 1; font-size: 14px; color: var(--text-primary); line-height: 1.6; }
+
+/* ── Таблица ответов ── */
+.t8-answer-table {
+  width: 100%; border-collapse: collapse; margin-bottom: 20px;
+  table-layout: fixed;
+}
+.t8-answer-table th {
+  padding: 10px 6px; text-align: center;
+  background: var(--brand-muted); color: var(--brand);
+  font: 700 15px/1 'Inter',sans-serif;
+  border: 1px solid var(--glass-border);
+}
+.t8-answer-table th:first-child { border-radius: 8px 0 0 0; }
+.t8-answer-table th:last-child  { border-radius: 0 8px 0 0; }
+.t8-answer-table td {
+  padding: 6px; border: 1px solid var(--glass-border);
+  background: var(--bg-secondary);
+}
+.t8-answer-table tr:last-child td:first-child { border-radius: 0 0 0 8px; }
+.t8-answer-table tr:last-child td:last-child  { border-radius: 0 0 8px 0; }
+.t8-ans-input {
+  display: block; width: 100%; box-sizing: border-box;
+  text-align: center; padding: 8px 4px !important;
+  font: 700 18px/1 'Inter',sans-serif;
+  background: transparent; border: none !important; outline: none;
+  color: var(--text-primary);
+  -moz-appearance: textfield;
+}
+.t8-ans-input::-webkit-inner-spin-button,
+.t8-ans-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.t8-ans-input:disabled { opacity: .7; cursor: default; }
+.t8-ans-input:focus { background: var(--brand-muted); }
+.t8-answer-table td.ok  { background: rgba(164,226,208,.12); border-color: rgba(164,226,208,.4); }
+.t8-answer-table td.err { background: rgba(224,92,101,.1);  border-color: rgba(224,92,101,.4); }
+.t8-ans-correct {
+  display: block; text-align: center;
+  font: 600 13px/1 'Inter',sans-serif; color: var(--color-success);
+  padding: 4px 0 2px; display: none;
+}
+
+/* ── Решение ── */
+.t8-solution-panel { margin-bottom: 16px; border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; }
+.t8-sol-row { padding: 14px 16px; border-bottom: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 8px; }
+.t8-sol-row:last-child { border-bottom: none; }
+.t8-sol-header { display: flex; align-items: center; gap: 10px; }
+.t8-sol-slot { min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: var(--brand-muted); color: var(--brand); border: 1px solid var(--glass-border); border-radius: 50%; font: 700 12px/1 'Inter',sans-serif; flex-shrink: 0; }
+.t8-sol-pos { font: 700 18px/1 'Inter',sans-serif; color: var(--brand); min-width: 20px; }
+.t8-sol-title { font-size: 13px; color: var(--text-secondary); }
+.t8-sol-orig { font-size: 14px; line-height: 1.5; color: var(--text-primary); padding: 8px 12px; background: rgba(224,92,101,.06); border-radius: 6px; border-left: 3px solid var(--color-error); }
+.t8-sol-correct { font-size: 14px; line-height: 1.5; color: var(--text-primary); padding: 8px 12px; background: rgba(164,226,208,.06); border-radius: 6px; border-left: 3px solid var(--color-success); }
+
+/* ── Баннер ── */
+.t8-banner {
+  padding: 12px 16px; border-radius: 10px; margin-bottom: 16px;
+  font: 600 15px/1.4 'Inter',sans-serif; text-align: center;
+}
+.t8-banner.perfect { background: rgba(164,226,208,.12); border: 1px solid rgba(164,226,208,.35); color: var(--color-success); }
+.t8-banner.good    { background: var(--brand-muted);    border: 1px solid var(--glass-border);   color: var(--brand); }
+.t8-banner.fail    { background: rgba(224,92,101,.08); border: 1px solid rgba(224,92,101,.3);  color: var(--color-error); }
+</style>
+
+<script>
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Рендер карточки ──────────────────────────────────────────
+function renderT8Card(id, task) {
+  const errorsHTML = task.errors.map(e => `
+    <div class="t8-error-row">
+      <span class="t8-error-letter">${e.slot}</span>
+      <span>${esc(e.error_title)}</span>
+    </div>`).join('');
+
+  const sentencesHTML = task.sentences.map(s => `
+    <div class="t8-sentence" id="t8s-${id}-${s.position}">
+      <span class="t8-pos" id="t8p-${id}-${s.position}">${s.position}</span>
+      <span class="t8-sentence-text">${esc(s.text)}</span>
+    </div>`).join('');
+
+  const thCells = task.errors.map(e => `<th>${e.slot}</th>`).join('');
+  const tdCells = task.errors.map(e => `
+    <td id="t8td-${id}-${e.slot}">
+      <input class="t8-ans-input" type="number" min="1" max="9"
+             id="t8i-${id}-${e.slot}" placeholder="—"
+             oninput="t8Input(${id},'${e.slot}',this.value)">
+      <span class="t8-ans-correct" id="t8c-${id}-${e.slot}"></span>
+    </td>`).join('');
+
+  return `
+    <div class="task-card task17-card" id="t8card-${id}">
+      <div class="task-meta">
+        <span class="task-meta__number">№ 8</span>
+        <span class="task-meta__source">Задание #${id}${task.source ? ` — ${esc(task.source)}` : ''}</span>
+        <span class="task-status-pill" id="t8status-${id}">Не решено</span>
+      </div>
+
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin:0 0 16px;">
+        Установите соответствие между грамматическими ошибками и предложениями, в которых они допущены:
+        к каждой позиции первого столбца подберите соответствующую позицию из второго столбца.
+      </p>
+      <div style="font:600 11px/1 'Inter',sans-serif;letter-spacing:.08em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:10px;">Грамматические ошибки</div>
+      <div class="t8-errors">${errorsHTML}</div>
+      <div style="font:600 11px/1 'Inter',sans-serif;letter-spacing:.08em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:10px;">Предложения</div>
+      <div class="t8-sentences">${sentencesHTML}</div>
+
+      <table class="t8-answer-table"><thead><tr>${thCells}</tr></thead>
+        <tbody><tr>${tdCells}</tr></tbody>
+      </table>
+
+      <div id="t8ban-${id}" style="display:none;"></div>
+      <div id="t8sol-${id}" class="t8-solution-panel" style="display:none;"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="task-send" id="t8btn-${id}" onclick="t8Check(${id})">Проверить</button>
+        <button class="task-solution" id="t8solbtn-${id}" onclick="t8ToggleSolution(${id})">
+          <span>Решение</span>
+          <img src="/images/eye off.svg" alt="" width="16" height="16" id="t8soleye-${id}">
+        </button>
+        <button class="btn btn-secondary" id="t8rst-${id}" onclick="t8ResetCard(${id})" style="display:none;">Попробовать ещё раз</button>
+      </div>
+    </div>`;
+}
+
+// ── Отслеживаем текущие значения ─────────────────────────────
+const t8State = {}; // taskId → { slot → pos }
+
+function t8Input(id, slot, raw) {
+  if (!t8State[id]) t8State[id] = {};
+  const prev = t8State[id][slot];
+  const pos  = parseInt(raw);
+
+  // Снимаем старую подсветку этого слота
+  if (prev) {
+    const stillUsed = Object.entries(t8State[id]).some(([s, p]) => s !== slot && p === prev);
+    if (!stillUsed) {
+      document.getElementById(`t8p-${id}-${prev}`)?.classList.remove('selected');
+      document.getElementById(`t8s-${id}-${prev}`)?.classList.remove('used');
+    }
+  }
+
+  if (pos >= 1 && pos <= 9) {
+    t8State[id][slot] = pos;
+    document.getElementById(`t8p-${id}-${pos}`)?.classList.add('selected');
+    document.getElementById(`t8s-${id}-${pos}`)?.classList.add('used');
+  } else {
+    delete t8State[id][slot];
+  }
+}
+
+// ── Проверка ─────────────────────────────────────────────────
+async function t8Check(id) {
+  const inputs = document.querySelectorAll(`#t8card-${id} .t8-ans-input`);
+  const answers = {};
+  for (const inp of inputs) {
+    const slot = inp.id.replace(`t8i-${id}-`, '');
+    const val  = parseInt(inp.value);
+    if (!val || val < 1 || val > 9) { alert(`Введите номер предложения для слота ${slot}`); return; }
+    answers[slot] = val;
+  }
+  const vals = Object.values(answers);
+  if (new Set(vals).size < vals.length) { alert('Каждому слоту должно соответствовать разное предложение'); return; }
+
+  const res = await fetch(`/api/task8/tasks/${id}/check`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ answers })
+  });
+  t8ShowResult(id, await res.json());
+}
+
+function t8ShowResult(id, result) {
+  // Блокируем инпуты, снимаем подсветку
+  document.querySelectorAll(`#t8card-${id} .t8-ans-input`).forEach(i => i.disabled = true);
+  for (let p = 1; p <= 9; p++) {
+    document.getElementById(`t8p-${id}-${p}`)?.classList.remove('selected');
+    document.getElementById(`t8s-${id}-${p}`)?.classList.remove('used');
+  }
+
+  // Раскрашиваем ячейки и позиции
+  for (const [slot, d] of Object.entries(result.details)) {
+    const tdEl   = document.getElementById(`t8td-${id}-${slot}`);
+    const posEl  = document.getElementById(`t8p-${id}-${d.correct_position}`);
+    const corrEl = document.getElementById(`t8c-${id}-${slot}`);
+    if (d.ok) {
+      tdEl?.classList.add('ok');
+      posEl?.classList.add('ok');
+    } else {
+      tdEl?.classList.add('err');
+      posEl?.classList.add('err');
+      if (corrEl) { corrEl.textContent = d.correct_position; corrEl.style.display = 'block'; }
+    }
+  }
+
+  // Баннер
+  const { correct, total } = result;
+  const pill8 = document.getElementById(`t8status-${id}`);
+  if (pill8) {
+    pill8.textContent = correct === total ? 'Верно' : 'Неверно';
+    pill8.className = 'task-status-pill ' + (correct === total ? 'task-status-pill--correct' : 'task-status-pill--incorrect');
+  }
+
+  const ban = document.getElementById(`t8ban-${id}`);
+  ban.style.display = '';
+  ban.className = `t8-banner ${correct===total ? 'perfect' : correct>=3 ? 'good' : 'fail'}`;
+  ban.textContent = correct===total
+    ? `Верно! Все ${total} из ${total}.`
+    : `${correct} из ${total} верно.`;
+
+  document.getElementById(`t8btn-${id}`).style.display = 'none';
+  document.getElementById(`t8rst-${id}`).style.display = '';
+  ban.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+const T8_SUBTYPES = {
+  participial:       'Причастный оборот',
+  gerund:            'Деепричастный оборот',
+  appositive:        'Несогласованное приложение',
+  subject_predicate: 'Подлежащее и сказуемое',
+  case_form:         'Предложно-падежная форма',
+  indirect_speech:   'Косвенная речь',
+  aspect_tense:      'Видо-временная соотнесённость',
+  complex_sentence:  'Сложное предложение',
+  homogeneous:       'Однородные члены',
+  numeral:           'Числительное',
+};
+
+// ── Diff двух предложений (по словам) ────────────────────────
+function t8Diff(a, b) {
+  const ta = a.split(' '), tb = b.split(' ');
+  const m = ta.length, n = tb.length;
+  const dp = Array.from({length: m+1}, () => new Array(n+1).fill(0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = ta[i-1] === tb[j-1] ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
+  let i = m, j = n;
+  const ar = [], br = [];
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && ta[i-1] === tb[j-1]) { ar.unshift([ta[i-1],0]); br.unshift([tb[j-1],0]); i--; j--; }
+    else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { br.unshift([tb[j-1],1]); j--; }
+    else { ar.unshift([ta[i-1],1]); i--; }
+  }
+  const render = parts => parts.map(([w,ch]) => ch ? `<strong>${esc(w)}</strong>` : esc(w)).join(' ');
+  return { origHtml: render(ar), corrHtml: render(br) };
+}
+
+// ── Решение ──────────────────────────────────────────────────
+const t8SolCache = {};
+
+async function t8ToggleSolution(id) {
+  const panel  = document.getElementById(`t8sol-${id}`);
+  const eye    = document.getElementById(`t8soleye-${id}`);
+  const isOpen = panel.style.display !== 'none';
+
+  if (isOpen) {
+    panel.style.display = 'none';
+    eye.src = '/images/eye off.svg';
+    return;
+  }
+
+  if (!t8SolCache[id]) {
+    panel.innerHTML = '<p style="color:var(--text-secondary);padding:16px;margin:0;">Загрузка…</p>';
+    panel.style.display = '';
+    t8SolCache[id] = await fetch(`/api/task8/tasks/${id}/solution`).then(r => r.json());
+  }
+
+  panel.innerHTML = t8SolCache[id].slots.map(s => {
+    const diff    = s.error_text && s.correct_text ? t8Diff(s.error_text, s.correct_text) : null;
+    const subtag  = s.subtype && T8_SUBTYPES[s.subtype]
+      ? `<span style="font-size:11px;padding:2px 7px;border-radius:4px;background:var(--brand-muted);color:var(--brand);border:1px solid var(--glass-border);white-space:nowrap;">${esc(T8_SUBTYPES[s.subtype])}</span>`
+      : '';
+    return `
+    <div class="t8-sol-row">
+      <div class="t8-sol-header">
+        <span class="t8-sol-slot">${s.slot}</span>
+        <span class="t8-sol-pos">${s.correct_position}</span>
+        <span class="t8-sol-title">${esc(s.error_title)}</span>
+        ${subtag}
+      </div>
+      ${s.error_text  ? `<div class="t8-sol-orig">${diff ? diff.origHtml : esc(s.error_text)}</div>` : ''}
+      ${s.correct_text ? `<div class="t8-sol-correct">${diff ? diff.corrHtml : esc(s.correct_text)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  panel.style.display = '';
+  eye.src = '/images/eye on.svg';
+}
+
+// ── Сброс ────────────────────────────────────────────────────
+function t8ResetCard(id) {
+  document.querySelectorAll(`#t8card-${id} .t8-ans-input`).forEach(i => {
+    i.value = ''; i.disabled = false;
+  });
+  document.querySelectorAll(`#t8card-${id} .t8-answer-table td`).forEach(td => td.classList.remove('ok','err'));
+  document.querySelectorAll(`#t8card-${id} .t8-ans-correct`).forEach(el => { el.textContent=''; el.style.display='none'; });
+  for (let p = 1; p <= 9; p++) {
+    document.getElementById(`t8p-${id}-${p}`)?.classList.remove('selected','ok','err');
+    document.getElementById(`t8s-${id}-${p}`)?.classList.remove('used');
+  }
+  document.getElementById(`t8ban-${id}`).style.display = 'none';
+  document.getElementById(`t8sol-${id}`).style.display = 'none';
+  document.getElementById(`t8soleye-${id}`).src = '/images/eye off.svg';
+  document.getElementById(`t8btn-${id}`).style.display = '';
+  document.getElementById(`t8rst-${id}`).style.display = 'none';
+  delete t8State[id];
+}
+
+// ── Загрузка ─────────────────────────────────────────────────
+async function loadTasks() {
+  const feed = document.getElementById('tasks-feed');
+  const tasks = await fetch('/api/task8/tasks').then(r => r.json()).catch(() => []);
+  if (!tasks.length) {
+    feed.innerHTML = '<p style="color:var(--text-secondary);margin:0;">Задания пока не добавлены.</p>';
+    return;
+  }
+  const plays = await Promise.all(
+    tasks.map(t => fetch(`/api/task8/tasks/${t.id}/play`).then(r => r.ok ? r.json() : null))
+  );
+  const html = plays.map((p, i) => p ? renderT8Card(tasks[i].id, p) : '').join('');
+  feed.innerHTML = html || '<p style="color:var(--text-secondary);">Не удалось загрузить задания.</p>';
+}
+
+loadTasks();
+</script>

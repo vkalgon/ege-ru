@@ -1,0 +1,290 @@
+/* ===== HOME: ГЕНЕРАТОР ВАРИАНТОВ ===== */
+.home-variant {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.variant-button {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 32px;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.variant-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--brand-ripple), transparent);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s ease, height 0.5s ease;
+}
+
+.variant-button:hover::before {
+  width: 600px;
+  height: 300px;
+}
+
+.variant-button:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: var(--shadow-neon), var(--shadow-glass);
+  transform: translateY(-2px);
+  color: var(--neon-cyan);
+}
+
+.variant-button:active {
+  transform: translateY(0);
+}
+
+.variant-button__icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.variant-button__text {
+  font-size: 18px;
+  font-weight: 700;
+  position: relative;
+}
+
+.variant-button__sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-left: auto;
+  position: relative;
+  white-space: nowrap;
+}
+
+/* ===== HOME: ПРЕЗЕНТАЦИЯ ДИПЛОМА ===== */
+.home-presentation {
+  margin-bottom: 32px;
+  width: 100%;
+}
+
+.presentation-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px 32px;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  font: 600 18px/24px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.presentation-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--brand-ripple), transparent);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s ease, height 0.5s ease;
+}
+
+.presentation-button:hover::before {
+  width: 280px;
+  height: 280px;
+}
+
+.presentation-button:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: var(--shadow-neon), var(--shadow-glass);
+  transform: translateY(-2px);
+  color: var(--neon-cyan);
+}
+
+.presentation-button:active {
+  transform: translateY(0);
+}
+
+.presentation-button__icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.presentation-button__text {
+  white-space: nowrap;
+}
+
+.presentation-button--back {
+  margin-top: 24px;
+}
+
+/* Страница презентации */
+.presentation-page {
+  max-width: 640px;
+}
+
+.presentation-page__title {
+  margin-bottom: 16px;
+}
+
+.presentation-page__intro {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+/* ===== TASK LIST ===== */
+.task-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Специфичный стиль для страницы заданий - список в колонку */
+.task-page .task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.task-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 48px;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  font: 700 32px/40px "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.task-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--brand-strong), transparent);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s ease, height 0.5s ease;
+}
+
+.task-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.task-button:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: var(--shadow-neon), var(--shadow-glass);
+  transform: translateY(-4px) scale(1.02);
+  color: var(--neon-cyan);
+}
+
+.task-button:active {
+  transform: translateY(-2px) scale(1);
+}
+
+/* ===== SUBTOPICS PAGE ===== */
+.subtopics-page {
+  max-width: 800px;
+}
+
+.subtopics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.subtopic-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-glass);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid var(--glass-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.subtopic-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--neon-cyan);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.subtopic-card:hover::before {
+  transform: scaleX(1);
+}
+
+.subtopic-card:hover {
+  box-shadow: var(--shadow-neon), var(--shadow-glass);
+  border-color: var(--neon-cyan);
+  transform: translateY(-4px);
+  background: var(--bg-secondary);
+}
+
+.subtopic-card__title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.subtopic-card__count {
+  font-size: 14px;
+  color: var(--neon-cyan);
+  font-weight: 600;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}

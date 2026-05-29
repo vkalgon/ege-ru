@@ -4,6 +4,7 @@
   <div class="admin-task-tabs-bar">
     <button class="tab-btn active" onclick="switchTab('words',this)">Банк слов</button>
     <button class="tab-btn" onclick="switchTab('generate',this)">Задания</button>
+    <button class="tab-btn" onclick="switchTab('import',this)">Импорт</button>
   </div>
 
   <!-- ══ ВКЛАДКА: БАНК СЛОВ ══════════════════════════════════ -->
@@ -18,12 +19,12 @@
           <div class="form-group" style="flex:1;min-width:180px;">
             <label>Правильная форма</label>
             <input id="word-correct" type="text" placeholder="МАНЖЕТ" autocomplete="off"
-                   oninput="updateWordPreview()">
+                   oninput="this.value=this.value.toUpperCase();updateWordPreview()">
           </div>
           <div class="form-group" style="flex:1;min-width:180px;">
-            <label>Ошибочная форма</label>
-            <input id="word-error" type="text" placeholder="МАНЖЕТОВ" autocomplete="off"
-                   oninput="updateWordPreview()">
+            <label>Ошибочная форма <span style="color:var(--text-secondary);font-weight:400;">(необязательно)</span></label>
+            <input id="word-error" type="text" placeholder="МАНЖЕТОВ (необязательно)" autocomplete="off"
+                   oninput="this.value=this.value.toUpperCase();updateWordPreview()">
           </div>
         </div>
 
@@ -79,6 +80,51 @@
       <div id="tasks-list"></div>
     </div>
   </div>
+
+  <!-- ══ ВКЛАДКА: ИМПОРТ ════════════════════════════════════ -->
+  <div id="tab-import" style="display:none;">
+
+    <div class="admin-section">
+      <h3>Импорт задания из текста</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+        Вставьте 5 строк задания с ЗАГЛАВНЫМИ словами. Система найдёт слова в банке и подскажет, что добавить.
+      </p>
+
+      <div class="form-group" style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:6px;">Текст задания (5 строк)</label>
+        <textarea id="imp-text" rows="5"
+          style="width:100%;resize:vertical;font-size:14px;padding:12px;
+                 background:var(--bg-primary);border:1px solid var(--glass-border);
+                 border-radius:8px;color:var(--text-primary);font-family:inherit;line-height:1.8;"
+          placeholder="в ОДНОЙ кроссовке&#10;ПОЛОЩЕТ бельё&#10;в ПОЛУТОРАХ метрах&#10;проект СПАЛЕН&#10;нет ДЫНЬ"></textarea>
+      </div>
+
+      <div class="form-group" style="max-width:320px;margin-bottom:24px;">
+        <label style="display:block;margin-bottom:6px;">Правильный ответ (правильная форма ошибочного слова)</label>
+        <input id="imp-answer" type="text" placeholder="ПОЛУТОРА" autocomplete="off"
+               oninput="this.value=this.value.toUpperCase()">
+      </div>
+
+      <button class="btn" onclick="runImportParse()">Разобрать →</button>
+    </div>
+
+    <div id="imp-result" style="display:none;">
+      <div class="admin-section">
+        <h3>Разбор задания</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">
+          Отметьте строку с ошибкой. Для новых слов введите ошибочные формы.
+        </p>
+        <div id="imp-rows"></div>
+        <div style="margin-top:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button class="btn" onclick="runImportCreate()">Создать задание</button>
+          <button class="btn btn-secondary" onclick="resetImport()">Сбросить</button>
+          <span id="imp-create-result" style="font-size:13px;"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <style>
@@ -107,7 +153,7 @@
   border-radius: 12px; padding: 3px 10px; font-size: 12px; margin: 2px;
 }
 .ctx-chip__del { color: var(--text-secondary); cursor: pointer; font-size: 15px; line-height: 1; }
-.ctx-chip__del:hover { color: #D69295; }
+.ctx-chip__del:hover { color: #e05c65; }
 </style>
 
 <script>
@@ -118,7 +164,7 @@ let editingContextWordId = null;
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['words','generate'].forEach(t => {
+  ['words','generate','import'].forEach(t => {
     document.getElementById(`tab-${t}`).style.display = t === name ? '' : 'none';
   });
   if (name === 'generate') loadTasks();
@@ -280,7 +326,7 @@ async function generateTasks() {
   }).then(r => r.json());
 
   if (resp.error) {
-    resultDiv.innerHTML = `<span style="color:#D69295;">Ошибка: ${esc(resp.error)}</span>`;
+    resultDiv.innerHTML = `<span style="color:#e05c65;">Ошибка: ${esc(resp.error)}</span>`;
     return;
   }
   resultDiv.innerHTML = `<span style="color:var(--brand)">✓ Создано заданий: ${resp.count}</span>
@@ -314,6 +360,160 @@ async function deleteTask(id) {
   if (!confirm('Удалить задание?')) return;
   await fetch(`/api/task7/tasks/${id}`, { method: 'DELETE' });
   loadTasks();
+}
+
+// ── Импорт ───────────────────────────────────────────────────
+let impParsed = [];
+
+async function runImportParse() {
+  const raw    = document.getElementById('imp-text').value.trim();
+  const answer = document.getElementById('imp-answer').value.trim().toUpperCase();
+  const lines  = raw.split('\n').map(l => l.trim()).filter(Boolean);
+
+  if (lines.length !== 5) { alert('Нужно ровно 5 строк. Сейчас: ' + lines.length); return; }
+  if (!answer)             { alert('Введите правильный ответ'); return; }
+
+  const freshWords = await fetch('/api/task7/words').then(r => r.json());
+
+  impParsed = [];
+  for (let i = 0; i < 5; i++) {
+    const m = lines[i].match(/^(.*?)([А-ЯЁA-Z]{2,})(.*)$/);
+    if (!m) { alert('Строка ' + (i + 1) + ' не содержит заглавного слова:\n"' + lines[i] + '"'); return; }
+    const before = m[1].trim(), form = m[2], after = m[3].trim();
+    const up = form.toUpperCase();
+
+    const errBank  = freshWords.find(w => w.error_form.toUpperCase()   === up);
+    const corrBank = freshWords.find(w => w.correct_form.toUpperCase() === up);
+
+    let bankStatus = 'new', isError = false, wordId = null;
+    if (errBank)       { bankStatus = 'error_bank';   isError = true;  wordId = errBank.id;  }
+    else if (corrBank) { bankStatus = 'correct_bank'; isError = false; wordId = corrBank.id; }
+
+    impParsed.push({ idx: i, item_index: i + 1, before, form, after, bankStatus, isError, wordId });
+  }
+
+  // Эвристика: если ошибка не найдена в банке — ищем по несовпадению с ответом
+  if (!impParsed.some(p => p.isError)) {
+    const candidates = impParsed.filter(p => p.bankStatus === 'new' && p.form.toUpperCase() !== answer);
+    if (candidates.length === 1) candidates[0].isError = true;
+  }
+
+  renderImpRows(answer);
+  document.getElementById('imp-result').style.display = '';
+}
+
+function renderImpRows(answer) {
+  const wrap = document.getElementById('imp-rows');
+  wrap.innerHTML = impParsed.map(p => {
+    const statusHtml =
+      p.bankStatus === 'error_bank'   ? '<span style="font-size:12px;font-weight:600;color:#e05c65;">в банке · ошибочная форма</span>' :
+      p.bankStatus === 'correct_bank' ? '<span style="font-size:12px;font-weight:600;color:var(--brand);">в банке · правильная форма</span>' :
+                                        '<span style="font-size:12px;font-weight:600;color:#f59e0b;">новое слово</span>';
+
+    const phraseHtml =
+      (p.before ? esc(p.before) + ' ' : '') +
+      '<strong style="color:' + (p.isError ? '#f59e0b' : 'var(--brand)') + ';">' + esc(p.form) + '</strong>' +
+      (p.after ? ' ' + esc(p.after) : '');
+
+    const errInput = (p.bankStatus === 'new' && !p.isError)
+      ? '<label style="font-size:12px;color:var(--text-secondary);display:block;margin-top:8px;">' +
+        'Ошибочная форма (необязательно): <input type="text" data-err-idx="' + p.idx + '" ' +
+        'style="width:160px;margin-left:4px;" placeholder="можно добавить позже" ' +
+        'oninput="this.value=this.value.toUpperCase()"></label>'
+      : '';
+
+    const answerNote = (p.bankStatus === 'new' && p.isError)
+      ? '<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">' +
+        'Правильная форма (из ответа): <strong style="color:var(--brand);">' + esc(answer) + '</strong></div>'
+      : '';
+
+    return '<div style="display:flex;gap:16px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);">' +
+      '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:120px;padding-top:2px;">' +
+        '<input type="radio" name="imp-err-radio" value="' + p.idx + '" ' +
+               (p.isError ? 'checked' : '') + ' onchange="onImpErrSelect(' + p.idx + ')" style="accent-color:var(--brand);flex-shrink:0;">' +
+        '<span style="font-size:12px;color:var(--text-secondary);">Ошибка здесь</span>' +
+      '</label>' +
+      '<div style="flex:1;">' +
+        '<div style="font-size:14px;margin-bottom:4px;">' + phraseHtml + '</div>' +
+        statusHtml + errInput + answerNote +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function onImpErrSelect(selIdx) {
+  impParsed.forEach(p => {
+    const el = document.querySelector('input[data-err-idx="' + p.idx + '"]');
+    if (el) p._savedErr = el.value;
+  });
+  impParsed.forEach(p => { p.isError = (p.idx === selIdx); });
+  renderImpRows(document.getElementById('imp-answer').value.trim().toUpperCase());
+  impParsed.forEach(p => {
+    if (p._savedErr) {
+      const el = document.querySelector('input[data-err-idx="' + p.idx + '"]');
+      if (el) el.value = p._savedErr;
+    }
+  });
+}
+
+async function runImportCreate() {
+  const answer   = document.getElementById('imp-answer').value.trim().toUpperCase();
+  const resultEl = document.getElementById('imp-create-result');
+  resultEl.innerHTML = '';
+
+  if (impParsed.filter(p => p.isError).length !== 1) {
+    resultEl.innerHTML = '<span style="color:#e05c65;">Отметьте ровно одну строку с ошибкой.</span>';
+    return;
+  }
+
+  const items = [];
+  for (const p of impParsed) {
+    const entry = {
+      item_index:  p.item_index,
+      is_error:    p.isError,
+      before_text: p.before,
+      form:        p.form.toUpperCase(),
+      after_text:  p.after,
+      word_id:     p.wordId || null,
+    };
+    if (!p.wordId) {
+      if (p.isError) {
+        entry.correct_form = answer;
+      } else {
+        const el = document.querySelector('input[data-err-idx="' + p.idx + '"]');
+        entry.error_form = el ? el.value.trim().toUpperCase() : '';
+      }
+    }
+    items.push(entry);
+  }
+
+  resultEl.innerHTML = 'Создание…';
+  try {
+    const resp = await fetch('/api/task7/import', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ items }),
+    }).then(r => r.json());
+
+    if (resp.error) {
+      resultEl.innerHTML = '<span style="color:#e05c65;">Ошибка: ' + esc(resp.error) + '</span>';
+      return;
+    }
+    resultEl.innerHTML =
+      '<span style="color:var(--brand);">✓ Задание #' + resp.task_id + ' создано!</span>' +
+      ' <a href="/task7/' + resp.task_id + '" target="_blank" class="btn btn-sm" style="vertical-align:middle;margin-left:8px;">Открыть</a>';
+    await loadWords();
+  } catch {
+    resultEl.innerHTML = '<span style="color:#e05c65;">Ошибка соединения.</span>';
+  }
+}
+
+function resetImport() {
+  document.getElementById('imp-text').value = '';
+  document.getElementById('imp-answer').value = '';
+  document.getElementById('imp-result').style.display = 'none';
+  document.getElementById('imp-create-result').innerHTML = '';
+  impParsed = [];
 }
 
 // ── Утилиты ──────────────────────────────────────────────────

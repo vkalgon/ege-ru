@@ -1,0 +1,112 @@
+<div class="task6-page">
+  <div class="task-page-header">
+    <h2 class="task-page-title">Задание №6 — Лексические нормы</h2>
+    <p class="task-page-desc">
+      Отредактируйте предложение: найдите и исправьте лексическую ошибку.
+    </p>
+  </div>
+
+  <div class="t6-filter-bar">
+    <button class="t6-filter-btn active" data-subtype="">Все</button>
+    <button class="t6-filter-btn" data-subtype="exclude">Исключить лишнее слово</button>
+    <button class="t6-filter-btn" data-subtype="replace">Заменить неверное слово</button>
+  </div>
+
+  <div id="task6-list" class="task-cards-grid">
+    <div class="loading-stub">Загрузка заданий…</div>
+  </div>
+</div>
+
+<style>
+.task6-page { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+.task-page-header { margin-bottom: 24px; }
+.task-page-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.task-page-desc  { color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+
+.t6-filter-bar {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.t6-filter-btn {
+  padding: 7px 16px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--bg-secondary); color: var(--text-secondary);
+  font-size: 13px; cursor: pointer; transition: all .2s;
+}
+.t6-filter-btn:hover { border-color: var(--brand); color: var(--brand); }
+.t6-filter-btn.active { background: var(--brand-muted); border-color: var(--brand); color: var(--brand); font-weight: 600; }
+
+.task-cards-grid { display: flex; flex-direction: column; gap: 12px; }
+.loading-stub { color: var(--text-secondary); padding: 32px 0; text-align: center; }
+
+.t6-card {
+  display: block; text-decoration: none; color: inherit;
+  background: var(--bg-secondary); border: 1px solid var(--glass-border);
+  border-radius: 10px; padding: 18px 20px;
+  transition: border-color .2s;
+}
+.t6-card:hover { border-color: var(--brand); }
+.t6-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.t6-card-id { font-size: 12px; color: var(--text-secondary); }
+.t6-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px;
+}
+.t6-badge-exclude { background: rgba(164,226,208,.15); color: #A4E2D0; }
+.t6-badge-replace  { background: rgba(246,180,98,.15);  color: #f6b462; }
+.t6-sentence {
+  font-size: 14px; line-height: 1.6; color: var(--text-primary);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
+
+<script>
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+let currentSubtype = '';
+let sentences = [];
+
+async function loadSentences() {
+  const list = document.getElementById('task6-list');
+  list.innerHTML = '<div class="loading-stub">Загрузка…</div>';
+  try {
+    const url = currentSubtype
+      ? `/api/task6/sentences?subtype=${currentSubtype}`
+      : '/api/task6/sentences';
+    sentences = await fetch(url).then(r => r.json());
+    renderList();
+  } catch {
+    list.innerHTML = '<div class="loading-stub">Ошибка загрузки.</div>';
+  }
+}
+
+function renderList() {
+  const list = document.getElementById('task6-list');
+  if (!sentences.length) {
+    list.innerHTML = '<div class="loading-stub">Заданий пока нет.</div>';
+    return;
+  }
+  list.innerHTML = sentences.map(s => {
+    const badge = s.subtype === 'exclude'
+      ? '<span class="t6-badge t6-badge-exclude">Исключить лишнее</span>'
+      : '<span class="t6-badge t6-badge-replace">Заменить слово</span>';
+    return `<a href="/task6/${s.id}" class="t6-card">
+      <div class="t6-card-header">
+        <span class="t6-card-id">№ ${s.id}</span>
+        ${badge}
+      </div>
+      <div class="t6-sentence">${esc(s.sentence)}</div>
+    </a>`;
+  }).join('');
+}
+
+document.querySelectorAll('.t6-filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.t6-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSubtype = btn.dataset.subtype;
+    loadSentences();
+  });
+});
+
+loadSentences();
+</script>

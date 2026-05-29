@@ -402,6 +402,7 @@ db.exec(`
 try { db.exec("ALTER TABLE task4_words ADD COLUMN category TEXT DEFAULT 'other'"); } catch {}
 try { db.exec("ALTER TABLE task4_words ADD COLUMN is_exception INTEGER DEFAULT 0"); } catch {}
 try { db.exec("ALTER TABLE task4_words ADD COLUMN part_of_speech TEXT DEFAULT 'other'"); } catch {}
+try { db.exec("ALTER TABLE task4_tasks ADD COLUMN is_practice INTEGER DEFAULT 0"); } catch {}
 
 // Миграции: добавляем колонки если их нет (безопасно при повторном запуске)
 const task9Cols = db.prepare("PRAGMA table_info(task9_words)").all().map(c => c.name);
@@ -435,6 +436,45 @@ try {
 try {
   db.exec('ALTER TABLE student_onboarding ADD COLUMN task17_mechanics_done INTEGER DEFAULT 0');
 } catch (_) { /* колонка уже есть */ }
+
+// Прогресс по теории
+db.exec(`
+  CREATE TABLE IF NOT EXISTS theory_progress (
+    user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    task_key  TEXT NOT NULL,
+    viewed_at TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, task_key)
+  );
+`);
+
+// Слова з/с: неизменяемая с- и з в корне (трудные случаи)
+{
+  const existing = db.prepare(
+    "SELECT 1 FROM task10_words WHERE rule = 'з/с' AND prefix_display = 'не..дание'"
+  ).get();
+  if (!existing) {
+    const ins = db.prepare(
+      "INSERT INTO task10_words (prefix_display, correct_letter, rule) VALUES (?, ?, 'з/с')"
+    );
+    db.transaction(() => {
+      // не- + с- (неизменяемая приставка с-)
+      ins.run('не..гибаемый',   'с');
+      ins.run('не..держанный',  'с');
+      ins.run('не..жатый',      'с');
+      ins.run('не..горевший',   'с');
+      ins.run('не..ломленный',  'с');
+      ins.run('не..битый',      'с');
+      ins.run('не..казанный',   'с');
+      ins.run('не..тёртый',     'с');
+      // з входит в корень (не приставка)
+      ins.run('не..дание',      'з');
+      ins.run('не..десь',       'з');
+      ins.run('не..доровье',    'з');
+      ins.run('не..дравствуй',  'з');
+      ins.run('не..доровый',    'з');
+    })();
+  }
+}
 
 // Коды приглашения учителя
 db.exec(`
@@ -504,6 +544,78 @@ db.exec(`
     correct_form   TEXT NOT NULL
   );
 `);
+
+// Задание №8: Синтаксические нормы — установить соответствие грамматических ошибок
+db.exec(`
+  -- Справочник типов грамматических ошибок
+  CREATE TABLE IF NOT EXISTS task8_error_types (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    title       TEXT NOT NULL,
+    description TEXT,
+    order_index INTEGER DEFAULT 0,
+    created_at  TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Задания (варианты)
+  CREATE TABLE IF NOT EXISTS task8_tasks (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    source     TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  -- 5 слотов (А–Д) с выбранными типами ошибок для каждого задания
+  CREATE TABLE IF NOT EXISTS task8_task_errors (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id       INTEGER NOT NULL REFERENCES task8_tasks(id) ON DELETE CASCADE,
+    slot          TEXT    NOT NULL CHECK (slot IN ('А','Б','В','Г','Д')),
+    error_type_id INTEGER NOT NULL REFERENCES task8_error_types(id),
+    UNIQUE(task_id, slot)
+  );
+
+  -- 9 предложений для каждого задания; error_type_id = NULL означает «без ошибки»
+  CREATE TABLE IF NOT EXISTS task8_sentences (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id       INTEGER NOT NULL REFERENCES task8_tasks(id) ON DELETE CASCADE,
+    position      INTEGER NOT NULL CHECK (position BETWEEN 1 AND 9),
+    text          TEXT    NOT NULL,
+    error_type_id INTEGER REFERENCES task8_error_types(id),
+    UNIQUE(task_id, position)
+  );
+`);
+
+// Миграции task8
+{
+  const sentCols = db.prepare("PRAGMA table_info(task8_sentences)").all().map(c => c.name);
+  if (!sentCols.includes('correct_text')) {
+    db.exec('ALTER TABLE task8_sentences ADD COLUMN correct_text TEXT');
+  }
+  const etCols = db.prepare("PRAGMA table_info(task8_error_types)").all().map(c => c.name);
+  if (!etCols.includes('subtype')) {
+    db.exec('ALTER TABLE task8_error_types ADD COLUMN subtype TEXT');
+  }
+}
+
+// Наполняем справочник типов ошибок (однократно)
+{
+  const count = db.prepare('SELECT COUNT(*) AS c FROM task8_error_types').get().c;
+  if (count === 0) {
+    const ins = db.prepare(
+      'INSERT INTO task8_error_types (title, order_index) VALUES (?, ?)'
+    );
+    db.transaction(() => {
+      ins.run('Неправильное построение предложения с причастным оборотом', 1);
+      ins.run('Неправильное построение предложения с деепричастным оборотом', 2);
+      ins.run('Нарушение в построении предложения с несогласованным приложением', 3);
+      ins.run('Нарушение связи между подлежащим и сказуемым', 4);
+      ins.run('Неправильное употребление падежной (предложно-падежной) формы управляемого слова', 5);
+      ins.run('Неправильное построение предложения с косвенной речью', 6);
+      ins.run('Нарушение видо-временной соотнесённости глагольных форм', 7);
+      ins.run('Ошибка в построении сложного предложения', 8);
+      ins.run('Ошибка в построении предложения с однородными членами', 9);
+      ins.run('Ошибка в употреблении имени числительного', 10);
+    })();
+  }
+}
 
 // Результаты домашних заданий
 db.exec(`
@@ -689,6 +801,20 @@ db.exec(`
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     tasks_json TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`);
+
+// Задание №6: Лексические ошибки (плеоназм / неверное слово)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS task6_sentences (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    subtype     TEXT NOT NULL CHECK (subtype IN ('exclude', 'replace')),
+    sentence    TEXT NOT NULL,
+    answer      TEXT NOT NULL,
+    alt_answers TEXT,
+    explanation TEXT,
+    source      TEXT,
+    created_at  TEXT DEFAULT (datetime('now'))
   );
 `);
 

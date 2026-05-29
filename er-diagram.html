@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>ER-диаграмма</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#fff;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden}
+#wrap{width:100vw;height:100vh;overflow:hidden;cursor:grab;user-select:none;background:#fff}
+#wrap.drag{cursor:grabbing}
+#world{position:absolute;transform-origin:0 0}
+svg#sv{position:absolute;top:0;left:0;pointer-events:none;overflow:visible}
+.t{position:absolute;width:112px;background:#fff;border:1px solid #e2e8f0;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.th{padding:3px 5px;font-size:8px;font-weight:700;color:#fff;border-radius:3px 3px 0 0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r{display:flex;align-items:center;padding:0.5px 5px;gap:2px;font-size:7.5px;line-height:1.55;color:#4b5563}
+.r.pk{color:#92400e}.r.fk{color:#1d4ed8}
+.badge{font-size:6px;padding:0 2px;border-radius:2px;min-width:11px;text-align:center;flex-shrink:0;font-weight:800;line-height:1.6}
+.pk .badge{background:#fef3c7;color:#92400e}
+.fk .badge{background:#dbeafe;color:#1d4ed8}
+.nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ctrl{position:fixed;bottom:10px;right:10px;z-index:999;display:flex;gap:3px}
+.cb{height:24px;padding:0 8px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:4px;cursor:pointer;font-size:10px}
+.cb:hover{background:#f9fafb}
+#hdr{position:fixed;top:8px;left:10px;z-index:999;background:#fff;border:1px solid #e5e7eb;border-radius:5px;padding:4px 12px;font-size:11px;font-weight:700;color:#111}
+#lg{position:fixed;top:8px;right:10px;z-index:999;background:#fff;border:1px solid #e5e7eb;border-radius:5px;padding:7px 11px;font-size:7.5px;color:#6b7280;line-height:1.9}
+.li{display:flex;align-items:center;gap:4px}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="hdr">Рисунок 6 — ER-диаграмма базы данных</div>
+<div id="wrap"><div id="world"><svg id="sv"></svg></div></div>
+<div id="ctrl">
+  <button class="cb" onclick="doZoom(1.15)">+</button>
+  <button class="cb" onclick="doZoom(0.87)">−</button>
+  <button class="cb" onclick="fitAll()">⊙ Вписать</button>
+</div>
+<div id="lg">
+  <div style="font-weight:700;color:#111;margin-bottom:2px;font-size:8.5px">Группы таблиц</div>
+  <div class="li"><div class="ld" style="background:#166534"></div>Контент ЕГЭ</div>
+  <div class="li"><div class="ld" style="background:#1e40af"></div>Авторизация</div>
+  <div class="li"><div class="ld" style="background:#115e59"></div>Прогресс</div>
+  <div class="li"><div class="ld" style="background:#b45309"></div>Задание 4</div>
+  <div class="li"><div class="ld" style="background:#92400e"></div>Задание 5</div>
+  <div class="li"><div class="ld" style="background:#78350f"></div>Задание 7</div>
+  <div class="li"><div class="ld" style="background:#5b21b6"></div>Задание 9</div>
+  <div class="li"><div class="ld" style="background:#4c1d95"></div>Задание 10</div>
+  <div class="li"><div class="ld" style="background:#3b0764"></div>Задание 11</div>
+  <div class="li"><div class="ld" style="background:#2d1b69"></div>Задание 12</div>
+  <div class="li"><div class="ld" style="background:#9f1239"></div>Задание 16</div>
+  <div class="li"><div class="ld" style="background:#7f1d1d"></div>Задание 17</div>
+  <div class="li"><div class="ld" style="background:#6b1f1f"></div>Задание 18</div>
+  <div class="li"><div class="ld" style="background:#365314"></div>Задание 19</div>
+  <div style="margin-top:4px;border-top:1px solid #f0f0f0;padding-top:4px">
+    <div class="li"><div class="ld" style="background:#fef3c7;border:1px solid #d97706"></div>PK первичный ключ</div>
+    <div class="li"><div class="ld" style="background:#dbeafe;border:1px solid #3b82f6"></div>FK внешний ключ</div>
+  </div>
+</div>
+<script>
+const GC={
+  core:'#166534',auth:'#1e40af',prog:'#115e59',
+  t4:'#b45309',t5:'#92400e',t7:'#78350f',
+  t9:'#5b21b6',t10:'#4c1d95',t11:'#3b0764',t12:'#2d1b69',
+  t16:'#9f1239',t17:'#7f1d1d',t18:'#6b1f1f',t19:'#365314'
+};
+// T = [id, group, [[colName, 'pk'|'fk'|'']], x, y]
+const T=[
+  // ═══════════ ROW 1: КОНТЕНТ + AUTH + ПРОГРЕСС ═══════════
+  ['task_types','core',[['id','pk'],['title',''],['description',''],['form_config','']],20,50],
+  ['subtopics','core',[['id','pk'],['type_id','fk'],['title',''],['order_index','']],140,50],
+  ['sources','core',[['id','pk'],['name','']],140,112],
+  ['assignments','core',[['id','pk'],['subtopic_id','fk'],['passage_id','fk'],['prompt',''],['answer',''],['alt_answers',''],['extra_data','']],260,50],
+  ['text_passages','core',[['id','pk'],['context',''],['source',''],['fipi_number','']],260,138],
+  ['answers_log','core',[['id','pk'],['assignment_id','fk'],['user_id',''],['user_answer',''],['is_correct','']],380,50],
+
+  ['users','auth',[['id','pk'],['login',''],['password',''],['telegram_id',''],['is_admin',''],['role',''],['email','']],508,50],
+  ['user_sessions','auth',[['id','pk'],['user_id','fk'],['session_id',''],['expires_at','']],508,138],
+
+  // Прогресс — 2 колонки
+  ['teacher_students','prog',[['id','pk'],['teacher_id','fk'],['student_id','fk']],636,50],
+  ['student_word_progress','prog',[['id','pk'],['user_id','fk'],['word_table',''],['word_id',''],['correct_streak',''],['is_mastered','']],636,100],
+  ['student_onboarding','prog',[['user_id','pk'],['level',''],['target_score',''],['weak_tasks','']],636,178],
+  ['theory_progress','prog',[['user_id','fk'],['task_key',''],['viewed_at','']],636,238],
+  ['teacher_invites','prog',[['id','pk'],['teacher_id','fk'],['code',''],['used_count','']],636,292],
+  ['connection_requests','prog',[['id','pk'],['from_user_id','fk'],['to_user_id','fk'],['status','']],756,50],
+  ['homework','prog',[['id','pk'],['teacher_id','fk'],['student_id','fk'],['title',''],['task_type',''],['status','']],756,108],
+  ['homework_results','prog',[['id','pk'],['homework_id','fk'],['student_id','fk'],['total_score',''],['max_score','']],756,186],
+  ['user_paronym_favorites','prog',[['user_id','fk'],['paronym_id','']],756,258],
+  ['task_completions','prog',[['id','pk'],['user_id','fk'],['word_table','']],756,302],
+  ['variants','prog',[['id','pk'],['tasks_json','']],756,352],
+
+  // ═══════════ ROW 2: ЗАДАНИЯ 4, 5, 7 ═══════════
+  ['task4_words','t4',[['id','pk'],['word',''],['correct_stress_index',''],['wrong_stress_index',''],['category',''],['part_of_speech','']],20,422],
+  ['task4_tasks','t4',[['id','pk'],['is_generated','']],140,422],
+  ['task4_items','t4',[['id','pk'],['task_id','fk'],['word_id','fk'],['item_index',''],['is_correct','']],260,422],
+
+  ['task5_groups','t5',[['id','pk'],['title','']],390,422],
+  ['task5_tasks','t5',[['id','pk'],['is_generated','']],510,422],
+  ['task5_sentences','t5',[['id','pk'],['group_id','fk'],['sentence',''],['correct_word',''],['is_error','']],390,464],
+  ['task5_items','t5',[['id','pk'],['task_id','fk'],['sentence_id','fk'],['item_index','']],510,464],
+
+  ['task7_words','t7',[['id','pk'],['correct_form',''],['error_form',''],['category','']],646,422],
+  ['task7_contexts','t7',[['id','pk'],['word_id','fk'],['before_text',''],['after_text','']],766,422],
+  ['task7_tasks','t7',[['id','pk'],['is_generated','']],646,480],
+  ['task7_items','t7',[['id','pk'],['task_id','fk'],['word_id','fk'],['item_index',''],['is_error','']],766,480],
+
+  // ═══════════ ROW 3: ЗАДАНИЯ 9, 10, 11, 12 ═══════════
+  ['task9_words','t9',[['id','pk'],['word_display',''],['correct_vowel',''],['category',''],['word_group_id','']],20,567],
+  ['task9_tasks','t9',[['id','pk'],['is_generated','']],140,567],
+  ['task9_rows','t9',[['id','pk'],['task_id','fk'],['row_index',''],['is_correct','']],260,567],
+  ['task9_cells','t9',[['id','pk'],['row_id','fk'],['word_id','fk'],['cell_index','']],380,567],
+
+  ['task11_words','t11',[['id','pk'],['suffix_display',''],['correct_vowel',''],['category','']],514,567],
+  ['task11_tasks','t11',[['id','pk'],['is_generated','']],634,567],
+  ['task11_rows','t11',[['id','pk'],['task_id','fk'],['row_index',''],['is_correct','']],754,567],
+  ['task11_cells','t11',[['id','pk'],['row_id','fk'],['word_id','fk'],['cell_index','']],874,567],
+
+  ['task10_words','t10',[['id','pk'],['prefix_display',''],['correct_letter',''],['rule',''],['word_group_id','']],20,637],
+  ['task10_tasks','t10',[['id','pk'],['is_generated','']],140,637],
+  ['task10_rows','t10',[['id','pk'],['task_id','fk'],['row_index',''],['is_correct','']],260,637],
+  ['task10_cells','t10',[['id','pk'],['row_id','fk'],['word_id','fk'],['cell_index','']],380,637],
+
+  ['task12_words','t12',[['id','pk'],['morpheme_display',''],['correct_vowel',''],['morpheme_type',''],['conjugation',''],['word_group_id','']],514,637],
+  ['task12_tasks','t12',[['id','pk'],['is_generated','']],634,637],
+  ['task12_rows','t12',[['id','pk'],['task_id','fk'],['row_index',''],['is_correct','']],754,637],
+  ['task12_cells','t12',[['id','pk'],['row_id','fk'],['word_id','fk'],['cell_index','']],874,637],
+
+  // ═══════════ ROW 4: ЗАДАНИЯ 16, 17, 18, 19 ═══════════
+  ['task16_sentences','t16',[['id','pk'],['source_text',''],['comma_positions_json',''],['rule_types_json','']],20,732],
+  ['task16_tasks','t16',[['id','pk'],['source','']],20,794],
+  ['task16_task_sentences','t16',[['id','pk'],['task_id','fk'],['sentence_id','fk'],['position','']],140,732],
+  ['task16_answer','t16',[['task_id','pk'],['answer_json','']],140,794],
+
+  ['task17','t17',[['id','pk'],['source_text',''],['base_text',''],['commaless_text',''],['reveal_policy','']],276,732],
+  ['task17_attempt','t17',[['id','pk'],['task_id','fk'],['mode',''],['is_correct_digits',''],['is_correct_commas','']],396,732],
+  ['task17_answer','t17',[['task_id','pk'],['digits_json',''],['comma_positions_json',''],['spans_json','']],276,802],
+
+  ['task18_words','t18',[['id','pk'],['phrase',''],['intro_type',''],['category','']],532,732],
+  ['task18_task_words','t18',[['id','pk'],['task_id','fk'],['word_id','fk'],['is_intro_in_task','']],652,732],
+  ['task18_tasks','t18',[['id','pk'],['source_text',''],['base_text',''],['source','']],532,794],
+  ['task18_answer','t18',[['task_id','pk'],['comma_positions_json','']],652,794],
+
+  ['task19_tasks','t19',[['id','pk'],['source_text',''],['rule_types_json',''],['source','']],788,732],
+  ['task19_answer','t19',[['task_id','pk'],['comma_positions_json','']],788,794],
+];
+
+const R=[
+  ['task_types','subtopics'],['subtopics','assignments'],
+  ['text_passages','assignments'],['assignments','answers_log'],
+  ['users','user_sessions'],
+  ['task4_tasks','task4_items'],['task4_words','task4_items'],
+  ['task5_groups','task5_sentences'],['task5_tasks','task5_items'],['task5_sentences','task5_items'],
+  ['task7_words','task7_contexts'],['task7_tasks','task7_items'],['task7_words','task7_items'],
+  ['task9_tasks','task9_rows'],['task9_rows','task9_cells'],['task9_words','task9_cells'],
+  ['task10_tasks','task10_rows'],['task10_rows','task10_cells'],['task10_words','task10_cells'],
+  ['task11_tasks','task11_rows'],['task11_rows','task11_cells'],['task11_words','task11_cells'],
+  ['task12_tasks','task12_rows'],['task12_rows','task12_cells'],['task12_words','task12_cells'],
+  ['task16_tasks','task16_task_sentences'],['task16_sentences','task16_task_sentences'],['task16_tasks','task16_answer'],
+  ['task17','task17_answer'],['task17','task17_attempt'],
+  ['task18_tasks','task18_answer'],['task18_tasks','task18_task_words'],['task18_words','task18_task_words'],
+  ['task19_tasks','task19_answer'],
+  ['users','teacher_students'],['users','student_word_progress'],['users','student_onboarding'],
+  ['users','theory_progress'],['users','teacher_invites'],['users','connection_requests'],
+  ['users','homework'],['users','homework_results'],['users','user_paronym_favorites'],
+  ['users','task_completions'],['homework','homework_results'],
+];
+
+const W=112,ROW=9,TH=15;
+const tH=cols=>TH+cols.length*ROW+4;
+
+const world=document.getElementById('world');
+const sv=document.getElementById('sv');
+const tEls={};
+
+T.forEach(([id,g,cols,x,y])=>{
+  const el=document.createElement('div');
+  el.className='t'; el.style.left=x+'px'; el.style.top=y+'px';
+  const h=document.createElement('div');
+  h.className='th'; h.style.background=GC[g]; h.textContent=id;
+  el.appendChild(h);
+  const b=document.createElement('div');
+  cols.forEach(([cn,m])=>{
+    const r=document.createElement('div');
+    r.className='r'+(m?' '+m:'');
+    r.innerHTML=`<span class="badge">${m?m.toUpperCase():''}</span><span class="nm">${cn}</span>`;
+    b.appendChild(r);
+  });
+  el.appendChild(b);
+  world.appendChild(el);
+  tEls[id]={x,y,w:W,h:tH(cols)};
+});
+
+const maxX=Math.max(...T.map(([,,,x])=>x+W+24));
+const maxY=Math.max(...T.map(([,,c,,y])=>y+tH(c)+24));
+sv.setAttribute('width',maxX); sv.setAttribute('height',maxY);
+sv.style.width=maxX+'px'; sv.style.height=maxY+'px';
+world.style.width=maxX+'px'; world.style.height=maxY+'px';
+
+requestAnimationFrame(()=>{
+  let s=`<defs>
+    <marker id="a" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto">
+      <path d="M0,0 L5,2.5 L0,5 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>`;
+
+  // Разделительные линии между рядами
+  [{y:410,lbl:'ЗАДАНИЯ 4 / 5 / 7'},{y:555,lbl:'ЗАДАНИЯ 9 / 10 / 11 / 12'},{y:720,lbl:'ЗАДАНИЯ 16 / 17 / 18 / 19'}]
+  .forEach(({y,lbl})=>{
+    s+=`<line x1="10" y1="${y}" x2="${maxX-10}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>`;
+    s+=`<text x="14" y="${y-4}" font-size="6.5" font-family="Segoe UI,Arial,sans-serif" fill="#94a3b8" font-weight="700" letter-spacing="0.6">${lbl}</text>`;
+  });
+  // Метка первого ряда
+  s+=`<text x="14" y="38" font-size="6.5" font-family="Segoe UI,Arial,sans-serif" fill="#94a3b8" font-weight="700" letter-spacing="0.6">КОНТЕНТ ЕГЭ / АВТОРИЗАЦИЯ / ПРОГРЕСС УЧЕНИКОВ</text>`;
+  // Вертикальный разделитель задания 9–10 и 11–12
+  s+=`<line x1="502" y1="555" x2="502" y2="${maxY-10}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3"/>`;
+
+  R.forEach(([fId,tId])=>{
+    const f=tEls[fId],t=tEls[tId];
+    if(!f||!t)return;
+    const fcx=f.x+f.w/2,fcy=f.y+f.h/2,tcx=t.x+t.w/2,tcy=t.y+t.h/2;
+    const dx=tcx-fcx,dy=tcy-fcy;
+    let x1,y1,x2,y2;
+    if(Math.abs(dx)>=Math.abs(dy)){
+      if(dx>0){x1=f.x+f.w;y1=fcy;x2=t.x;y2=tcy}
+      else{x1=f.x;y1=fcy;x2=t.x+t.w;y2=tcy}
+    }else{
+      if(dy>0){x1=fcx;y1=f.y+f.h;x2=tcx;y2=t.y}
+      else{x1=fcx;y1=f.y;x2=tcx;y2=t.y+t.h}
+    }
+    const b=Math.min(Math.abs(dx||dy)*0.38,55);
+    let c1x,c1y,c2x,c2y;
+    if(Math.abs(dx)>=Math.abs(dy)){
+      c1x=x1+(dx>0?b:-b);c1y=y1;c2x=x2-(dx>0?b:-b);c2y=y2;
+    }else{
+      c1x=x1;c1y=y1+(dy>0?b:-b);c2x=x2;c2y=y2-(dy>0?b:-b);
+    }
+    s+=`<path d="M${x1},${y1} C${c1x},${c1y} ${c2x},${c2y} ${x2},${y2}" stroke="#94a3b8" stroke-width="1.1" fill="none" marker-end="url(#a)"/>`;
+  });
+  sv.innerHTML=s;
+});
+
+const wrap=document.getElementById('wrap');
+let sc=1,ox=0,oy=0,drag=false,lx,ly;
+const applyT=()=>world.style.transform=`translate(${ox}px,${oy}px) scale(${sc})`;
+
+function fitAll(){
+  const vw=innerWidth-6,vh=innerHeight-6;
+  sc=Math.min(vw/maxX,vh/maxY)*0.97;
+  ox=Math.max(0,(vw-maxX*sc)/2);
+  oy=Math.max(0,(vh-maxY*sc)/2);
+  applyT();
+}
+window.addEventListener('load',fitAll);
+window.addEventListener('resize',fitAll);
+
+wrap.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;wrap.classList.add('drag')});
+window.addEventListener('mouseup',()=>{drag=false;wrap.classList.remove('drag')});
+window.addEventListener('mousemove',e=>{
+  if(!drag)return;
+  ox+=e.clientX-lx;oy+=e.clientY-ly;lx=e.clientX;ly=e.clientY;applyT();
+});
+wrap.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY>0?.9:1.1;
+  ox=e.clientX-(e.clientX-ox)*f;oy=e.clientY-(e.clientY-oy)*f;sc*=f;applyT();
+},{passive:false});
+function doZoom(f){const mx=innerWidth/2,my=innerHeight/2;ox=mx-(mx-ox)*f;oy=my-(my-oy)*f;sc*=f;applyT()}
+</script>
+</body>
+</html>

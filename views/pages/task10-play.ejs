@@ -3,9 +3,34 @@
 
   <div class="task17-wrapper">
     <div class="task9-column">
+
+      <div id="practice-progress" style="display:none;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:14px;font-weight:600;color:var(--text-primary);">Тренировка</span>
+          <span id="practice-counter" style="font-size:13px;color:var(--text-secondary);"></span>
+        </div>
+        <div style="height:6px;background:var(--bg-secondary);border-radius:4px;overflow:hidden;border:1px solid var(--glass-border);">
+          <div id="practice-bar" style="height:100%;background:var(--brand);border-radius:4px;transition:width .3s;width:0%;"></div>
+        </div>
+      </div>
+
       <div id="task10-container">
         <p style="color:var(--text-secondary);margin:0;">Загрузка...</p>
       </div>
+
+      <div id="practice-done" style="display:none;margin-top:24px;">
+        <div style="background:var(--bg-secondary);border:1px solid var(--glass-border);border-radius:12px;padding:28px 24px;text-align:center;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">Тренировка завершена!</div>
+          <div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">Вы выполнили 5 заданий по этому правилу.</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <button id="practice-again-btn" class="btn btn-primary">Ещё раз</button>
+            <a href="/task10/theory" class="btn btn-outline">К теории</a>
+            <a href="/tasks" class="btn btn-outline">К заданиям</a>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -14,17 +39,100 @@
 <script>
 const TASK_ID = <%- taskId %>;
 
+const urlParams    = new URLSearchParams(window.location.search);
+const practiceRule = urlParams.get('practice');
+const practiceStep = parseInt(urlParams.get('step') || '0', 10);
+const practiceTotal= parseInt(urlParams.get('total') || '5', 10);
+
+const inPractice   = !!(practiceRule && practiceStep > 0);
+
+const progressEl   = document.getElementById('practice-progress');
+const counterEl    = document.getElementById('practice-counter');
+const barEl        = document.getElementById('practice-bar');
+const doneEl       = document.getElementById('practice-done');
+const containerEl  = document.getElementById('task10-container');
+
+if (inPractice) {
+  progressEl.style.display = 'block';
+  counterEl.textContent = `${practiceStep} / ${practiceTotal}`;
+  barEl.style.width = ((practiceStep - 1) / practiceTotal * 100) + '%';
+  setTimeout(() => { barEl.style.width = (practiceStep / practiceTotal * 100) + '%'; }, 50);
+}
+
+async function generateNext(rule) {
+  const body = (rule && rule !== 'all')
+    ? { rules: [rule], tasks_count: 1, correct_count: 3, is_practice: true }
+    : { tasks_count: 1, correct_count: 3, is_practice: true };
+  const res = await fetch('/api/task10/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  return data.id;
+}
+
 async function loadTask() {
-  const container = document.getElementById('task10-container');
-  const res = await fetch('/api/task10/tasks/' + TASK_ID + '/play');
-  if (!res.ok) {
-    container.innerHTML =
-      '<div class="task-card task17-card"><div class="task-content"><p style="color:#D69295;margin:0;">Задание не найдено.</p></div></div>';
-    return;
+  try {
+    const res = await fetch('/api/task10/tasks/' + TASK_ID + '/play');
+    if (!res.ok) {
+      containerEl.innerHTML =
+        '<div class="task-card task17-card"><div class="task-content"><p style="color:#e05c65;margin:0;">Задание не найдено.</p></div></div>';
+      return;
+    }
+    const task = await res.json();
+
+    const opts = {
+      standalone:     true,
+      hideSolutionBtn: inPractice,
+      hideBackLink:    inPractice,
+    };
+
+    if (inPractice) {
+      const nextStep = practiceStep + 1;
+      const isLast   = nextStep > practiceTotal;
+
+      opts.onChecked = async (result, resultDiv, checkBtn) => {
+        if (!checkBtn) return;
+        checkBtn.disabled = false;
+        checkBtn.textContent = isLast ? 'Завершить тренировку' : 'Дальше →';
+        checkBtn.onclick = async () => {
+          checkBtn.disabled = true;
+
+          if (isLast) {
+            barEl.style.width = '100%';
+            counterEl.textContent = `${practiceTotal} / ${practiceTotal}`;
+            containerEl.style.opacity = '0.4';
+            doneEl.style.display = 'block';
+            doneEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            document.getElementById('practice-again-btn').onclick = async () => {
+              const id = await generateNext(practiceRule);
+              if (id) {
+                const p = new URLSearchParams({ practice: practiceRule, step: '1', total: String(practiceTotal) });
+                window.location.href = `/task10/${id}?${p}`;
+              }
+            };
+            return;
+          }
+
+          checkBtn.textContent = 'Загрузка…';
+          const id = await generateNext(practiceRule);
+          if (id) {
+            const p = new URLSearchParams({ practice: practiceRule, step: String(nextStep), total: String(practiceTotal) });
+            window.location.href = `/task10/${id}?${p}`;
+          } else {
+            checkBtn.disabled = false;
+            checkBtn.textContent = 'Нет доступных заданий';
+          }
+        };
+      };
+    }
+
+    containerEl.innerHTML = renderTask10CardHTML(TASK_ID, task, opts);
+    initTask10Card(containerEl, TASK_ID, task, opts);
+  } catch (e) {
+    containerEl.innerHTML = '<p style="color:#e05c65;margin:0;">Ошибка загрузки: ' + e.message + '</p>';
   }
-  const task = await res.json();
-  container.innerHTML = renderTask10CardHTML(TASK_ID, task, { standalone: true });
-  initTask10Card(container, TASK_ID, task, { standalone: true });
 }
 
 loadTask();

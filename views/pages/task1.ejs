@@ -1,0 +1,242 @@
+<div class="task-page">
+  <h2 class="task-page__title">Задание №1 — Смысловая обработка текста</h2>
+
+  <div class="task1-filters" id="task1Filters">
+    <button class="task1-chip task1-chip--active" data-subtopic="all">Все</button>
+  </div>
+
+  <div class="task-list" id="taskList">
+    <p style="color:var(--text-secondary);">Загрузка...</p>
+  </div>
+</div>
+
+<style>
+.task1-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.task1-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.task1-chip:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+.task1-chip--active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+</style>
+
+<!-- Editor Renderer -->
+<script src="/js/editor-renderer.js"></script>
+
+<script>
+function waitForEditorRenderer() {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const check = () => {
+      attempts++;
+      if (typeof EditorRenderer !== 'undefined') resolve();
+      else if (attempts < 50) setTimeout(check, 100);
+      else reject(new Error('EditorRenderer not loaded'));
+    };
+    check();
+  });
+}
+
+function renderEditorContent(content) {
+  if (!content) return '';
+  try {
+    let data;
+    if (typeof content === 'string') {
+      data = content.trim().startsWith('{') ? JSON.parse(content) : { blocks: [{ type: 'paragraph', data: { text: content } }] };
+    } else {
+      data = content;
+    }
+    if (data && data.blocks && Array.isArray(data.blocks)) return EditorRenderer.render(data);
+    return `<p>${typeof content === 'string' ? content : JSON.stringify(content)}</p>`;
+  } catch (e) {
+    return `<p>${typeof content === 'string' ? content : ''}</p>`;
+  }
+}
+
+function buildCard(assignment, index) {
+  const promptHtml = typeof EditorRenderer !== 'undefined'
+    ? renderEditorContent(assignment.prompt)
+    : `<p>${assignment.prompt || ''}</p>`;
+  const contextHtml = assignment.context
+    ? (typeof EditorRenderer !== 'undefined' ? renderEditorContent(assignment.context) : `<p>${assignment.context}</p>`)
+    : '';
+
+  return `
+    <div class="task-card" data-subtopic="${assignment.subtopic_id}">
+      <div class="task-meta">
+        <span class="task-meta__number">№ ${index + 1}</span>
+        <span class="task-meta__source" style="color:var(--text-secondary);font-size:13px;">${assignment.subtopic_title || ''}</span>
+        ${assignment.source ? `<span class="task-meta__source">${assignment.source}${assignment.fipi_number ? ` № ${assignment.fipi_number}` : ''}</span>` : ''}
+        <span class="task-status-pill" id="status-${assignment.id}">Не решено</span>
+      </div>
+
+      <div class="task-content">
+        <div class="task-prompt editor-content">${promptHtml}</div>
+
+        ${assignment.context ? `
+          <div class="task-text">
+            <button type="button" class="task-text__button task1-toggle-btn">Показать текст</button>
+            <div class="task-fulltext editor-content" style="display:none;">${contextHtml}</div>
+          </div>
+        ` : ''}
+
+        <div class="task-controls">
+          <input class="task-input" id="answer-${assignment.id}" placeholder="Введите свой ответ" aria-label="Ответ"/>
+          <button class="task-send" onclick="submitAnswer(${assignment.id})">
+            <span>Отправить</span>
+          </button>
+          <button class="task-solution" onclick="showSolution(${assignment.id})">
+            <span>Решение</span>
+            <img src="/images/eye off.svg" alt="Глаз" width="16" height="16"/>
+          </button>
+          <button class="task-like">
+            <img src="/images/heart off.svg" alt="Лайк" width="16" height="16"/>
+          </button>
+        </div>
+      </div>
+
+      <div id="solution-${assignment.id}" class="task-solution-block" style="display:none;">
+        <p id="solution-answer-${assignment.id}" class="solution-answer"></p>
+      </div>
+    </div>
+  `;
+}
+
+let allAssignments = [];
+let activeSubtopic = 'all';
+
+function renderList() {
+  const list = document.getElementById('taskList');
+  const filtered = activeSubtopic === 'all'
+    ? allAssignments
+    : allAssignments.filter(a => String(a.subtopic_id) === activeSubtopic);
+
+  if (!filtered.length) {
+    list.innerHTML = '<p style="color:var(--text-secondary);">Нет заданий.</p>';
+    return;
+  }
+  list.innerHTML = filtered.map((a, i) => buildCard(a, i)).join('');
+
+  list.querySelectorAll('.task1-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const fullText = btn.nextElementSibling;
+      const shown = fullText.style.display !== 'none';
+      fullText.style.display = shown ? 'none' : 'block';
+      btn.textContent = shown ? 'Показать текст' : 'Скрыть текст';
+    });
+  });
+}
+
+(async function () {
+  try { await waitForEditorRenderer(); } catch (e) { /* fallback */ }
+
+  let subtopics, assignments;
+  try {
+    [subtopics, assignments] = await Promise.all([
+      fetch('/api/subtopics/with-count?type=1').then(r => r.json()),
+      fetch('/api/assignments/by-type?type=1').then(r => r.json()),
+    ]);
+  } catch (err) {
+    document.getElementById('taskList').innerHTML = '<p>Не удалось загрузить задания.</p>';
+    return;
+  }
+
+  allAssignments = assignments;
+
+  const filtersEl = document.getElementById('task1Filters');
+  subtopics.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'task1-chip';
+    btn.dataset.subtopic = s.id;
+    btn.textContent = `${s.title} (${s.assignments_count})`;
+    filtersEl.appendChild(btn);
+  });
+
+  filtersEl.addEventListener('click', e => {
+    const chip = e.target.closest('.task1-chip');
+    if (!chip) return;
+    filtersEl.querySelectorAll('.task1-chip').forEach(c => c.classList.remove('task1-chip--active'));
+    chip.classList.add('task1-chip--active');
+    activeSubtopic = chip.dataset.subtopic;
+    renderList();
+  });
+
+  renderList();
+})();
+
+async function submitAnswer(assignmentId) {
+  const input = document.getElementById(`answer-${assignmentId}`);
+  const button = input.nextElementSibling;
+  const userAnswer = input.value.trim();
+  if (!userAnswer) {
+    input.classList.add('empty');
+    setTimeout(() => input.classList.remove('empty'), 500);
+    return;
+  }
+  button.innerHTML = '<span>Отправка...</span>';
+  button.disabled = true;
+  try {
+    const resp = await fetch('/api/check/by-id', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ assignmentId, userAnswer })
+    });
+    const data = await resp.json();
+    input.classList.add(data.ok ? 'input-correct' : 'input-incorrect');
+    const pill = document.getElementById(`status-${assignmentId}`);
+    if (pill) {
+      pill.textContent = data.ok ? 'Верно' : 'Неверно';
+      pill.className = 'task-status-pill ' + (data.ok ? 'task-status-pill--correct' : 'task-status-pill--incorrect');
+    }
+    if (data.ok) {
+      button.innerHTML = '<span>✓</span>';
+      button.style.background = '#bfd884';
+    } else {
+      button.innerHTML = '<span>✗</span>';
+      button.style.background = '#f6b462';
+    }
+  } catch (err) {
+    button.innerHTML = '<span>Отправить</span>';
+    button.style.background = '';
+    button.disabled = false;
+  }
+}
+
+async function showSolution(assignmentId) {
+  const solutionBlock = document.getElementById(`solution-${assignmentId}`);
+  const button = solutionBlock.previousElementSibling.querySelector('.task-solution');
+  const eyeIcon = button.querySelector('img');
+  if (solutionBlock.style.display === 'none') {
+    try {
+      const resp = await fetch(`/api/assignments/by-id/${assignmentId}`);
+      const a = await resp.json();
+      document.getElementById(`solution-answer-${assignmentId}`).textContent = a.answer || 'Ответ не найден';
+      solutionBlock.style.display = 'block';
+      eyeIcon.src = '/images/eye on.svg';
+    } catch (err) {
+      console.error(err);
+    }
+  } else {
+    solutionBlock.style.display = 'none';
+    eyeIcon.src = '/images/eye off.svg';
+  }
+}
+</script>

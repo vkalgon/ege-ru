@@ -362,6 +362,60 @@ router.get('/weak-words', (req, res) => {
   res.json({ weak_words: buildWeakWordsForUser(user.id), mastery_threshold: MASTERY_THRESHOLD });
 });
 
+// GET /api/progress/task9-stats — статистика ошибок по категориям и корням для задания 9
+router.get('/task9-stats', (req, res) => {
+  const user = getUserIdFromReq(req);
+  if (!user) return res.status(401).json({ error: 'Не авторизован' });
+
+  const rows = db.prepare(`
+    SELECT
+      swp.word_id,
+      swp.total_attempts,
+      swp.total_correct,
+      w.category,
+      w.alternation_rule
+    FROM student_word_progress swp
+    JOIN task9_words w ON w.id = swp.word_id
+    WHERE swp.user_id = ? AND swp.word_table = 'task9_words'
+      AND swp.total_attempts > 0
+  `).all(user.id);
+
+  const catMap = {};
+  for (const r of rows) {
+    const c = r.category;
+    catMap[c] ??= { attempts: 0, correct: 0 };
+    catMap[c].attempts += r.total_attempts;
+    catMap[c].correct  += r.total_correct;
+  }
+
+  const ruleMap = {};
+  for (const r of rows.filter(r => r.category === 'alternating' && r.alternation_rule)) {
+    const rule = r.alternation_rule;
+    ruleMap[rule] ??= { attempts: 0, correct: 0 };
+    ruleMap[rule].attempts += r.total_attempts;
+    ruleMap[rule].correct  += r.total_correct;
+  }
+
+  const categories = Object.entries(catMap).map(([category, s]) => ({
+    category,
+    attempts: s.attempts,
+    errors: s.attempts - s.correct,
+    accuracy: Math.round(s.correct / s.attempts * 100),
+  }));
+
+  const roots = Object.entries(ruleMap)
+    .map(([rule, s]) => ({
+      rule,
+      attempts: s.attempts,
+      errors: s.attempts - s.correct,
+      accuracy: Math.round(s.correct / s.attempts * 100),
+    }))
+    .sort((a, b) => b.errors - a.errors)
+    .slice(0, 6);
+
+  res.json({ categories, roots });
+});
+
 // DELETE /api/progress/words/:table/:wordId — удалить слово из прогресса
 router.delete('/words/:table/:wordId', (req, res) => {
   const user = getUserIdFromReq(req);
@@ -382,6 +436,89 @@ router.post('/words/:table/:wordId/master', (req, res) => {
     WHERE user_id = ? AND word_table = ? AND word_id = ?
   `).run(MASTERY_THRESHOLD, user.id, req.params.table, Number(req.params.wordId));
   res.json({ ok: true });
+});
+
+/* ─── Теория ────────────────────────────────────────────────── */
+
+const THEORY_TASKS = {
+  task5:  { label: 'Задание 5 — Паронимы',         url: '/task5/theory',  practice: '/task5',  blocks: [] },
+  task9:  { label: 'Задание 9 — Гласные в корне',  url: '/task9/theory',  practice: '/task9',  blocks: [
+    { key: 'task9-alternating', label: 'Чередующиеся гласные' },
+    { key: 'task9-unverifiable', label: 'Словарные (непроверяемые)' },
+    { key: 'task9-alt-stress',    label: 'Чередование: по ударению' },
+    { key: 'task9-alt-suffix',    label: 'Чередование: суффикс -А-' },
+    { key: 'task9-alt-consonant', label: 'Чередование: по следующей букве' },
+    { key: 'task9-alt-meaning',   label: 'Чередование: по значению' },
+  ]},
+  task10: { label: 'Задание 10 — Приставки',        url: '/task10/theory', practice: '/task10', blocks: [
+    { key: 'task10-zs',     label: 'Приставки на з- / с-' },
+    { key: 'task10-prepri', label: 'Приставки пре- / при-' },
+    { key: 'task10-ypro',   label: 'Ы / И после приставок' },
+    { key: 'task10-hard',   label: 'Разделительные ъ и ь' },
+    { key: 'task10-prapro', label: 'Приставки пра- / про-' },
+  ]},
+  task11: { label: 'Задание 11 — Суффиксы',         url: '/task11/theory', practice: '/task11', blocks: [] },
+  task12: { label: 'Задание 12 — Окончания и суффиксы', url: '/task12/theory', practice: '/task12', blocks: [] },
+  task17: { label: 'Задание 17 — Запятые в тексте', url: '/task17/theory', practice: '/task17', blocks: [] },
+};
+
+// POST /api/progress/theory/view  { task_key }
+router.post('/theory/view', (req, res) => {
+  const user = getUserIdFromReq(req);
+  if (!user) return res.status(401).json({ error: 'Не авторизован' });
+  const { task_key } = req.body;
+  if (!task_key || !THEORY_TASKS[task_key]) return res.status(400).json({ error: 'Неверный task_key' });
+  db.prepare(`
+    INSERT INTO theory_progress (user_id, task_key) VALUES (?, ?)
+    ON CONFLICT (user_id, task_key) DO NOTHING
+  `).run(user.id, task_key);
+  res.json({ ok: true });
+});
+
+// GET /api/progress/theory
+router.get('/theory', (req, res) => {
+  const user = getUserIdFromReq(req);
+  if (!user) return res.status(401).json({ error: 'Не авторизован' });
+
+  const viewed = db.prepare(
+    'SELECT task_key, viewed_at FROM theory_progress WHERE user_id = ?'
+  ).all(user.id);
+  const viewedMap = Object.fromEntries(viewed.map(r => [r.task_key, r.viewed_at]));
+
+  const practiced = db.prepare(`
+    SELECT
+      CASE
+        WHEN type_id IN (SELECT id FROM task_types WHERE id = 5) THEN 'task5'
+        WHEN type_id IN (SELECT id FROM task_types WHERE id = 9) THEN 'task9'
+        WHEN type_id IN (SELECT id FROM task_types WHERE id = 10) THEN 'task10'
+        WHEN type_id IN (SELECT id FROM task_types WHERE id = 11) THEN 'task11'
+        WHEN type_id IN (SELECT id FROM task_types WHERE id = 12) THEN 'task12'
+        WHEN type_id IN (SELECT id FROM task_types WHERE id = 17) THEN 'task17'
+      END AS task_key
+    FROM answers_log
+    WHERE user_id = ? AND is_correct = 1
+      AND type_id IN (5, 9, 10, 11, 12, 17)
+    GROUP BY task_key
+  `).all(user.id);
+  const practicedSet = new Set(practiced.map(r => r.task_key).filter(Boolean));
+
+  const unlockedRows = db.prepare(
+    'SELECT theory_key FROM theory_unlocks WHERE user_id = ?'
+  ).all(user.id);
+  const unlockedSet = new Set(unlockedRows.map(r => r.theory_key));
+
+  const result = Object.entries(THEORY_TASKS).map(([key, info]) => ({
+    task_key: key,
+    label: info.label,
+    theory_url: info.url,
+    practice_url: info.practice,
+    viewed: !!viewedMap[key],
+    viewed_at: viewedMap[key] || null,
+    practiced: practicedSet.has(key),
+    blocks: info.blocks.map(b => ({ key: b.key, label: b.label, unlocked: unlockedSet.has(b.key) })),
+  }));
+
+  res.json({ theory: result });
 });
 
 export default router;
